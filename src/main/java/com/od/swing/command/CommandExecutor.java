@@ -10,7 +10,7 @@ import java.util.List;
  */
 interface CommandExecutor<E> {
 
-    List<CommandLifeCycleMonitor<? super E>> getLifeCycleMonitors();
+    List<LifeCycleMonitor<? super E>> getLifeCycleMonitors();
 
     void executeCommand();
 }

@@ -5,12 +5,12 @@ package com.od.swing.command;
  */
 class DefaultCommandController<E> implements CommandController<E> {
 
-    public boolean commandStarting(E commandExecution, String message) {
-        return true;
+    public void commandStarting(String commandName, E commandExecution) {
     }
 
-    public void commandStopped(E commandExecution, String message) {}
+    public void commandStopped(String commandName, E commandExecution) {
+    }
 
-    public void handleCommandError(E commandExecution, String errorMessage, Throwable t) {}
-    
+    public void commandError(String commandName, E commandExecution, Throwable t) {
+    }
 }

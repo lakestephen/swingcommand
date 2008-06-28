@@ -10,39 +10,25 @@ package com.od.swing.command;
  */
 public abstract class AbstractCommand implements Command<AbstractCommand> {
 
-    private LifeCycleMonitoringSupport<AbstractCommand> lifeCycleMonitoringSupport = new LifeCycleMonitoringSupport<AbstractCommand>();
-    private String startMessage = "Starting command " + getClass().getName();
-    private String stopMessage = "Stopped command " + getClass().getName();
-    private String errorMessage = "Error executing command " + getClass().getName();
+    private final LifeCycleMonitoringSupport<AbstractCommand> lifeCycleMonitoringSupport = new LifeCycleMonitoringSupport<AbstractCommand>();
+    private final String commandName;
 
-    protected AbstractCommand() {
-    }
-
-    public void setMessages(String startMessage, String stopMessage) {
-        this.startMessage = startMessage;
-        this.stopMessage = stopMessage;
-    }
-
-    public void setStartMessage(String startMessage) {
-        this.startMessage = startMessage;
-    }
-
-    public void setStopMessage(String stopMessage) {
-        this.stopMessage = stopMessage;
+    public AbstractCommand(String commandName) {
+        this.commandName = commandName;
     }
 
     public final void execute() {
-        fireStarted(startMessage);
+        fireStarted();
         try {
             doExecute();
             //nb. during the execute the subclass may fire step reached events
         }
         catch (Throwable t) {
             t.printStackTrace();
-            fireError(errorMessage, t);
+            fireError(t);
         }
         finally {
-            fireEnded(stopMessage);
+            fireEnded();
         }
     }
 
@@ -55,27 +41,27 @@ public abstract class AbstractCommand implements Command<AbstractCommand> {
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////// Now the delegate methods to the life cycle monitoring support
-    private void fireEnded(String endMessage) {
-        LifeCycleMonitoringSupport.fireEnded(lifeCycleMonitoringSupport.getLifeCycleMonitorSnapshot(), this, endMessage);
+    private void fireEnded() {
+        LifeCycleMonitoringSupport.fireEnded(lifeCycleMonitoringSupport.getLifeCycleMonitorSnapshot(), commandName, this);
     }
 
-    private void fireError(String errorMessage, Throwable t) {
-        LifeCycleMonitoringSupport.fireError(lifeCycleMonitoringSupport.getLifeCycleMonitorSnapshot(), this, errorMessage, t);
+    private void fireError(Throwable t) {
+        LifeCycleMonitoringSupport.fireError(lifeCycleMonitoringSupport.getLifeCycleMonitorSnapshot(), commandName, this, t);
     }
 
-    private void fireStarted(String startMessage) {
-        LifeCycleMonitoringSupport.fireStarted(lifeCycleMonitoringSupport.getLifeCycleMonitorSnapshot(), this, startMessage);
+    private void fireStarted() {
+        LifeCycleMonitoringSupport.fireStarted(lifeCycleMonitoringSupport.getLifeCycleMonitorSnapshot(), commandName, this);
     }
 
-    public void fireStepReached(int currentStep, int totalStep, String stepMessage) {
-        LifeCycleMonitoringSupport.fireStepReached(lifeCycleMonitoringSupport.getLifeCycleMonitorSnapshot(), this, currentStep, totalStep, stepMessage);
+    protected void fireStepReached() {
+        LifeCycleMonitoringSupport.fireStepReached(lifeCycleMonitoringSupport.getLifeCycleMonitorSnapshot(), commandName, this);
     }
 
-    public void addLifeCycleMonitor(CommandLifeCycleMonitor<AbstractCommand> lifeCycleMonitor) {
+    public void addLifeCycleMonitor(LifeCycleMonitor<AbstractCommand> lifeCycleMonitor) {
         lifeCycleMonitoringSupport.addLifeCycleMonitor(lifeCycleMonitor);
     }
 
-    public void removeLifeCycleMonitor(CommandLifeCycleMonitor<AbstractCommand> lifeCycleMonitor) {
+    public void removeLifeCycleMonitor(LifeCycleMonitor<AbstractCommand> lifeCycleMonitor) {
         lifeCycleMonitoringSupport.removeLifeCycleMonitor(lifeCycleMonitor);
     }
 }

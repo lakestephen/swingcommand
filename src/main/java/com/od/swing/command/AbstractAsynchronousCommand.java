@@ -29,7 +29,6 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
     private final LifeCycleMonitoringSupport<E> lifeCycleMonitoringSupport = new LifeCycleMonitoringSupport<E>();
     private final boolean isRunSynchronously;
     private final String commandName;
-    private String startMessage, stopMessage, errorMessage;
 
     //use of Hashtable rather than HashMap to ensure synchronized access
     private Map<E, CommandExecutor<E>> executionToExecutorMap = new Hashtable<E, CommandExecutor<E>>();
@@ -40,7 +39,6 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
     public AbstractAsynchronousCommand(String name) {
         this.commandName = name;
         this.isRunSynchronously = false;
-        setDefaultMessagesFromCommandName();
     }
 
     /**
@@ -51,7 +49,6 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
         this.commandName = name;
         this.commandController = commandController;
         this.isRunSynchronously = false;
-        setDefaultMessagesFromCommandName();
     }
 
     /**
@@ -61,7 +58,6 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
     public AbstractAsynchronousCommand(String name, boolean isRunSynchronously) {
         this.commandName = name;
         this.isRunSynchronously = isRunSynchronously;
-        setDefaultMessagesFromCommandName();
     }
 
     /**
@@ -73,34 +69,9 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
         this.commandName = name;
         this.isRunSynchronously = isRunSynchronously;
         this.commandController = commandController;
-        setDefaultMessagesFromCommandName();
     }
 
-    private void setDefaultMessagesFromCommandName() {
-        this.startMessage = "Started command " + commandName;
-        this.stopMessage = "Stopped command " + commandName;
-        this.errorMessage = "Error executing command " + commandName;
-    }
-
-    public void setMessages(String startMessage, String stopMessage, String errorMessage) {
-        this.startMessage = startMessage;
-        this.stopMessage = stopMessage;
-        this.errorMessage = errorMessage;
-    }
-
-    public void setStopMessage(String stopMessage) {
-        this.stopMessage = stopMessage;
-    }
-
-    public void setStartMessage(String startMessage) {
-        this.startMessage = startMessage;
-    }
-
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
-
-    public final void execute(CommandLifeCycleMonitor<? super E>... instanceLifeCycleMonitors) {
+    public final void execute(LifeCycleMonitor<? super E>... instanceLifeCycleMonitors) {
         E execution = createExecutionInEventThread();
         if ( execution != null ) {
             executeCommand(execution, instanceLifeCycleMonitors);
@@ -109,10 +80,10 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
         }
      }
 
-    private void executeCommand(final E execution, CommandLifeCycleMonitor<? super E>... instanceLifeCycleMonitors) {
+    private void executeCommand(final E execution, LifeCycleMonitor<? super E>... instanceLifeCycleMonitors) {
 
         //get a snapshot list of the life cycle monitors which will receive the events for this execution
-        final List<CommandLifeCycleMonitor<? super E>> monitorsForExecution = lifeCycleMonitoringSupport.getLifeCycleMonitorSnapshot();
+        final List<LifeCycleMonitor<? super E>> monitorsForExecution = lifeCycleMonitoringSupport.getLifeCycleMonitorSnapshot();
         monitorsForExecution.addAll(Arrays.asList(instanceLifeCycleMonitors));
 
         //create a new executor unique to this command execution
@@ -121,9 +92,7 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
             execution,
             commandController,
             monitorsForExecution,
-            startMessage,
-            stopMessage,
-            errorMessage,
+            commandName,
             isRunSynchronously
         ).executeCommand();
     }
@@ -132,6 +101,7 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
     private E createExecutionInEventThread() {
 
         class CreateExecutionRunnable implements Runnable {
+
             volatile E execution;
 
             public E getExecution() {
@@ -149,7 +119,7 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
             System.err.println("Error while creating execution for command " + commandName);
             t.printStackTrace();
         }
-        return r.getExecution();
+        return (E)r.getExecution();
     }
 
     /**
@@ -157,11 +127,11 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
      */
     public abstract E createExecution();
     
-    public void addLifeCycleMonitor(CommandLifeCycleMonitor<E> lifeCycleMonitor) {
+    public void addLifeCycleMonitor(LifeCycleMonitor<E> lifeCycleMonitor) {
         lifeCycleMonitoringSupport.addLifeCycleMonitor(lifeCycleMonitor);
     }
 
-    public void removeLifeCycleMonitor(CommandLifeCycleMonitor<E> lifeCycleMonitor) {
+    public void removeLifeCycleMonitor(LifeCycleMonitor<E> lifeCycleMonitor) {
         lifeCycleMonitoringSupport.removeLifeCycleMonitor(lifeCycleMonitor);
     }
 
@@ -169,15 +139,18 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
      * Fire command error to LifeCycleMonitor instances
      * Event will be fired on the Swing event thread
      *
+     * This has default visiblity so that CompositeAsyncCommand can use it
+     * Subclasses should usually throw an exception during processing - which will trigger an error to be fired and processing to be aborted
+     *
+     * @param commandName, name describing this command
      * @param commandExecution execution for executing command
-     * @param errorMessage, a message describing the error
      * @param t the error which occurred
      */
-    protected void fireError(E commandExecution, String errorMessage, Throwable t) {
+    void fireError(String commandName, E commandExecution, Throwable t) {
         CommandExecutor<E> c = executionToExecutorMap.get(commandExecution);
         if ( c != null ) {
-            List<CommandLifeCycleMonitor<? super E>> lifeCycleMonitors = c.getLifeCycleMonitors();
-            LifeCycleMonitoringSupport.fireError(lifeCycleMonitors, commandExecution, errorMessage, t);
+            List<LifeCycleMonitor<? super E>> lifeCycleMonitors = c.getLifeCycleMonitors();
+            LifeCycleMonitoringSupport.fireError(lifeCycleMonitors, commandName, commandExecution, t);
         } else {
             System.err.println(getClass().getName() + " tried to fire error for unknown execution");
         }
@@ -187,16 +160,14 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
      * Fire step reached to LifeCycleMonitor instances
      * Event will be fired on the Swing event thread
      *
+     * @param commandName, name describing this command
      * @param commandExecution, execution for executing command
-     * @param currentStep, current execution step about to start
-     * @param totalStep, total steps in execution
-     * @param stepMessage, message describing this step
      */
-    protected void fireStepReached(E commandExecution, int currentStep, int totalStep, String stepMessage) {
+    protected void fireStepReached(String commandName, E commandExecution) {
         CommandExecutor<E> c = executionToExecutorMap.get(commandExecution);
         if ( c != null ) {
-            List<CommandLifeCycleMonitor<? super E>> lifeCycleMonitors = c.getLifeCycleMonitors();
-            LifeCycleMonitoringSupport.fireStepReached(lifeCycleMonitors, commandExecution, currentStep, totalStep, stepMessage);
+            List<LifeCycleMonitor<? super E>> lifeCycleMonitors = c.getLifeCycleMonitors();
+            LifeCycleMonitoringSupport.fireStepReached(lifeCycleMonitors, commandName, commandExecution);
         } else {
             System.err.println(getClass().getName() + " tried to fire step reached for unknown execution");
         }

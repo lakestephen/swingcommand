@@ -17,21 +17,17 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
 
     private final Map<E, CommandExecutor<E>> executionToExecutorMap;
     private final E commandExecution;
-    private final List<CommandLifeCycleMonitor<? super E>> lifeCycleMonitors;
+    private final List<LifeCycleMonitor<? super E>> lifeCycleMonitors;
     private final CommandController<? super E> commandController;
-    private final String startMessage;
-    private final String stopMessage;
-    private final String errorMessage;
+    private final String commandName;
     private final boolean runSynchronously;
 
-    public DefaultCommandExecutor(Map<E, CommandExecutor<E>> executionToExecutorMap, E commandExecution, CommandController<? super E> commandController, List<CommandLifeCycleMonitor<? super E>> lifeCycleMonitors, String startMessage, String stopMessage, String errorMessage, boolean isRunSynchronously) {
+    public DefaultCommandExecutor(Map<E, CommandExecutor<E>> executionToExecutorMap, E commandExecution, CommandController<? super E> commandController, List<LifeCycleMonitor<? super E>> lifeCycleMonitors, String commandName, boolean isRunSynchronously) {
         this.executionToExecutorMap = executionToExecutorMap;
         this.commandExecution = commandExecution;
         this.lifeCycleMonitors = lifeCycleMonitors;
         this.commandController = commandController;
-        this.startMessage = startMessage;
-        this.stopMessage = stopMessage;
-        this.errorMessage = errorMessage;
+        this.commandName = commandName;
         runSynchronously = isRunSynchronously;
     }
 
@@ -42,7 +38,7 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
      */
     private final Object memorySync = new Object();
 
-    public List<CommandLifeCycleMonitor<? super E>> getLifeCycleMonitors() {
+    public List<LifeCycleMonitor<? super E>> getLifeCycleMonitors() {
         return lifeCycleMonitors;
     }
 
@@ -53,11 +49,10 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
 
         //Call fire started before spawning a new thread. Provided execute was called on the
         //event thread, no more ui work can possibly get done before fireStarted is called
-        //This is important:
-        //for example, if the fireStarted is used to disable a button, this guarantees that the button will be
-        //disabled before the action listener which triggered the execute returns.
+        //If fireStarted is used, for example, to disable a button, this guarantees that the button will be
+        //disabled before the action listener triggering the command returns.
         //otherwise the user might be able to click the button again before fireStarted
-        LifeCycleMonitoringSupport.fireStarted(lifeCycleMonitors, commandExecution, startMessage);
+        LifeCycleMonitoringSupport.fireStarted(lifeCycleMonitors, commandName, commandExecution);
 
         //a runnable to do the async portion of the command
         Runnable execute = new Runnable() {
@@ -80,34 +75,24 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
 
     private void doExecuteAsync() {
         //this try block makes sure we always call end up calling fireEnded
+        //this try block makes sure we always end up calling commandStopped, one commandStarting returns true
         try {
-            boolean mayProceed;
-            //just for my paranoia - guarantee the latest state is visible to the processing thread.
             synchronized (memorySync) {
-                mayProceed = commandController.commandStarting(commandExecution, startMessage);
+                commandController.commandStarting(commandName, commandExecution);
+
+                //STAGE2  - in the current command processing thread which will not be the event thread unless in synchronous mode
+                commandExecution.doExecuteAsync();
             }
 
-            if ( mayProceed) {
-                //this try block makes sure we always end up calling commandStopped, one commandStarting returns true
-                try {
+            //STAGE3 - this needs to be done on the event thread
+            runDoAfterExecute(commandExecution);
 
-                    //STAGE2  - in the current command processing thread which will not be the event thread unless in synchronous mode
-                    commandExecution.doExecuteAsync();
-
-                    //STAGE3 - this needs to be done on the event thread
-                    runDoAfterExecute(commandExecution);
-
-                } catch (Throwable t ) {
-                    safeHandleError(commandExecution, t);
-                    LifeCycleMonitoringSupport.fireError(lifeCycleMonitors, commandExecution, errorMessage, t);
-                } finally {
-                    safeStopCommand(commandExecution);
-                }
-            }
-        } catch (Throwable t) {
-            LifeCycleMonitoringSupport.fireError(lifeCycleMonitors, commandExecution, errorMessage, t);
+        } catch (Throwable t ) {
+            safeHandleError(commandExecution, t);
+            LifeCycleMonitoringSupport.fireError(lifeCycleMonitors, commandName, commandExecution, t);
         } finally {
-            LifeCycleMonitoringSupport.fireEnded(lifeCycleMonitors, commandExecution, stopMessage);
+            safeStopCommand(commandExecution);
+            LifeCycleMonitoringSupport.fireEnded(lifeCycleMonitors, commandName, commandExecution);
         }
     }
 
@@ -115,7 +100,7 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
     private void safeStopCommand(E commandExecution)
     {
         try {
-            commandController.commandStopped(commandExecution, stopMessage);
+            commandController.commandStopped(commandName, commandExecution);
         } catch (Throwable th) {
             th.printStackTrace();
         }
@@ -125,7 +110,7 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
     private void safeHandleError(E commandExecution, Throwable t)
     {
         try {
-            commandController.handleCommandError(commandExecution, errorMessage, t);
+            commandController.commandError(commandName, commandExecution, t);
         } catch ( Throwable th) {
             th.printStackTrace();
         }

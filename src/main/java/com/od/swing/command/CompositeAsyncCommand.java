@@ -22,8 +22,6 @@ import java.util.Arrays;
 public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<CompositeAsyncCommand.CompositeExecution> {
 
     private List<Command> childCommands = new ArrayList<Command>(3);
-    private int totalChildCommands;
-    private int currentCommand;
     private boolean abortOnError;
 
     public CompositeAsyncCommand(String name, boolean isSynchronousMode, Command... childCommands) {
@@ -47,7 +45,15 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
         this.abortOnError = abortOnError;
     }
 
+    public CompositeExecution createExecution() {
+        return new CompositeExecution();
+    }
+
     public class CompositeExecution implements CommandExecution {
+
+        private int totalChildCommands = childCommands.size();
+        private int currentCommandId;
+        private Command currentCommand;
 
          /**
          * Execute the child commands here off the swing thread.
@@ -57,25 +63,36 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
          */
         public void doExecuteAsync() throws Exception {
             LifeCycleMonitorProxy lifeCycleProxy = new LifeCycleMonitorProxy(this);
-            currentCommand = 0;
-            totalChildCommands = childCommands.size();
+            currentCommandId = 0;
             for (Command command : childCommands) {
-                currentCommand++;
-                    command.execute(lifeCycleProxy);  //we are not in event thread here, so this should be synchronous
+                currentCommand = command;
+                currentCommandId++;
+                command.execute(lifeCycleProxy);  //we are not in event thread here, so this should be synchronous
 
-                    //abort processing if a command has generated an error via the TaskServicesProxy
-                    if (lifeCycleProxy.isErrorOccurred() && abortOnError) {
-                        break;
-                    }
+                //abort processing if a command has generated an error via the TaskServicesProxy
+                if (lifeCycleProxy.isErrorOccurred() && abortOnError) {
+                    break;
+                }
             }
+        }
+
+        public Command getCurrentCommand() {
+            return currentCommand;
+        }
+
+        public int getCurrentCommandId() {
+            return currentCommandId;
+        }
+
+        public int getTotalCommands() {
+            return totalChildCommands;
         }
 
         public void doAfterExecute() throws Exception {
         }
 
 
-        private class LifeCycleMonitorProxy implements CommandLifeCycleMonitor {
-
+        private class LifeCycleMonitorProxy implements LifeCycleMonitor  {
             private boolean errorOccurred;
             private CompositeExecution commandExecution;
 
@@ -83,19 +100,19 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
                 this.commandExecution = commandExecution;
             }
 
-            public void started(Object commandExecution, String startMessage) {
-                fireStepReached(this.commandExecution, currentCommand, totalChildCommands, startMessage);
+            public void started(String commandName, Object commandExecution) {
+                fireStepReached(commandName, this.commandExecution);
             }
 
-            public void stepReached(Object commandExecution, int currentStep, int totalStep, String stepMessage) {
+            public void stepReached(String commandName, Object commandExecution) {
             }
 
-            public void ended(Object commandExecution, String endMessage) {
+            public void ended(String commandName, Object commandExecution) {
             }
 
-            public void error(Object commandExecution, String errorMessage, Throwable e) {
+            public void error(String commandName, Object commandExecution, Throwable e) {
                 errorOccurred = true;
-                fireError(this.commandExecution, errorMessage, e);
+                fireError(commandName, this.commandExecution, e);
             }
 
             public boolean isErrorOccurred() {
@@ -104,11 +121,6 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
         }
 
     }
-
-
-
-
-
 }
 
 
