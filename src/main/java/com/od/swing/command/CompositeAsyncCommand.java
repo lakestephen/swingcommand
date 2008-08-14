@@ -49,7 +49,7 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
         return new CompositeExecution();
     }
 
-    public class CompositeExecution implements CommandExecution {
+    class CompositeExecution implements CommandExecution {
 
         private int totalChildCommands = childCommands.size();
         private int currentCommandId;

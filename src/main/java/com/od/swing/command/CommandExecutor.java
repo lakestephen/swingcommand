@@ -12,5 +12,8 @@ interface CommandExecutor<E> {
 
     List<LifeCycleMonitor<? super E>> getLifeCycleMonitors();
 
-    void executeCommand();
+    /**
+     * @return a reference to the Thread which was used to execute the command
+     */
+    Thread executeCommand();
 }

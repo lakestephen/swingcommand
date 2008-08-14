@@ -42,7 +42,7 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
         return lifeCycleMonitors;
     }
 
-    public void executeCommand() {
+    public Thread executeCommand() {
 
         //register the executor against the execution in the map
         executionToExecutorMap.put(commandExecution, DefaultCommandExecutor.this);
@@ -65,12 +65,16 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
             }
         };
 
+        Thread thread;
         //kick off the executor on a subthread, unless we are in run synchronous mode or are on a subthread already
         if ( SwingUtilities.isEventDispatchThread() && ! runSynchronously ) {
-            new Thread(execute).start();
+            thread = new Thread(execute);
+            thread.start();
         } else {
+            thread = Thread.currentThread();
             execute.run();
         }
+        return thread;
     }
 
     private void doExecuteAsync() {

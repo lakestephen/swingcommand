@@ -26,6 +26,7 @@ import java.util.Hashtable;
 public abstract class AbstractAsynchronousCommand<E extends CommandExecution> implements Command<E> {
 
     private volatile CommandController<? super E> commandController = new DefaultCommandController<E>();
+    private volatile Thread lastExecutingThread;
     private final LifeCycleMonitoringSupport<E> lifeCycleMonitoringSupport = new LifeCycleMonitoringSupport<E>();
     private final boolean isRunSynchronously;
     private final String commandName;
@@ -87,7 +88,7 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
         monitorsForExecution.addAll(Arrays.asList(instanceLifeCycleMonitors));
 
         //create a new executor unique to this command execution
-        new DefaultCommandExecutor<E>(
+        lastExecutingThread = new DefaultCommandExecutor<E>(
             executionToExecutorMap,
             execution,
             commandController,
@@ -127,11 +128,11 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
      */
     public abstract E createExecution();
     
-    public void addLifeCycleMonitor(LifeCycleMonitor<E> lifeCycleMonitor) {
+    public void addLifeCycleMonitor(LifeCycleMonitor<? super E>... lifeCycleMonitor) {
         lifeCycleMonitoringSupport.addLifeCycleMonitor(lifeCycleMonitor);
     }
 
-    public void removeLifeCycleMonitor(LifeCycleMonitor<E> lifeCycleMonitor) {
+    public void removeLifeCycleMonitor(LifeCycleMonitor<? super E>... lifeCycleMonitor) {
         lifeCycleMonitoringSupport.removeLifeCycleMonitor(lifeCycleMonitor);
     }
 
@@ -180,4 +181,11 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
         return commandController;
     }
 
+    /**
+     * This method is intended as a hook for testing frameworks only
+     * @return a reference to the Thread which was last used to execute a command
+     */
+    protected Thread getLastExecutingThread() {
+        return lastExecutingThread;
+    }
 }

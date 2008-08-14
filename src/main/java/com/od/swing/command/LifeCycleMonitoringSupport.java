@@ -19,16 +19,20 @@ class LifeCycleMonitoringSupport<E> {
 
     private final List<LifeCycleMonitor<? super E>> lifeCycleMonitors = new ArrayList<LifeCycleMonitor<? super E>>();
 
-    public final void addLifeCycleMonitor(LifeCycleMonitor<? super E> lifeCycleMonitor) {
+    public final void addLifeCycleMonitor(LifeCycleMonitor<? super E>... monitors) {
         synchronized (lifeCycleMonitors) {
-            lifeCycleMonitors.add(lifeCycleMonitor);
+            for (LifeCycleMonitor<? super E> monitor : monitors ) {
+                lifeCycleMonitors.add(monitor);
+            }
         }
     }
 
-    public final void removeLifeCycleMonitor(LifeCycleMonitor<? super E> lifeCycleMonitor) {
+    public final void removeLifeCycleMonitor(LifeCycleMonitor<? super E>... monitors) {
         //find the proxy for the real interface and remove
         synchronized (lifeCycleMonitors) {
-            lifeCycleMonitors.remove(lifeCycleMonitor);
+            for (LifeCycleMonitor<? super E> monitor : monitors ) {
+                lifeCycleMonitors.remove(monitor);
+            }
         }
     }
 
