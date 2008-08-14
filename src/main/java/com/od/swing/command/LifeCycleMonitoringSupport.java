@@ -46,44 +46,43 @@ class LifeCycleMonitoringSupport<E> {
     }
 
     public static <E> void fireStarted(final List<LifeCycleMonitor<? super E>> lifeCycleMonitors, final String commandName, final E commandExecution) {
-        executeSynchronouslyOnEventThread(new Runnable(){
-            public void run() {
-                for (LifeCycleMonitor<? super E> monitor : lifeCycleMonitors) {
+        for (final LifeCycleMonitor<? super E> monitor : lifeCycleMonitors) {
+            executeSynchronouslyOnEventThread(new Runnable(){
+                public void run() {
                     monitor.started(commandName, commandExecution);
                 }
-            }
-        }, true);
+            }, true);
+        }
     }
 
     public static <E> void fireEnded(final List<LifeCycleMonitor<? super E>> lifeCycleMonitors, final String commandName, final E commandExecution) {
-        executeSynchronouslyOnEventThread(new Runnable(){
-            public void run() {
-                for (LifeCycleMonitor<? super E> monitor : lifeCycleMonitors) {
+        for (final LifeCycleMonitor<? super E> monitor : lifeCycleMonitors) {
+            executeSynchronouslyOnEventThread(new Runnable(){
+                public void run() {
                     monitor.ended(commandName, commandExecution);
                 }
-            }
-        }, true);
+            }, true);
+        }
     }
 
     public static <E> void fireError(final List<LifeCycleMonitor<? super E>> lifeCycleMonitors, final String commandName, final E commandExecution, final Throwable t) {
-        executeSynchronouslyOnEventThread(new Runnable(){
-            public void run() {
-                for (LifeCycleMonitor<? super E> monitor : lifeCycleMonitors) {
+        for (final LifeCycleMonitor<? super E> monitor : lifeCycleMonitors) {
+            executeSynchronouslyOnEventThread(new Runnable(){
+                public void run() {
                     monitor.error(commandName, commandExecution, t);
                 }
-            }
-        }, true);
+            }, true);
+        }
     }
 
     public static <E> void fireStepReached(final List<LifeCycleMonitor<? super E>> lifeCycleMonitors, final String commandName, final E commandExecution) {
-        executeSynchronouslyOnEventThread(new Runnable(){
-            public void run() {
-                for (LifeCycleMonitor<? super E> monitor : lifeCycleMonitors) {
+        for (final LifeCycleMonitor<? super E> monitor : lifeCycleMonitors) {
+            executeSynchronouslyOnEventThread(new Runnable(){
+                public void run() {
                     monitor.stepReached(commandName, commandExecution);
                 }
-            }
-        }, true);
-
+            }, true);
+        }
     }
 
 

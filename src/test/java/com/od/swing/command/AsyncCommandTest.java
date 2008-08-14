@@ -103,4 +103,23 @@ public class AsyncCommandTest extends TestCase {
             System.out.println("started "  + commandName + " " + commandExecution + " " + error);
         }
     }
+
+    class RuntimeExceptionThrowingLifecycleMonitor implements LifeCycleMonitor {
+
+        public void started(String commandName, Object commandExecution) {
+            throw new RuntimeException("I shouldn't interrupt processing");
+        }
+
+        public void stepReached(String commandName, Object commandExecution) {
+            throw new RuntimeException("I shouldn't interrupt processing");
+        }
+
+        public void ended(String commandName, Object commandExecution) {
+            throw new RuntimeException("I shouldn't interrupt processing");
+        }
+
+        public void error(String commandName, Object commandExecution, Throwable error) {
+            throw new RuntimeException("I shouldn't interrupt processing");
+        }
+    }
 }

@@ -16,24 +16,7 @@ public class TestAbstractAsynchronousCommand extends AsyncCommandTest {
         final DummyExecution dummyExecution = new DummyExecution();
         final DummyAsyncCommand dummyCommand = new DummyAsyncCommand(name, dummyExecution);
 
-        invokeAndWaitWithFail(
-            new Runnable() {
-                public void run() {
-                    @SuppressWarnings("unchecked")
-                    final LifeCycleMonitor<CommandExecution> monitor = (LifeCycleMonitor<CommandExecution>)mockery.mock(LifeCycleMonitor.class);
-                    dummyCommand.addLifeCycleMonitor(monitor, debuggingLifeCycleMonitor);
-
-                    mockery.checking(new Expectations() {{
-                        one(monitor).started(name, dummyExecution);
-                        one(monitor).ended(name, dummyExecution);
-                    }});
-
-                    dummyCommand.execute();
-                }
-            }
-        );
-        joinCommandThread(dummyCommand);
-        validateMockeryAssertions();
+        testNormalExecution(name);
     }
 
     /**
@@ -42,7 +25,7 @@ public class TestAbstractAsynchronousCommand extends AsyncCommandTest {
      */
     public void testLifecycleStartErrorAndStopAreCalledIfExceptionThrownDuringDoExecuteAsync() {
         String name = "testLifecycleStartErrorAndStopAreCalledIfExceptionThrownDuringDoExecuteAsync";
-        testLifecycleError(
+        testErrorExecution(
             name,
             new DummyExecution() {
                 public void doExecuteAsync() throws Exception {
@@ -58,7 +41,7 @@ public class TestAbstractAsynchronousCommand extends AsyncCommandTest {
      */
     public void testLifecycleStartErrorAndStopAreCalledIfExceptionThrownDuringDoAfterExecute() {
         String name = "testLifecycleStartErrorAndStopAreCalledIfExceptionThrownDuringDoAfterExecute";
-        testLifecycleError(
+        testErrorExecution(
             name,
             new DummyExecution() {
                 public void doAfterExecute() throws Exception {
@@ -68,8 +51,34 @@ public class TestAbstractAsynchronousCommand extends AsyncCommandTest {
         );
     }
 
+    /**
+     * These lifecycle callbacks probably change things on the UI and exceptions may occur -
+     * but this should not affect the lifecycle of the command
+     */
+    public void testErrorsInLifecycleMonitorMethodsDontInterruptNormalProcessing() {
+        final String name = "testErrorsInLifecycleMonitorMethodsDontStopNormalProcessing";
+        testNormalExecution(name, new RuntimeExceptionThrowingLifecycleMonitor());
+    }
 
-    private void testLifecycleError(final String name, final DummyExecution dummyExecution) {
+     /**
+     * These lifecycle callbacks probably change things on the UI and exceptions may occur -
+     * but this should not affect the lifecycle of the command
+     */
+    public void testErrorsInLifecycleMonitorMethodsDontInterruptErrorProcessing() {
+        final String name = "testErrorsInLifecycleMonitorMethodsDontStopNormalProcessing";
+        testErrorExecution(
+            name,
+            new DummyExecution() {
+                public void doAfterExecute() throws Exception {
+                    throw new Exception();
+                }
+            },
+            new RuntimeExceptionThrowingLifecycleMonitor()
+        );
+    }
+
+    private void testNormalExecution(final String name, final LifeCycleMonitor<CommandExecution>... extraLifeCycleMonitor) {
+        final DummyExecution dummyExecution = new DummyExecution();
         final DummyAsyncCommand dummyCommand = new DummyAsyncCommand(name, dummyExecution);
 
         invokeAndWaitWithFail(
@@ -77,6 +86,39 @@ public class TestAbstractAsynchronousCommand extends AsyncCommandTest {
                 public void run() {
                     @SuppressWarnings("unchecked")
                     final LifeCycleMonitor<CommandExecution> monitor = (LifeCycleMonitor<CommandExecution>)mockery.mock(LifeCycleMonitor.class);
+
+                    if ( extraLifeCycleMonitor != null ) {
+                        dummyCommand.addLifeCycleMonitor(extraLifeCycleMonitor);
+                    }
+
+                    dummyCommand.addLifeCycleMonitor(monitor, debuggingLifeCycleMonitor);
+
+                    mockery.checking(new Expectations() {{
+                        one(monitor).started(name, dummyExecution);
+                        one(monitor).ended(name, dummyExecution);
+                    }});
+
+                    dummyCommand.execute();
+                }
+            }
+        );
+        joinCommandThread(dummyCommand);
+        validateMockeryAssertions();
+    }
+
+    private void testErrorExecution(final String name, final DummyExecution dummyExecution, final LifeCycleMonitor<CommandExecution>... extraLifeCycleMonitor) {
+        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand(name, dummyExecution);
+
+        invokeAndWaitWithFail(
+            new Runnable() {
+                public void run() {
+                    @SuppressWarnings("unchecked")
+                    final LifeCycleMonitor<CommandExecution> monitor = (LifeCycleMonitor<CommandExecution>)mockery.mock(LifeCycleMonitor.class);
+
+                    if ( extraLifeCycleMonitor != null ) {
+                        dummyCommand.addLifeCycleMonitor(extraLifeCycleMonitor);
+                    }
+
                     dummyCommand.addLifeCycleMonitor(monitor, debuggingLifeCycleMonitor);
 
                     mockery.checking(new Expectations() {{
