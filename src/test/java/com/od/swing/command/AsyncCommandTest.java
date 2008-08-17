@@ -12,12 +12,12 @@ import javax.swing.*;
  * Time: 15:20:04
  * To change this template use File | Settings | File Templates.
  */
-public class AsyncCommandTest extends TestCase {
+public abstract class AsyncCommandTest extends TestCase {
 
     Mockery mockery;
     LifeCycleMonitor debuggingLifeCycleMonitor = new DebuggingLifeCycleMonitor();
 
-    public void setUp() {
+    public  final void setUp() {
 
         //mockery and JMock are not thread safe.
         //the intention is to only ever touch the JMock classes from the event thread
@@ -28,6 +28,13 @@ public class AsyncCommandTest extends TestCase {
                     }
                 }
         );
+        doSetUp();
+    }
+
+    /**
+     * Subclasses override to perform extra setup
+     */
+    protected void doSetUp() {
     }
 
     protected void invokeAndWaitWithFail(Runnable r) {
@@ -101,6 +108,29 @@ public class AsyncCommandTest extends TestCase {
 
         public void error(String commandName, Object commandExecution, Throwable error) {
             System.out.println("started "  + commandName + " " + commandExecution + " " + error);
+        }
+    }
+
+    class DebuggingProxyCommandController<E> implements CommandController<E> {
+        private CommandController<E> wrappedController;
+
+        public DebuggingProxyCommandController(CommandController<E> wrappedController) {
+            this.wrappedController = wrappedController;
+        }
+
+        public void commandStarting(String commandName, E commandExecution) throws Exception {
+            System.out.println("commandStarting "  + commandName + " " + commandExecution);
+            wrappedController.commandStarting(commandName, commandExecution);
+        }
+
+        public void commandStopped(String commandName, E commandExecution) {
+            System.out.println("commandStopped "  + commandName + " " + commandExecution);
+            wrappedController.commandStopped(commandName, commandExecution);  
+        }
+
+        public void commandError(String commandName, E commandExecution, Throwable t) {
+            System.out.println("commandError "  + commandName + " " + commandExecution + " " + t);
+            wrappedController.commandError(commandName, commandExecution, t);
         }
     }
 
