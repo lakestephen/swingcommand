@@ -25,8 +25,8 @@ import java.util.Hashtable;
  */
 public abstract class AbstractAsynchronousCommand<E extends CommandExecution> implements Command<E> {
 
-    private volatile CommandController<? super E> commandController = new DefaultCommandController<E>();
     private volatile Thread lastExecutingThread;
+    private final CommandController<? super E> commandController;
     private final LifeCycleMonitoringSupport<E> lifeCycleMonitoringSupport = new LifeCycleMonitoringSupport<E>();
     private final boolean isRunSynchronously;
     private final String commandName;
@@ -38,8 +38,7 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
      * @param name, a descriptive name for this command
      */
     public AbstractAsynchronousCommand(String name) {
-        this.commandName = name;
-        this.isRunSynchronously = false;
+        this(name, false, new DefaultCommandController<E>());
     }
 
     /**
@@ -47,9 +46,7 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
      * @param commandController, a CommandController instance which will provide task IDs and control starting and stopping for this command
      */
     public AbstractAsynchronousCommand(String name, CommandController<? super E> commandController) {
-        this.commandName = name;
-        this.commandController = commandController;
-        this.isRunSynchronously = false;
+        this(name, false, commandController);
     }
 
     /**
@@ -57,8 +54,7 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
      * @param isRunSynchronously, whether the command should run ansynchronously (the default), or synchronously. The synchronous execution option can be useful for testing
      */
     public AbstractAsynchronousCommand(String name, boolean isRunSynchronously) {
-        this.commandName = name;
-        this.isRunSynchronously = isRunSynchronously;
+        this(name, isRunSynchronously, new DefaultCommandController<E>());
     }
 
     /**

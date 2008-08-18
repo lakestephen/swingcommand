@@ -3,6 +3,7 @@ package com.od.swing.command;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * @author Nick Ebbutt, Object Definitions Ltd. http://www.objectdefinitions.com
@@ -24,6 +25,11 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
     private List<Command> childCommands = new ArrayList<Command>(3);
     private boolean abortOnError;
 
+    public CompositeAsyncCommand(String name, Command... childCommands) {
+        super(name);
+        this.childCommands.addAll(Arrays.asList(childCommands));
+    }
+
     public CompositeAsyncCommand(String name, boolean isSynchronousMode, Command... childCommands) {
         super(name, isSynchronousMode);
         this.childCommands.addAll(Arrays.asList(childCommands));
@@ -34,8 +40,16 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
         this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    public void addCommand(AbstractAsynchronousCommand asynchronousCommand) {
-        childCommands.add(asynchronousCommand);
+    public void addCommand(Command command) {
+        childCommands.add(command);
+    }
+
+    public void addCommands(Command... commands) {
+        childCommands.addAll(Arrays.asList(commands));
+    }
+
+    public void addCommands(Collection<Command> commands) {
+        childCommands.addAll(commands);
     }
 
     /**
