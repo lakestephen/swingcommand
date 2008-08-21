@@ -28,8 +28,9 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
     private volatile Thread lastExecutingThread;
     private final CommandController<? super E> commandController;
     private final LifeCycleMonitoringSupport<E> lifeCycleMonitoringSupport = new LifeCycleMonitoringSupport<E>();
-    private final boolean isRunSynchronously;
     private final String commandName;
+    private volatile boolean isRunSynchronously;
+
 
     //use of Hashtable rather than HashMap to ensure synchronized access
     private Map<E, CommandExecutor<E>> executionToExecutorMap = new Hashtable<E, CommandExecutor<E>>();
@@ -183,5 +184,15 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
      */
     protected Thread getLastExecutingThread() {
         return lastExecutingThread;
+    }
+
+    /**
+     * Prevent the asynchronous command from running in a new subthread
+     * This is useful for some unit testing
+     * 
+     * @param runSynchronously
+     */
+    public void setRunSynchronously(boolean runSynchronously) {
+        isRunSynchronously = runSynchronously;
     }
 }

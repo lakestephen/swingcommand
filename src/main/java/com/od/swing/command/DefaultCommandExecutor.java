@@ -94,6 +94,7 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
         } catch (Throwable t ) {
             safeHandleError(commandExecution, t);
             LifeCycleMonitoringSupport.fireError(lifeCycleMonitors, commandName, commandExecution, t);
+            t.printStackTrace();
         } finally {
             safeStopCommand(commandExecution);
             LifeCycleMonitoringSupport.fireEnded(lifeCycleMonitors, commandName, commandExecution);
@@ -140,7 +141,11 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
             }
         }
         DoAfterExecuteRunnable doAfterExecuteRunnable = new DoAfterExecuteRunnable();
-        LifeCycleMonitoringSupport.executeSynchronouslyOnEventThread(doAfterExecuteRunnable, true);
+        if ( ! runSynchronously ) {
+            LifeCycleMonitoringSupport.executeSynchronouslyOnEventThread(doAfterExecuteRunnable, true);           
+        } else {
+            doAfterExecuteRunnable.run();
+        }
         checkAndRethrowError(doAfterExecuteRunnable.getError());
     }
 
