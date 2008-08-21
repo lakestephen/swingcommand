@@ -196,4 +196,8 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
     public void setRunSynchronously(boolean runSynchronously) {
         isRunSynchronously = runSynchronously;
     }
+
+    public String toString() {
+        return commandName;
+    }
 }

@@ -23,7 +23,7 @@ import java.util.Collection;
  * The execution for CompositeAsyncCommand implements Cancelable
  * Cancelling the execution will cause the command to abort after the currently processing child command finished execution
  */
-public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<CancelableExecution> {
+public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<CompositeExecution> {
 
     private List<Command> childCommands = new ArrayList<Command>(3);
     private boolean abortOnError;
@@ -38,7 +38,7 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
         this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    public CompositeAsyncCommand(String name, boolean isSynchronousMode, CommandController<? super CancelableExecution> commandController, Command... childCommands) {
+    public CompositeAsyncCommand(String name, boolean isSynchronousMode, CommandController<? super com.od.swing.command.CompositeExecution> commandController, Command... childCommands) {
         super(name, isSynchronousMode, commandController);
         this.childCommands.addAll(Arrays.asList(childCommands));
     }
@@ -62,11 +62,11 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
         this.abortOnError = abortOnError;
     }
 
-    public CancelableExecution createExecution() {
+    public com.od.swing.command.CompositeExecution createExecution() {
         return new CompositeExecution();
     }
 
-    class CompositeExecution implements CancelableExecution {
+    class CompositeExecution implements com.od.swing.command.CompositeExecution {
 
         private int totalChildCommands = childCommands.size();
         private int currentCommandId;
@@ -94,11 +94,11 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
             }
         }
 
-        public Command getCurrentCommand() {
-            return currentCommand;
+        public String getCurrentCommandDescription() {
+            return currentCommand.toString();
         }
 
-        public int getCurrentCommandId() {
+        public int getCurrentCommand() {
             return currentCommandId;
         }
 
