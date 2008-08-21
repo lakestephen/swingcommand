@@ -69,13 +69,14 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
         this.commandController = commandController;
     }
 
-    public final void execute(LifeCycleMonitor<? super E>... instanceLifeCycleMonitors) {
+    public final E execute(LifeCycleMonitor<? super E>... instanceLifeCycleMonitors) {
         E execution = createExecutionInEventThread();
         if ( execution != null ) {
             executeCommand(execution, instanceLifeCycleMonitors);
         } else {
             System.err.println("Cannot run command " + commandName + ". createExecution returned null");
         }
+        return execution;
      }
 
     private void executeCommand(final E execution, LifeCycleMonitor<? super E>... instanceLifeCycleMonitors) {

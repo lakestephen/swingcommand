@@ -18,7 +18,8 @@ public interface Command<E> {
 
     /**
      * Run this command
-     * @param lifeCycleMonitor life cycle monitor which will be notified during this execution only
+     * @param lifeCycleMonitor life cycle monitor(s) which will be notified during this execution only
+     * @return The execution instance for this execution of the command
      */
-    void execute(LifeCycleMonitor<? super E>... lifeCycleMonitor);
+    E execute(LifeCycleMonitor<? super E>... lifeCycleMonitor);
 }

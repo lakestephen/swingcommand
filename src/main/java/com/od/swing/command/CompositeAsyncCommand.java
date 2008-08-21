@@ -19,8 +19,11 @@ import java.util.Collection;
  * LifeCycleMonitor. 
  *
  * Child tasks' LifeCycleMonitor instances will recieve events as normal as each child task is processed.
+ *
+ * The execution for CompositeAsyncCommand implements Cancelable
+ * Cancelling the execution will cause the command to abort after the currently processing child command finished execution
  */
-public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<CompositeAsyncCommand.CompositeExecution> {
+public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<CancelableExecution> {
 
     private List<Command> childCommands = new ArrayList<Command>(3);
     private boolean abortOnError;
@@ -35,7 +38,7 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
         this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    public CompositeAsyncCommand(String name, boolean isSynchronousMode, CommandController<? super CompositeExecution> commandController, Command... childCommands) {
+    public CompositeAsyncCommand(String name, boolean isSynchronousMode, CommandController<? super CancelableExecution> commandController, Command... childCommands) {
         super(name, isSynchronousMode, commandController);
         this.childCommands.addAll(Arrays.asList(childCommands));
     }
@@ -59,15 +62,16 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
         this.abortOnError = abortOnError;
     }
 
-    public CompositeExecution createExecution() {
+    public CancelableExecution createExecution() {
         return new CompositeExecution();
     }
 
-    class CompositeExecution implements CommandExecution {
+    class CompositeExecution implements CancelableExecution {
 
         private int totalChildCommands = childCommands.size();
         private int currentCommandId;
         private Command currentCommand;
+        private volatile boolean isCancelled;
 
          /**
          * Execute the child commands here off the swing thread.
@@ -84,7 +88,7 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
                 command.execute(lifeCycleProxy);  //we are not in event thread here, so this should be synchronous
 
                 //abort processing if a command has generated an error via the TaskServicesProxy
-                if (lifeCycleProxy.isErrorOccurred() && abortOnError) {
+                if (lifeCycleProxy.isErrorOccurred() && abortOnError || isCancelled) {
                     break;
                 }
             }
@@ -100,6 +104,10 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
 
         public int getTotalCommands() {
             return totalChildCommands;
+        }
+
+        public void cancelExecution() {
+            isCancelled = true;
         }
 
         public void doAfterExecute() throws Exception {
