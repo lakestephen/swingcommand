@@ -23,64 +23,38 @@ import java.util.Collection;
  * The execution for CompositeAsyncCommand implements Cancelable
  * Cancelling the execution will cause the command to abort after the currently processing child command finished execution
  */
-public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<CompositeExecution> {
+public abstract class CompositeAsyncCommand<E extends CompositeExecution> extends AbstractAsynchronousCommand<E> {
 
-    private List<Command> childCommands = new ArrayList<Command>(3);
-    private boolean abortOnError;
-
-    public CompositeAsyncCommand(String name, Command... childCommands) {
+    public CompositeAsyncCommand(String name) {
         super(name);
-        this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    public CompositeAsyncCommand(String name, boolean isSynchronousMode, Command... childCommands) {
+    public CompositeAsyncCommand(String name, boolean isSynchronousMode) {
         super(name, isSynchronousMode);
-        this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    public CompositeAsyncCommand(String name, boolean isSynchronousMode, CommandController<? super com.od.swing.command.CompositeExecution> commandController, Command... childCommands) {
+    public CompositeAsyncCommand(String name, boolean isSynchronousMode, CommandController<? super E> commandController, Command... childCommands) {
         super(name, isSynchronousMode, commandController);
-        this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    public void addCommand(Command command) {
-        childCommands.add(command);
-    }
+    protected abstract class DefaultCompositeExecution implements CompositeExecution {
 
-    public void addCommands(Command... commands) {
-        childCommands.addAll(Arrays.asList(commands));
-    }
-
-    public void addCommands(Collection<Command> commands) {
-        childCommands.addAll(commands);
-    }
-
-    /**
-     * @param abortOnError - whether an error in a command causes the remaining commands to be aborted.
-     */
-    public void setAbortOnError(boolean abortOnError) {
-        this.abortOnError = abortOnError;
-    }
-
-    public com.od.swing.command.CompositeExecution createExecution() {
-        return new CompositeExecution();
-    }
-
-    class CompositeExecution implements com.od.swing.command.CompositeExecution {
+        private List<Command> childCommands = new ArrayList<Command>(3);
 
         private int totalChildCommands = childCommands.size();
         private int currentCommandId;
-        private Command currentCommand;
+        private volatile Command currentCommand;
         private volatile boolean isCancelled;
+        private boolean abortOnError;
 
-         /**
+        /**
          * Execute the child commands here off the swing thread.
          * This will not start a new subthread - the child commands will run synchronously in the parent command's execution thread.
          *
          * @throws Exception
          */
         public void doExecuteAsync() throws Exception {
-            LifeCycleMonitorProxy lifeCycleProxy = new LifeCycleMonitorProxy(this);
+            LifeCycleMonitorProxy lifeCycleProxy = new LifeCycleMonitorProxy((E)this);
             currentCommandId = 0;
             for (Command command : childCommands) {
                 currentCommand = command;
@@ -88,10 +62,29 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
                 command.execute(lifeCycleProxy);  //we are not in event thread here, so this should be synchronous
 
                 //abort processing if a command has generated an error via the TaskServicesProxy
-                if (lifeCycleProxy.isErrorOccurred() && abortOnError || isCancelled) {
+                if ((lifeCycleProxy.isErrorOccurred() && abortOnError) || isCancelled) {
                     break;
                 }
             }
+        }
+
+         /**
+         * @param abortOnError - whether an error in a command causes the remaining commands to be aborted.
+         */
+        public void setAbortOnError(boolean abortOnError) {
+            this.abortOnError = abortOnError;
+        }
+
+        public void addCommand(Command command) {
+            childCommands.add(command);
+        }
+
+        public void addCommands(Command... commands) {
+            childCommands.addAll(Arrays.asList(commands));
+        }
+
+        public void addCommands(Collection<Command> commands) {
+            childCommands.addAll(commands);
         }
 
         public String getCurrentCommandDescription() {
@@ -108,6 +101,9 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
 
         public void cancelExecution() {
             isCancelled = true;
+            if ( currentCommand instanceof CancelableExecution ) {
+                ((CancelableExecution)currentCommand).cancelExecution();
+            }
         }
 
         public void doAfterExecute() throws Exception {
@@ -116,9 +112,9 @@ public abstract class CompositeAsyncCommand extends AbstractAsynchronousCommand<
 
         private class LifeCycleMonitorProxy implements LifeCycleMonitor  {
             private boolean errorOccurred;
-            private CompositeExecution commandExecution;
+            private E commandExecution;
 
-            public LifeCycleMonitorProxy(CompositeExecution commandExecution) {
+            public LifeCycleMonitorProxy(E commandExecution) {
                 this.commandExecution = commandExecution;
             }
 
