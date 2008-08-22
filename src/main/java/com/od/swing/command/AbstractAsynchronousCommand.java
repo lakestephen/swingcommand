@@ -96,7 +96,14 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
         ).executeCommand();
     }
 
-    //create an execution on the event thread
+    /**
+     * Create an execution.
+     * It is important this is done on the event thread because, while creating
+     * the execution, state from the ui models or components likely has to be copied/cloned to use as
+     * parameters for the async processing. For safety only the event thread should interact with ui
+     * components/models. Cloning state from the ui models ensures the background thread has its own
+     * copy during execution, and there are no potential race conditions
+     */
     private E createExecutionInEventThread() {
 
         class CreateExecutionRunnable implements Runnable {
