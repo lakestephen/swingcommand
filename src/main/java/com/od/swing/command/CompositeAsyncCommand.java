@@ -24,7 +24,7 @@ import java.util.concurrent.Executor;
 public abstract class CompositeAsyncCommand<E extends CompositeExecution> extends AbstractAsynchronousCommand<CompositeExecution> {
 
     //use synchronized list in case non-event thread adds child commands
-    private List<Command<CommandExecution>> childCommands = Collections.synchronizedList(new ArrayList<Command<CommandExecution>>(3));
+    private List<Command<? extends CommandExecution>> childCommands = Collections.synchronizedList(new ArrayList<Command<? extends CommandExecution>>(3));
 
     public CompositeAsyncCommand(String name, Command<CommandExecution>... childCommands) {
         super(name);
@@ -51,27 +51,27 @@ public abstract class CompositeAsyncCommand<E extends CompositeExecution> extend
         this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    public void addCommand(Command<CommandExecution> command) {
+    public void addCommand(Command<? extends CommandExecution> command) {
         childCommands.add(command);
     }
 
-    public void addCommands(Command<CommandExecution>... commands) {
+    public void addCommands(Command<? extends CommandExecution>... commands) {
         childCommands.addAll(Arrays.asList(commands));
     }
 
-    public void addCommands(Collection<Command<CommandExecution>> commands) {
+    public void addCommands(Collection<Command<? extends CommandExecution>> commands) {
         childCommands.addAll(commands);
     }
 
-    public void removeCommands(Command<CommandExecution>... commands) {
+    public void removeCommands(Command<? extends CommandExecution>... commands) {
         childCommands.removeAll(Arrays.asList(commands));
     }
 
-    public void removeCommands(Collection<Command<CommandExecution>> commands) {
+    public void removeCommands(Collection<Command<? extends CommandExecution>> commands) {
         childCommands.removeAll(commands);
     }
 
-    public void removeCommand(Command<CommandExecution> command) {
+    public void removeCommand(Command<? extends CommandExecution> command) {
         childCommands.remove(command);
     }
 
@@ -86,7 +86,7 @@ public abstract class CompositeAsyncCommand<E extends CompositeExecution> extend
      */
     protected abstract class DefaultCompositeExecution implements CompositeExecution {
 
-        private List<Command<CommandExecution>> executionCommands = new ArrayList<Command<CommandExecution>>(3);
+        private List<Command<? extends CommandExecution>> executionCommands = new ArrayList<Command<? extends CommandExecution>>(3);
         private int totalChildCommands = executionCommands.size();
         private int currentCommandId;
         private volatile Command currentCommand;
@@ -106,7 +106,7 @@ public abstract class CompositeAsyncCommand<E extends CompositeExecution> extend
          */
         public void doExecuteAsync() throws Exception {
             currentCommandId = 0;
-            for (Command<CommandExecution> command : executionCommands) {
+            for (Command<? extends CommandExecution> command : executionCommands) {
                 currentCommand = command;
                 currentCommandId++;
                 command.execute(lifeCycleProxy);  //we are not in event thread here, so this should be synchronous
@@ -125,15 +125,15 @@ public abstract class CompositeAsyncCommand<E extends CompositeExecution> extend
             this.abortOnError = abortOnError;
         }
 
-        public void addCommand(Command<CommandExecution> command) {
+        public void addCommand(Command<? extends CommandExecution> command) {
             executionCommands.add(command);
         }
 
-        public void addCommands(Command<CommandExecution>... commands) {
+        public void addCommands(Command<? extends CommandExecution>... commands) {
             executionCommands.addAll(Arrays.asList(commands));
         }
 
-        public void addCommands(Collection<Command<CommandExecution>> commands) {
+        public void addCommands(Collection<Command<? extends CommandExecution>> commands) {
             executionCommands.addAll(commands);
         }
 
