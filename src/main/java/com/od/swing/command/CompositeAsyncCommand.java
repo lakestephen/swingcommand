@@ -21,57 +21,57 @@ import java.util.concurrent.Executor;
  * The execution for CompositeAsyncCommand implements Cancelable
  * Cancelling the execution will cause the command to abort after the currently processing child command finished execution
  */
-public abstract class CompositeAsyncCommand<E extends CompositeExecution, C extends CommandExecution> extends AbstractAsynchronousCommand<CompositeExecution> {
+public abstract class CompositeAsyncCommand<E extends CompositeExecution> extends AbstractAsynchronousCommand<CompositeExecution> {
 
     //use synchronized list in case non-event thread adds child commands
-    private List<Command<C>> childCommands = Collections.synchronizedList(new ArrayList<Command<C>>(3));
+    private List<Command<? extends CommandExecution>> childCommands = Collections.synchronizedList(new ArrayList<Command<? extends CommandExecution>>(3));
 
-    public CompositeAsyncCommand(String name, Command<C>... childCommands) {
+    public CompositeAsyncCommand(String name, Command<CommandExecution>... childCommands) {
         super(name);
         this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    protected CompositeAsyncCommand(String name, CommandController<? super CompositeExecution> commandController, Command<C>... childCommands) {
+    protected CompositeAsyncCommand(String name, CommandController<? super CompositeExecution> commandController, Command<CommandExecution>... childCommands) {
         super(name, commandController);
         this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    protected CompositeAsyncCommand(String name, Executor executor, Command<C>... childCommands) {
+    protected CompositeAsyncCommand(String name, Executor executor, Command<CommandExecution>... childCommands) {
         super(name, executor);
         this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    protected CompositeAsyncCommand(String name, Executor executor, CommandController<? super CompositeExecution> commandController, Command<C>... childCommands) {
+    protected CompositeAsyncCommand(String name, Executor executor, CommandController<? super CompositeExecution> commandController, Command<CommandExecution>... childCommands) {
         super(name, executor, commandController);
         this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    protected CompositeAsyncCommand(String name, Executor executor, CommandController<? super CompositeExecution> commandController, boolean isRunSynchronously, Command<C>... childCommands) {
+    protected CompositeAsyncCommand(String name, Executor executor, CommandController<? super CompositeExecution> commandController, boolean isRunSynchronously, Command<CommandExecution>... childCommands) {
         super(name, executor, commandController, isRunSynchronously);
         this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    public void addCommand(Command<C> command) {
+    public void addCommand(Command<? extends CommandExecution> command) {
         childCommands.add(command);
     }
 
-    public void addCommands(Command<C>... commands) {
+    public void addCommands(Command<? extends CommandExecution>... commands) {
         childCommands.addAll(Arrays.asList(commands));
     }
 
-    public void addCommands(Collection<Command<C>> commands) {
+    public void addCommands(Collection<Command<? extends CommandExecution>> commands) {
         childCommands.addAll(commands);
     }
 
-    public void removeCommands(Command<C>... commands) {
+    public void removeCommands(Command<? extends CommandExecution>... commands) {
         childCommands.removeAll(Arrays.asList(commands));
     }
 
-    public void removeCommands(Collection<Command<C>> commands) {
+    public void removeCommands(Collection<Command<? extends CommandExecution>> commands) {
         childCommands.removeAll(commands);
     }
 
-    public void removeCommand(Command<C> command) {
+    public void removeCommand(Command<? extends CommandExecution> command) {
         childCommands.remove(command);
     }
 
@@ -86,10 +86,10 @@ public abstract class CompositeAsyncCommand<E extends CompositeExecution, C exte
      */
     protected abstract class DefaultCompositeExecution implements CompositeExecution {
 
-        private List<Command<C>> executionCommands = new ArrayList<Command<C>>(3);
+        private List<Command<? extends CommandExecution>> executionCommands = new ArrayList<Command<? extends CommandExecution>>(3);
         private int totalChildCommands = executionCommands.size();
         private int currentCommandId;
-        private volatile Command<C> currentCommand;
+        private volatile Command currentCommand;
         private volatile boolean isCancelled;
         private boolean abortOnError;
         private LifeCycleMonitorProxy lifeCycleProxy = new LifeCycleMonitorProxy(this);
@@ -106,7 +106,7 @@ public abstract class CompositeAsyncCommand<E extends CompositeExecution, C exte
          */
         public void doExecuteAsync() throws Exception {
             currentCommandId = 0;
-            for (Command<C> command : executionCommands) {
+            for (Command<? extends CommandExecution> command : executionCommands) {
                 currentCommand = command;
                 currentCommandId++;
                 command.execute(lifeCycleProxy);  //we are not in event thread here, so this should be synchronous
@@ -125,15 +125,15 @@ public abstract class CompositeAsyncCommand<E extends CompositeExecution, C exte
             this.abortOnError = abortOnError;
         }
 
-        public void addCommand(Command<C> command) {
+        public void addCommand(Command<? extends CommandExecution> command) {
             executionCommands.add(command);
         }
 
-        public void addCommands(Command<C>... commands) {
+        public void addCommands(Command<? extends CommandExecution>... commands) {
             executionCommands.addAll(Arrays.asList(commands));
         }
 
-        public void addCommands(Collection<Command<C>> commands) {
+        public void addCommands(Collection<Command<? extends CommandExecution>> commands) {
             executionCommands.addAll(commands);
         }
 
