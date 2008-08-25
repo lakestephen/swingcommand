@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Hashtable;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * @author Nick Ebbutt, Object Definitions Ltd. http://www.objectdefinitions.com
@@ -25,21 +27,21 @@ import java.util.Hashtable;
  */
 public abstract class AbstractAsynchronousCommand<E extends CommandExecution> implements Command<E> {
 
-    private volatile Thread lastExecutingThread;
     private final CommandController<? super E> commandController;
     private final LifeCycleMonitoringSupport<E> lifeCycleMonitoringSupport = new LifeCycleMonitoringSupport<E>();
     private final String commandName;
     private volatile boolean isRunSynchronously;
+    private final Executor executor;
 
 
-    //use of Hashtable rather than HashMap to ensure synchronized access
-    private Map<E, CommandExecutor<E>> executionToExecutorMap = new Hashtable<E, CommandExecutor<E>>();
+    //use of Hashtable rather than HashMap to ensure synchronized access, default access to facilitate testing
+    Map<E, CommandExecutor<E>> executionToExecutorMap = new Hashtable<E, CommandExecutor<E>>();
 
     /**
      * @param name, a descriptive name for this command
      */
     public AbstractAsynchronousCommand(String name) {
-        this(name, false, new DefaultCommandController<E>());
+        this(name, Executors.newSingleThreadExecutor(), new DefaultCommandController<E>(), false);
     }
 
     /**
@@ -47,24 +49,35 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
      * @param commandController, a CommandController instance which will provide task IDs and control starting and stopping for this command
      */
     public AbstractAsynchronousCommand(String name, CommandController<? super E> commandController) {
-        this(name, false, commandController);
+        this(name, Executors.newSingleThreadExecutor(), commandController, false);
     }
 
     /**
      * @param name, a descriptive name for this command
-     * @param isRunSynchronously, whether the command should run ansynchronously (the default), or synchronously. The synchronous execution option can be useful for testing
+     * @param executor Executor to run this command
      */
-    public AbstractAsynchronousCommand(String name, boolean isRunSynchronously) {
-        this(name, isRunSynchronously, new DefaultCommandController<E>());
+    public AbstractAsynchronousCommand(String name, Executor executor) {
+        this(name, executor, new DefaultCommandController<E>(), false);
     }
 
     /**
      * @param name, a descriptive name for this command
-     * @param isRunSynchronously, whether the command should run ansynchronously (the default), or synchronously. The synchronous execution option can be useful for testing
+     * @param executor Executor to run this command
      * @param commandController, a CommandController instance which will provide task IDs and control starting and stopping for this command
      */
-    public AbstractAsynchronousCommand(String name, boolean isRunSynchronously, CommandController<? super E> commandController) {
+    public AbstractAsynchronousCommand(String name, Executor executor, CommandController<? super E> commandController) {
+        this(name, executor, commandController, false);
+    }
+
+    /**
+     * @param name, a descriptive name for this command
+     * @param isRunSynchronously, whether the command should run ansynchronously (the default), or synchronously. The synchronous execution option can be useful for testing
+     * @param executor Executor to run this command
+     * @param commandController, a CommandController instance which will provide task IDs and control starting and stopping for this command
+     */
+    public AbstractAsynchronousCommand(String name, Executor executor, CommandController<? super E> commandController, boolean isRunSynchronously) {
         this.commandName = name;
+        this.executor = executor;
         this.isRunSynchronously = isRunSynchronously;
         this.commandController = commandController;
     }
@@ -86,7 +99,8 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
         monitorsForExecution.addAll(Arrays.asList(instanceLifeCycleMonitors));
 
         //create a new executor unique to this command execution
-        lastExecutingThread = new DefaultCommandExecutor<E>(
+        new DefaultCommandExecutor<E>(
+            executor,
             executionToExecutorMap,
             execution,
             commandController,
@@ -184,14 +198,6 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
      */
     public CommandController getCommandController() {
         return commandController;
-    }
-
-    /**
-     * This method is intended as a hook for testing frameworks only
-     * @return a reference to the Thread which was last used to execute a command
-     */
-    protected Thread getLastExecutingThread() {
-        return lastExecutingThread;
     }
 
     /**

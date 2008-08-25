@@ -3,6 +3,7 @@ package com.od.swing.command;
 import javax.swing.*;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 /**
  * @author Nick Ebbutt, Object Definitions Ltd. http://www.objectdefinitions.com
@@ -15,14 +16,17 @@ import java.util.Map;
  */
 class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecutor<E> {
 
+    private final Executor executor;
     private final Map<E, CommandExecutor<E>> executionToExecutorMap;
     private final E commandExecution;
     private final List<LifeCycleMonitor<? super E>> lifeCycleMonitors;
     private final CommandController<? super E> commandController;
     private final String commandName;
     private final boolean runSynchronously;
+    private static final Executor directExecutor = new DirectExecutor();
 
-    public DefaultCommandExecutor(Map<E, CommandExecutor<E>> executionToExecutorMap, E commandExecution, CommandController<? super E> commandController, List<LifeCycleMonitor<? super E>> lifeCycleMonitors, String commandName, boolean isRunSynchronously) {
+    public DefaultCommandExecutor(Executor executor, Map<E, CommandExecutor<E>> executionToExecutorMap, E commandExecution, CommandController<? super E> commandController, List<LifeCycleMonitor<? super E>> lifeCycleMonitors, String commandName, boolean isRunSynchronously) {
+        this.executor = executor;
         this.executionToExecutorMap = executionToExecutorMap;
         this.commandExecution = commandExecution;
         this.lifeCycleMonitors = lifeCycleMonitors;
@@ -42,7 +46,7 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
         return lifeCycleMonitors;
     }
 
-    public Thread executeCommand() {
+    public void executeCommand() {
 
         //register the executor against the execution in the map
         executionToExecutorMap.put(commandExecution, DefaultCommandExecutor.this);
@@ -55,7 +59,7 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
         LifeCycleMonitoringSupport.fireStarted(lifeCycleMonitors, commandName, commandExecution);
 
         //a runnable to do the async portion of the command
-        Runnable execute = new Runnable() {
+        Runnable executionRunnable = new Runnable() {
             public void run() {
                 try {
                     doExecuteAsync();
@@ -65,16 +69,14 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
             }
         };
 
-        Thread thread;
+        Executor executorToUse;
         //kick off the executor on a subthread, unless we are in run synchronous mode or are on a subthread already
         if ( SwingUtilities.isEventDispatchThread() && ! runSynchronously ) {
-            thread = new Thread(execute);
-            thread.start();
+            executorToUse = executor;
         } else {
-            thread = Thread.currentThread();
-            execute.run();
+            executorToUse = directExecutor;
         }
-        return thread;
+        executorToUse.execute(executionRunnable);
     }
 
     private void doExecuteAsync() {
@@ -160,6 +162,13 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
         if (t != null) {
             throw new AsyncCommandException("Failed while running asynchronous command class " + getClass().getName(), t);
         }
+    }
+
+
+    private static class DirectExecutor implements Executor {
+         public void execute(Runnable r) {
+             r.run();
+         }
     }
 
 }

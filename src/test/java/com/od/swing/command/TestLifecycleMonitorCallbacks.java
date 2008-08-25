@@ -99,7 +99,7 @@ public class TestLifecycleMonitorCallbacks extends AsyncCommandTest {
                 }
             }
         );
-        joinCommandThread(dummyCommand);
+        joinLastExecutorThread();
         validateMockeryAssertions();
     }
 
@@ -128,7 +128,7 @@ public class TestLifecycleMonitorCallbacks extends AsyncCommandTest {
                 }
             }
         );
-        joinCommandThread(dummyCommand);
+        joinLastExecutorThread();
         validateMockeryAssertions();
     }
 

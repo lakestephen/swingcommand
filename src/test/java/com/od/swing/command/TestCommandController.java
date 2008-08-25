@@ -32,7 +32,7 @@ public class TestCommandController extends AsyncCommandTest {
                     final CommandController<CommandExecution> controller = (CommandController<CommandExecution>)mockery.mock(CommandController.class);
                     final CommandExecution execution = mockery.mock(CommandExecution.class);
 
-                    lastCommand = new AbstractAsynchronousCommand<CommandExecution>(name, new DebuggingProxyCommandController<CommandExecution>(controller)) {
+                    lastCommand = new AbstractAsynchronousCommand<CommandExecution>(name, new DefaultTestExecutor(), new DebuggingProxyCommandController<CommandExecution>(controller)) {
                         public CommandExecution createExecution() {
                             return execution;
                         }
@@ -56,7 +56,7 @@ public class TestCommandController extends AsyncCommandTest {
                 }
             }
         );
-        joinCommandThread(lastCommand);
+        joinLastExecutorThread();
         validateMockeryAssertions();
     }
 
@@ -79,7 +79,7 @@ public class TestCommandController extends AsyncCommandTest {
                         }
                     };
 
-                    lastCommand = new AbstractAsynchronousCommand<CommandExecution>(name, new DebuggingProxyCommandController<CommandExecution>(controller)) {
+                    lastCommand = new AbstractAsynchronousCommand<CommandExecution>(name, new DefaultTestExecutor(), new DebuggingProxyCommandController<CommandExecution>(controller)) {
                         public CommandExecution createExecution() {
                             return execution;
                         }
@@ -102,7 +102,7 @@ public class TestCommandController extends AsyncCommandTest {
                 }
             }
         );
-        joinCommandThread(lastCommand);
+        joinLastExecutorThread();
         validateMockeryAssertions();
     }
 
@@ -131,7 +131,7 @@ public class TestCommandController extends AsyncCommandTest {
 
                     final CommandExecution execution = mockery.mock(CommandExecution.class);
 
-                    lastCommand = new AbstractAsynchronousCommand<CommandExecution>(name, new DebuggingProxyCommandController<CommandExecution>(controller)) {
+                    lastCommand = new AbstractAsynchronousCommand<CommandExecution>(name, new DefaultTestExecutor(), new DebuggingProxyCommandController<CommandExecution>(controller)) {
                         public CommandExecution createExecution() {
                             return execution;
                         }
@@ -154,7 +154,7 @@ public class TestCommandController extends AsyncCommandTest {
                 }
             }
         );
-        joinCommandThread(lastCommand);
+        joinLastExecutorThread();
         validateMockeryAssertions();
         assertTrue(isCommandStoppedCalled); //commands which throw an exception in starting still have stopped called
         assertTrue(isCommandErrorCalled);   //starting threw an exception

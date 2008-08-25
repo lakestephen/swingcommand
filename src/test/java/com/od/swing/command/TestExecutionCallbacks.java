@@ -21,18 +21,9 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
         isDoExecuteAsyncCalledInSubThread = false;
     }
 
-    public void testExecutionCallbacksNormalProcessing() {        
-        final CommandExecution dummyExecution = new CommandExecution() {
-
-            public void doExecuteAsync() throws Exception {
-                isDoExecuteAsyncCalledInSubThread = ! SwingUtilities.isEventDispatchThread();
-            }
-
-            public void doAfterExecute() throws Exception {
-                isDoAfterExecutedCalled = true;
-                isDoAfterExecuteCalledInEventThread = SwingUtilities.isEventDispatchThread();
-            }
-        };
+    //test the correct threads receive the callbacks
+    public void testExecutionCallbacksNormalProcessing() {
+        CommandExecution dummyExecution = new NormalExecution();
 
         final DummyAsyncCommand dummyCommand = new DummyAsyncCommand("testExecutionCallbacksNormalProcessing", dummyExecution);
         invokeAndWaitWithFail(
@@ -42,23 +33,15 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
                 }
             }
         );
-        joinCommandThread(dummyCommand);
+        joinLastExecutorThread();
         assertTrue(isDoExecuteAsyncCalledInSubThread);
         assertTrue(isDoAfterExecutedCalled);
         assertTrue(isDoAfterExecuteCalledInEventThread);
     }
 
-     public void testDoAfterExecuteShouldNotBeCalledIfExceptionThrownInDoExecuteAsync() {
-        final CommandExecution dummyExecution = new CommandExecution() {
+    public void testDoAfterExecuteShouldNotBeCalledIfExceptionThrownInDoExecuteAsync() {
 
-            public void doExecuteAsync() throws Exception {
-                throw new RuntimeException("testDoAfterExecuteShouldNotBeCalledIfExceptionThrownInDoExecuteAsync");
-            }
-
-            public void doAfterExecute() throws Exception {
-                isDoAfterExecutedCalled = true;
-            }
-        };
+        CommandExecution dummyExecution = new ErrorInExecAsyncExecution();
 
         final DummyAsyncCommand dummyCommand = new DummyAsyncCommand("testDoAfterExecuteShouldNotBeCalledIfExceptionThrownInDoExecuteAsync", dummyExecution);
         invokeAndWaitWithFail(
@@ -68,7 +51,60 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
                 }
             }
         );
-        joinCommandThread(dummyCommand);
+        joinLastExecutorThread();
         assertFalse(isDoAfterExecutedCalled);
+    }
+
+    //executor map must be cleared down otherwise memory leak will occur
+    public void testExecutorMapClearedAfterNormalExecution() {
+        CommandExecution dummyExecution = new NormalExecution();
+        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand("testDoAfterExecuteShouldNotBeCalledIfExceptionThrownInDoExecuteAsync", dummyExecution);
+        invokeAndWaitWithFail(
+            new Runnable() {
+                public void run() {
+                    dummyCommand.execute();
+                }
+            }
+        );
+        joinLastExecutorThread();
+        assertEquals(0, dummyCommand.executionToExecutorMap.size());
+    }
+
+    //executor map must be cleared down otherwise memory leak will occur
+    public void testExecutorMapClearedAfterExecutionWithError() {
+        CommandExecution dummyExecution = new ErrorInExecAsyncExecution();
+        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand("testDoAfterExecuteShouldNotBeCalledIfExceptionThrownInDoExecuteAsync", dummyExecution);
+        invokeAndWaitWithFail(
+            new Runnable() {
+                public void run() {
+                    dummyCommand.execute();
+                }
+            }
+        );
+        joinLastExecutorThread();
+        assertEquals(0, dummyCommand.executionToExecutorMap.size());
+    }
+
+    private class NormalExecution implements CommandExecution {
+
+        public void doExecuteAsync() throws Exception {
+            isDoExecuteAsyncCalledInSubThread = ! SwingUtilities.isEventDispatchThread();
+        }
+
+        public void doAfterExecute() throws Exception {
+            isDoAfterExecutedCalled = true;
+            isDoAfterExecuteCalledInEventThread = SwingUtilities.isEventDispatchThread();
+        }
+    }
+
+    private class ErrorInExecAsyncExecution implements CommandExecution {
+
+        public void doExecuteAsync() throws Exception {
+            throw new RuntimeException("ErrorInExecAsyncExecution");
+        }
+
+        public void doAfterExecute() throws Exception {
+            isDoAfterExecutedCalled = true;
+        }
     }
 }

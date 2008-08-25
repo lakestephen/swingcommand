@@ -4,6 +4,7 @@ import junit.framework.TestCase;
 import org.jmock.Mockery;
 
 import javax.swing.*;
+import java.util.concurrent.Executor;
 
 /**
  * Created by IntelliJ IDEA.
@@ -16,6 +17,7 @@ public abstract class AsyncCommandTest extends TestCase {
 
     Mockery mockery;
     LifeCycleMonitor debuggingLifeCycleMonitor = new DebuggingLifeCycleMonitor();
+    volatile Thread lastTestExecutorThread;
 
     public  final void setUp() {
 
@@ -55,9 +57,9 @@ public abstract class AsyncCommandTest extends TestCase {
         );
     }
 
-    protected void joinCommandThread(AbstractAsynchronousCommand dummyCommand) {
+    protected void joinLastExecutorThread() {
         try {
-            dummyCommand.getLastExecutingThread().join();
+            lastTestExecutorThread.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -79,7 +81,7 @@ public abstract class AsyncCommandTest extends TestCase {
         private CommandExecution commandExecution;
 
         public DummyAsyncCommand(String name, CommandExecution singleExecutionForTesting) {
-            super(name);
+            super(name, new DefaultTestExecutor());
             this.commandExecution = singleExecutionForTesting;
         }
 
@@ -150,6 +152,17 @@ public abstract class AsyncCommandTest extends TestCase {
 
         public void error(String commandName, Object commandExecution, Throwable error) {
             throw new RuntimeException("I shouldn't interrupt processing");
+        }
+    }
+
+    class DefaultTestExecutor implements Executor {
+
+        public DefaultTestExecutor() {
+        }
+
+        public void execute(Runnable command) {
+            lastTestExecutorThread = new Thread(command);
+            lastTestExecutorThread.start();
         }
     }
 }

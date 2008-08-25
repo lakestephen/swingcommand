@@ -1,9 +1,7 @@
 package com.od.swing.command;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
+import java.util.concurrent.Executor;
 
 /**
  * @author Nick Ebbutt, Object Definitions Ltd. http://www.objectdefinitions.com
@@ -23,29 +21,82 @@ import java.util.Collection;
  * The execution for CompositeAsyncCommand implements Cancelable
  * Cancelling the execution will cause the command to abort after the currently processing child command finished execution
  */
-public abstract class CompositeAsyncCommand<E extends CompositeExecution> extends AbstractAsynchronousCommand<E> {
+public abstract class CompositeAsyncCommand<E extends CompositeExecution> extends AbstractAsynchronousCommand<CompositeExecution> {
 
-    public CompositeAsyncCommand(String name) {
+    //use synchronized list in case non-event thread adds child commands
+    private List<Command<CommandExecution>> childCommands = Collections.synchronizedList(new ArrayList<Command<CommandExecution>>(3));
+
+    public CompositeAsyncCommand(String name, Command<CommandExecution>... childCommands) {
         super(name);
+        this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    public CompositeAsyncCommand(String name, boolean isSynchronousMode) {
-        super(name, isSynchronousMode);
+    protected CompositeAsyncCommand(String name, CommandController<? super CompositeExecution> commandController, Command<CommandExecution>... childCommands) {
+        super(name, commandController);
+        this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    public CompositeAsyncCommand(String name, boolean isSynchronousMode, CommandController<? super E> commandController, Command... childCommands) {
-        super(name, isSynchronousMode, commandController);
+    protected CompositeAsyncCommand(String name, Executor executor, Command<CommandExecution>... childCommands) {
+        super(name, executor);
+        this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
+    protected CompositeAsyncCommand(String name, Executor executor, CommandController<? super CompositeExecution> commandController, Command<CommandExecution>... childCommands) {
+        super(name, executor, commandController);
+        this.childCommands.addAll(Arrays.asList(childCommands));
+    }
+
+    protected CompositeAsyncCommand(String name, Executor executor, CommandController<? super CompositeExecution> commandController, boolean isRunSynchronously, Command<CommandExecution>... childCommands) {
+        super(name, executor, commandController, isRunSynchronously);
+        this.childCommands.addAll(Arrays.asList(childCommands));
+    }
+
+    public void addCommand(Command<CommandExecution> command) {
+        childCommands.add(command);
+    }
+
+    public void addCommands(Command<CommandExecution>... commands) {
+        childCommands.addAll(Arrays.asList(commands));
+    }
+
+    public void addCommands(Collection<Command<CommandExecution>> commands) {
+        childCommands.addAll(commands);
+    }
+
+    public void removeCommands(Command<CommandExecution>... commands) {
+        childCommands.removeAll(Arrays.asList(commands));
+    }
+
+    public void removeCommands(Collection<Command<CommandExecution>> commands) {
+        childCommands.removeAll(commands);
+    }
+
+    public void removeCommand(Command<CommandExecution> command) {
+        childCommands.remove(command);
+    }
+
+    /**
+     * DefaultCompositeExecution provides the logic to execute the set of child commands added to the parent composite command
+     * When it is constructed it takes a copy of the commands child commands to use for this execution. Changes to the parent command's list
+     * of child commands which are made during asynchronous execution should therefore not have any side effects.
+     *
+     * By default the execution runs with the list of child commands configured on the owning CompositeCommand.
+     * Subclass executions can add extra child commands, or modify the command list to be used for this execution only - sometimes it is
+     * convenient to decide on the required child commands only at the point the composite execution is created.
+     */
     protected abstract class DefaultCompositeExecution implements CompositeExecution {
 
-        private List<Command> childCommands = new ArrayList<Command>(3);
-
-        private int totalChildCommands = childCommands.size();
+        private List<Command<CommandExecution>> executionCommands = new ArrayList<Command<CommandExecution>>(3);
+        private int totalChildCommands = executionCommands.size();
         private int currentCommandId;
         private volatile Command currentCommand;
         private volatile boolean isCancelled;
         private boolean abortOnError;
+        private LifeCycleMonitorProxy lifeCycleProxy = new LifeCycleMonitorProxy(this);
+
+        public DefaultCompositeExecution() {
+            executionCommands.addAll(childCommands);
+        }
 
         /**
          * Execute the child commands here off the swing thread.
@@ -54,9 +105,8 @@ public abstract class CompositeAsyncCommand<E extends CompositeExecution> extend
          * @throws Exception
          */
         public void doExecuteAsync() throws Exception {
-            LifeCycleMonitorProxy lifeCycleProxy = new LifeCycleMonitorProxy((E)this);
             currentCommandId = 0;
-            for (Command command : childCommands) {
+            for (Command<CommandExecution> command : executionCommands) {
                 currentCommand = command;
                 currentCommandId++;
                 command.execute(lifeCycleProxy);  //we are not in event thread here, so this should be synchronous
@@ -75,16 +125,16 @@ public abstract class CompositeAsyncCommand<E extends CompositeExecution> extend
             this.abortOnError = abortOnError;
         }
 
-        public void addCommand(Command command) {
-            childCommands.add(command);
+        public void addCommand(Command<CommandExecution> command) {
+            executionCommands.add(command);
         }
 
-        public void addCommands(Command... commands) {
-            childCommands.addAll(Arrays.asList(commands));
+        public void addCommands(Command<CommandExecution>... commands) {
+            executionCommands.addAll(Arrays.asList(commands));
         }
 
-        public void addCommands(Collection<Command> commands) {
-            childCommands.addAll(commands);
+        public void addCommands(Collection<Command<CommandExecution>> commands) {
+            executionCommands.addAll(commands);
         }
 
         public String getCurrentCommandDescription() {
@@ -101,8 +151,9 @@ public abstract class CompositeAsyncCommand<E extends CompositeExecution> extend
 
         public void cancelExecution() {
             isCancelled = true;
-            if ( currentCommand instanceof CancelableExecution ) {
-                ((CancelableExecution)currentCommand).cancelExecution();
+            CommandExecution c = lifeCycleProxy.getCurrentChildExecution();
+            if ( c instanceof CancelableExecution ) {
+                ((CancelableExecution)c).cancelExecution();
             }
         }
 
@@ -110,31 +161,41 @@ public abstract class CompositeAsyncCommand<E extends CompositeExecution> extend
         }
 
 
-        private class LifeCycleMonitorProxy implements LifeCycleMonitor  {
+        /**
+         * Receives lifecycle events from child commands and fires step reached events to
+         * this composites lifecycle listeners
+         */
+        private class LifeCycleMonitorProxy implements LifeCycleMonitor<CommandExecution>  {
             private boolean errorOccurred;
-            private E commandExecution;
+            private CompositeExecution commandExecution;
+            private volatile CommandExecution currentChildExecution;
 
-            public LifeCycleMonitorProxy(E commandExecution) {
+            public LifeCycleMonitorProxy(CompositeExecution commandExecution) {
                 this.commandExecution = commandExecution;
             }
 
-            public void started(String commandName, Object commandExecution) {
+            public void started(String commandName, CommandExecution commandExecution) {
+                this.currentChildExecution = commandExecution;
                 fireStepReached(commandName, this.commandExecution);
             }
 
-            public void stepReached(String commandName, Object commandExecution) {
+            public void stepReached(String commandName, CommandExecution commandExecution) {
             }
 
-            public void ended(String commandName, Object commandExecution) {
+            public void ended(String commandName, CommandExecution commandExecution) {
             }
 
-            public void error(String commandName, Object commandExecution, Throwable e) {
+            public void error(String commandName, CommandExecution commandExecution, Throwable e) {
                 errorOccurred = true;
                 fireError(commandName, this.commandExecution, e);
             }
 
             public boolean isErrorOccurred() {
                 return errorOccurred;
+            }
+
+            public CommandExecution getCurrentChildExecution() {
+                return currentChildExecution;
             }
         }
 
