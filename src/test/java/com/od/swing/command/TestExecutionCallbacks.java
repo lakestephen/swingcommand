@@ -25,7 +25,7 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
     public void testExecutionCallbacksNormalProcessing() {
         CommandExecution dummyExecution = new NormalExecution();
 
-        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand(dummyExecution) {
+        final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
                 return "testExecutionCallbacksNormalProcessing";
             }
@@ -48,7 +48,7 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
 
         CommandExecution dummyExecution = new ErrorInExecAsyncExecution();
 
-        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand(dummyExecution) {
+        final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
                 return "testDoneShouldNotBeCalledIfExceptionThrownInDoInBackground";
             }
@@ -68,7 +68,7 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
     //executor map must be cleared down otherwise memory leak will occur
     public void testExecutorMapClearedAfterNormalExecution() {
         CommandExecution dummyExecution = new NormalExecution();
-        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand(dummyExecution) {
+        final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
                 return "testExecutorMapClearedAfterNormalExecution";
             }
@@ -88,7 +88,7 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
     //executor map must be cleared down otherwise memory leak will occur
     public void testExecutorMapClearedAfterExecutionWithError() {
         CommandExecution dummyExecution = new ErrorInExecAsyncExecution();
-        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand(dummyExecution) {
+        final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
                 return "testExecutorMapClearedAfterExecutionWithError";
             }

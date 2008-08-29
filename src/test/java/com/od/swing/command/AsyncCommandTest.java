@@ -77,10 +77,10 @@ public abstract class AsyncCommandTest extends TestCase {
     }
 
 
-    class DummyAsyncCommand extends AbstractAsynchronousCommand<CommandExecution> {
+    class DummyAsynchronousCommand extends AbstractAsynchronousCommand<CommandExecution> {
         private CommandExecution commandExecution;
 
-        public DummyAsyncCommand(CommandExecution singleExecutionForTesting) {
+        public DummyAsynchronousCommand(CommandExecution singleExecutionForTesting) {
             super(new DefaultTestExecutor());
             this.commandExecution = singleExecutionForTesting;
         }

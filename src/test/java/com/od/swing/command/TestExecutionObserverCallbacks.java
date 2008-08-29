@@ -76,7 +76,7 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
 
     private void testNormalExecution(final String name, final ExecutionObserver<CommandExecution>... extraLifeCycleObserver) {
         final DummyExecution dummyExecution = new DummyExecution();
-        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand(dummyExecution) {
+        final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
                 return name;
             }
@@ -109,7 +109,7 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
     }
 
     private void testErrorExecution(final String name, final DummyExecution dummyExecution, final ExecutionObserver<CommandExecution>... extraLifeCycleObserver) {
-        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand(dummyExecution) {
+        final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
                 return name;
             }

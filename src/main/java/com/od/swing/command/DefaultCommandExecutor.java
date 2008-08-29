@@ -92,7 +92,7 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
     }
 
 
-    private void runDone(final E commandExecution) throws AsyncCommandException {
+    private void runDone(final E commandExecution) throws Exception {
         class DoneRunnable implements Runnable {
             volatile Throwable t;
             protected Throwable getError() {
@@ -112,19 +112,9 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
         }
         DoneRunnable doAfterExecuteRunnable = new DoneRunnable();
         ExecutionObserverSupport.executeSynchronouslyOnEventThread(doAfterExecuteRunnable, true);
-        checkAndRethrowError(doAfterExecuteRunnable.getError());
-    }
-
-    /**
-     * Check to see whether an asynchronous task raised an error
-     * If so, re-raise the error on the current thread
-     *
-     * @param t Throwable to check
-     * @throws AsyncCommandException
-     */
-    private void checkAndRethrowError(Throwable t) throws AsyncCommandException {
+        Throwable t = doAfterExecuteRunnable.getError();
         if (t != null) {
-            throw new AsyncCommandException("Failed while running asynchronous command class " + getClass().getName(), t);
+            throw new Exception("Failed while invoking runDone() on " + getClass().getName(), t);
         }
     }
 

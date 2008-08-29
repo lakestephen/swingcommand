@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
  * So a ExecutionObserver instance can be safely be used to update the UI to represent the progress of the command
  * </PRE>
  */
-public abstract class AbstractAsynchronousCommand<E extends CommandExecution> implements Command<E> {
+public abstract class AbstractAsynchronousCommand<E extends CommandExecution> implements AsynchronousCommand<E> {
 
     private final ExecutionObserverSupport<E> executionObservingSupport = new ExecutionObserverSupport<E>();
     private final Executor executor;
@@ -121,7 +121,7 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
      * Fire command error to ExecutionObserver instances
      * Event will be fired on the Swing event thread
      *
-     * This has default visiblity so that CompositeAsyncCommand can use it
+     * This has default visiblity so that CompositeAsyncCommand can use it but subclasses should raise an error by throwing it in doInBackground() or done()
      * Subclasses should usually throw an exception during processing - which will trigger an error to be fired and processing to be aborted
      *
      * @param commandExecution execution for executing command
