@@ -1,5 +1,6 @@
 package com.od.swing.command;
 
+import javax.swing.*;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -59,7 +60,14 @@ class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecu
             }
         };
 
-        executor.execute(executionRunnable);
+        //unless we are already on a background thread, use the executor to execute command
+        //if we are already on a background thread, this command may be running as part of a composite command, so should execute synchronously
+        if ( SwingUtilities.isEventDispatchThread()) {
+            executor.execute(executionRunnable);
+        } else {
+            executionRunnable.run();
+        }
+
     }
 
     private void doExecuteAsync() {
