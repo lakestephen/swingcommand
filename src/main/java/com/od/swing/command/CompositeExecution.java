@@ -8,10 +8,10 @@ package com.od.swing.command;
  */
 public interface CompositeExecution extends CancelableExecution {
 
-   public String getCurrentCommandDescription();
+   public CommandExecution getCurrentChildExecution();
 
-   public int getCurrentCommand();
+   public int getCurrentChildId();
 
-   public int getTotalCommands();
+   public int getTotalChildren();
     
 }

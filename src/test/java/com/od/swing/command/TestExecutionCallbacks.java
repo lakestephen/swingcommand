@@ -11,21 +11,26 @@ import javax.swing.*;
  */
 public class TestExecutionCallbacks extends AsyncCommandTest {
 
-    private boolean isDoExecuteAsyncCalledInSubThread;
-    private boolean isDoAfterExecuteCalledInEventThread;
-    private boolean isDoAfterExecutedCalled;
+    private boolean isdoInBackgroundCalledInSubThread;
+    private boolean isDoneCalledInEventThread;
+    private boolean isDoneCalled;
 
     public void doSetUp() {
-        isDoAfterExecuteCalledInEventThread = false;
-        isDoAfterExecutedCalled = false;
-        isDoExecuteAsyncCalledInSubThread = false;
+        isDoneCalledInEventThread = false;
+        isDoneCalled = false;
+        isdoInBackgroundCalledInSubThread = false;
     }
 
     //test the correct threads receive the callbacks
     public void testExecutionCallbacksNormalProcessing() {
         CommandExecution dummyExecution = new NormalExecution();
 
-        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand("testExecutionCallbacksNormalProcessing", dummyExecution);
+        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand(dummyExecution) {
+            public String toString() {
+                return "testExecutionCallbacksNormalProcessing";
+            }
+        };
+
         invokeAndWaitWithFail(
             new Runnable() {
                 public void run() {
@@ -34,16 +39,21 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
             }
         );
         joinLastExecutorThread();
-        assertTrue(isDoExecuteAsyncCalledInSubThread);
-        assertTrue(isDoAfterExecutedCalled);
-        assertTrue(isDoAfterExecuteCalledInEventThread);
+        assertTrue(isdoInBackgroundCalledInSubThread);
+        assertTrue(isDoneCalled);
+        assertTrue(isDoneCalledInEventThread);
     }
 
-    public void testDoAfterExecuteShouldNotBeCalledIfExceptionThrownInDoExecuteAsync() {
+    public void testDoneShouldNotBeCalledIfExceptionThrownInDoInBackground() {
 
         CommandExecution dummyExecution = new ErrorInExecAsyncExecution();
 
-        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand("testDoAfterExecuteShouldNotBeCalledIfExceptionThrownInDoExecuteAsync", dummyExecution);
+        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand(dummyExecution) {
+            public String toString() {
+                return "testDoneShouldNotBeCalledIfExceptionThrownInDoInBackground";
+            }
+        };
+
         invokeAndWaitWithFail(
             new Runnable() {
                 public void run() {
@@ -52,13 +62,18 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
             }
         );
         joinLastExecutorThread();
-        assertFalse(isDoAfterExecutedCalled);
+        assertFalse(isDoneCalled);
     }
 
     //executor map must be cleared down otherwise memory leak will occur
     public void testExecutorMapClearedAfterNormalExecution() {
         CommandExecution dummyExecution = new NormalExecution();
-        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand("testDoAfterExecuteShouldNotBeCalledIfExceptionThrownInDoExecuteAsync", dummyExecution);
+        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand(dummyExecution) {
+            public String toString() {
+                return "testExecutorMapClearedAfterNormalExecution";
+            }
+        };
+
         invokeAndWaitWithFail(
             new Runnable() {
                 public void run() {
@@ -73,7 +88,12 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
     //executor map must be cleared down otherwise memory leak will occur
     public void testExecutorMapClearedAfterExecutionWithError() {
         CommandExecution dummyExecution = new ErrorInExecAsyncExecution();
-        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand("testDoAfterExecuteShouldNotBeCalledIfExceptionThrownInDoExecuteAsync", dummyExecution);
+        final DummyAsyncCommand dummyCommand = new DummyAsyncCommand(dummyExecution) {
+            public String toString() {
+                return "testExecutorMapClearedAfterExecutionWithError";
+            }
+        };
+
         invokeAndWaitWithFail(
             new Runnable() {
                 public void run() {
@@ -87,24 +107,24 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
 
     private class NormalExecution implements CommandExecution {
 
-        public void doExecuteAsync() throws Exception {
-            isDoExecuteAsyncCalledInSubThread = ! SwingUtilities.isEventDispatchThread();
+        public void doInBackground() throws Exception {
+            isdoInBackgroundCalledInSubThread = ! SwingUtilities.isEventDispatchThread();
         }
 
-        public void doAfterExecute() throws Exception {
-            isDoAfterExecutedCalled = true;
-            isDoAfterExecuteCalledInEventThread = SwingUtilities.isEventDispatchThread();
+        public void done() throws Exception {
+            isDoneCalled = true;
+            isDoneCalledInEventThread = SwingUtilities.isEventDispatchThread();
         }
     }
 
     private class ErrorInExecAsyncExecution implements CommandExecution {
 
-        public void doExecuteAsync() throws Exception {
+        public void doInBackground() throws Exception {
             throw new RuntimeException("ErrorInExecAsyncExecution");
         }
 
-        public void doAfterExecute() throws Exception {
-            isDoAfterExecutedCalled = true;
+        public void done() throws Exception {
+            isDoneCalled = true;
         }
     }
 }

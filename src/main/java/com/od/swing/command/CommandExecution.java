@@ -14,7 +14,7 @@ public interface CommandExecution {
      *
      * @throws Exception, to abort execution if an error condition occurs
      */
-    void doExecuteAsync() throws Exception;
+    void doInBackground() throws Exception;
 
     /**
      * Called in the Swing event thread during command execution
@@ -22,5 +22,5 @@ public interface CommandExecution {
      *
      * @throws Exception, to abort execution if an error condition occurs
      */
-    void doAfterExecute() throws Exception;
+    void done() throws Exception;
 }

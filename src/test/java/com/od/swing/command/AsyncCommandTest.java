@@ -16,7 +16,7 @@ import java.util.concurrent.Executor;
 public abstract class AsyncCommandTest extends TestCase {
 
     Mockery mockery;
-    LifeCycleMonitor debuggingLifeCycleMonitor = new DebuggingLifeCycleMonitor();
+    ExecutionObserver debuggingExecutionObserver = new DebuggingExecutionObserver();
     volatile Thread lastTestExecutorThread;
 
     public  final void setUp() {
@@ -67,9 +67,9 @@ public abstract class AsyncCommandTest extends TestCase {
 
 
     class DummyExecution implements CommandExecution {
-        public void doExecuteAsync() throws Exception {}
+        public void doInBackground() throws Exception {}
 
-        public void doAfterExecute() throws Exception {}
+        public void done() throws Exception {}
 
         public String toString() {
             return "Dummy Execution";
@@ -80,8 +80,8 @@ public abstract class AsyncCommandTest extends TestCase {
     class DummyAsyncCommand extends AbstractAsynchronousCommand<CommandExecution> {
         private CommandExecution commandExecution;
 
-        public DummyAsyncCommand(String name, CommandExecution singleExecutionForTesting) {
-            super(name, new DefaultTestExecutor());
+        public DummyAsyncCommand(CommandExecution singleExecutionForTesting) {
+            super(new DefaultTestExecutor());
             this.commandExecution = singleExecutionForTesting;
         }
 
@@ -94,63 +94,48 @@ public abstract class AsyncCommandTest extends TestCase {
     }
 
 
-    class DebuggingLifeCycleMonitor implements LifeCycleMonitor {
+    class DebuggingExecutionObserver implements ExecutionObserver {
 
-        public void started(String commandName, Object commandExecution) {
-            System.out.println("started " + commandName + " " + commandExecution);
+        public void starting(Object commandExecution) {
+            System.out.println("starting " + commandExecution);
         }
 
-        public void stepReached(String commandName, Object commandExecution) {
-            System.out.println("stepReached "  + commandName + " " + commandExecution);
+        public void started(Object commandExecution) {
+            System.out.println("started " + commandExecution);
         }
 
-        public void ended(String commandName, Object commandExecution) {
-            System.out.println("started "  + commandName + " " + commandExecution);
+        public void stepReached(Object commandExecution) {
+            System.out.println("stepReached "  + commandExecution);
         }
 
-        public void error(String commandName, Object commandExecution, Throwable error) {
-            System.out.println("started "  + commandName + " " + commandExecution + " " + error);
-        }
-    }
-
-    class DebuggingProxyCommandController<E> implements CommandController<E> {
-        private CommandController<E> wrappedController;
-
-        public DebuggingProxyCommandController(CommandController<E> wrappedController) {
-            this.wrappedController = wrappedController;
+        public void ended(Object commandExecution) {
+            System.out.println("started " + commandExecution);
         }
 
-        public void commandStarting(String commandName, E commandExecution) throws Exception {
-            System.out.println("commandStarting "  + commandName + " " + commandExecution);
-            wrappedController.commandStarting(commandName, commandExecution);
-        }
-
-        public void commandStopped(String commandName, E commandExecution) {
-            System.out.println("commandStopped "  + commandName + " " + commandExecution);
-            wrappedController.commandStopped(commandName, commandExecution);  
-        }
-
-        public void commandError(String commandName, E commandExecution, Throwable t) {
-            System.out.println("commandError "  + commandName + " " + commandExecution + " " + t);
-            wrappedController.commandError(commandName, commandExecution, t);
+        public void error(Object commandExecution, Throwable error) {
+            System.out.println("started " + " " + commandExecution + " " + error);
         }
     }
 
-    class RuntimeExceptionThrowingLifecycleMonitor implements LifeCycleMonitor {
+    class RuntimeExceptionThrowingExecutionObserver implements ExecutionObserver {
 
-        public void started(String commandName, Object commandExecution) {
+        public void starting(Object commandExecution) {
             throw new RuntimeException("I shouldn't interrupt processing");
         }
 
-        public void stepReached(String commandName, Object commandExecution) {
+        public void started(Object commandExecution) {
             throw new RuntimeException("I shouldn't interrupt processing");
         }
 
-        public void ended(String commandName, Object commandExecution) {
+        public void stepReached(Object commandExecution) {
             throw new RuntimeException("I shouldn't interrupt processing");
         }
 
-        public void error(String commandName, Object commandExecution, Throwable error) {
+        public void ended(Object commandExecution) {
+            throw new RuntimeException("I shouldn't interrupt processing");
+        }
+
+        public void error(Object commandExecution, Throwable error) {
             throw new RuntimeException("I shouldn't interrupt processing");
         }
     }
