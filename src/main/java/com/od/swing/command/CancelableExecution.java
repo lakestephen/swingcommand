@@ -8,9 +8,8 @@ package com.od.swing.command;
  */
 public interface CancelableExecution extends CommandExecution {
 
-     /**
-     * Call this method to request the the execution be cancelled after the
-     * currently executing child command completes
+    /**
+     * Call this method to request execution be cancelled
      */
      void cancelExecution();
 }
