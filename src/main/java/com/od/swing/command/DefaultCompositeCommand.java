@@ -15,7 +15,7 @@ import java.util.concurrent.Executor;
  *
  * A simple composite command which can be used out of the box, or subclassed
  */
-public class DefaultCompositeCommand<C> extends AbstractCompositeCommand<CompositeExecution<C>, C> {
+public class DefaultCompositeCommand<C extends CommandExecution> extends AbstractCompositeCommand<CompositeExecution<C>, C> {
 
     public DefaultCompositeCommand(Command<C>... childCommands) {
         super(childCommands);
@@ -45,7 +45,7 @@ public class DefaultCompositeCommand<C> extends AbstractCompositeCommand<Composi
      */
     protected class DefaultCompositeExecution implements CompositeExecution<C> {
 
-        private List<Command<C>> executionCommands = new ArrayList<Command<C>>();
+        private List<Command<? extends C>> executionCommands = new ArrayList<Command<? extends C>>();
         private int totalChildCommands = executionCommands.size();
         private int currentCommandId;
         private volatile boolean isCancelled;
@@ -64,9 +64,14 @@ public class DefaultCompositeCommand<C> extends AbstractCompositeCommand<Composi
          */
         public void doInBackground() throws Exception {
             currentCommandId = 0;
-            for (Command<C> command : executionCommands) {
+            for (final Command<? extends C> command : executionCommands) {
                 currentCommandId++;
-                command.execute(executionObserverProxy);  //we are not in event thread here, so this should be synchronous
+
+                if ( command instanceof AsynchronousCommand ) {
+                    executeAsyncChildCommand(command);
+                } else {
+                    executeChildCommand(command);
+                }
 
                 //abort processing if a command has generated an error via the TaskServicesProxy
                 if ((executionObserverProxy.isErrorOccurred() && abortOnError) || isCancelled) {
@@ -75,7 +80,21 @@ public class DefaultCompositeCommand<C> extends AbstractCompositeCommand<Composi
             }
         }
 
-         /**
+        private void executeAsyncChildCommand(Command<? extends C> command) {
+            //we are not in event thread here, so this call should be synchronous
+            command.execute(executionObserverProxy);
+        }
+
+        private void executeChildCommand(final Command<? extends C> command) {
+            //non async commands should only run on the event thread
+            ExecutionObserverSupport.executeSynchronouslyOnEventThread(new Runnable() {
+                public void run() {
+                    command.execute(executionObserverProxy);
+                }
+            }, true);
+        }
+
+        /**
          * @param abortOnError - whether an error in a command causes the remaining commands to be aborted.
          */
         public void setAbortOnError(boolean abortOnError) {
@@ -123,8 +142,8 @@ public class DefaultCompositeCommand<C> extends AbstractCompositeCommand<Composi
          * this composites observers
          */
         private class ExecutionObserverProxy implements ExecutionObserver<C> {
-            private boolean errorOccurred;
-            private DefaultCompositeExecution commandExecution;
+            private final DefaultCompositeExecution commandExecution;
+            private volatile boolean errorOccurred;
             private volatile C currentChildExecution;
 
             public ExecutionObserverProxy(DefaultCompositeExecution commandExecution) {

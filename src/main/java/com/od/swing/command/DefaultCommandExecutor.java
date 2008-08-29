@@ -12,7 +12,7 @@ import java.util.concurrent.Executor;
  * Usually it is run from a new thread/sub thread which has been spawned specifically to manage
  * the lifecycle of this async command.
  */
-class DefaultCommandExecutor<E extends CommandExecution> implements CommandExecutor<E> {
+class DefaultCommandExecutor<E extends AsynchronousExecution> implements CommandExecutor<E> {
 
     private final Executor executor;
     private final Map<E, CommandExecutor<E>> executionToExecutorMap;

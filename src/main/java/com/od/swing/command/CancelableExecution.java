@@ -6,7 +6,7 @@ package com.od.swing.command;
  * Date: 22-Aug-2008
  * Time: 14:06:13
  */
-public interface CancelableExecution extends CommandExecution {
+public interface CancelableExecution extends AsynchronousExecution {
 
     /**
      * Call this method to request execution be cancelled

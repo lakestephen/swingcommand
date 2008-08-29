@@ -8,6 +8,9 @@ package com.od.swing.command;
  */
 public interface CompositeExecution<C> extends CancelableExecution {
 
+    /**
+     * @return the child command, or execution for AsynchronousCommand instances
+     */
    public C getCurrentChildExecution();
 
    public int getCurrentChildId();

@@ -23,7 +23,7 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
 
     //test the correct threads receive the callbacks
     public void testExecutionCallbacksNormalProcessing() {
-        CommandExecution dummyExecution = new NormalExecution();
+        AsynchronousExecution dummyExecution = new NormalExecution();
 
         final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
@@ -46,7 +46,7 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
 
     public void testDoneShouldNotBeCalledIfExceptionThrownInDoInBackground() {
 
-        CommandExecution dummyExecution = new ErrorInDoInBackgroundExecution();
+        AsynchronousExecution dummyExecution = new ErrorInDoInBackgroundExecution();
 
         final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
@@ -67,7 +67,7 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
 
     //executor map must be cleared down otherwise memory leak will occur
     public void testExecutorMapClearedAfterNormalExecution() {
-        CommandExecution dummyExecution = new NormalExecution();
+        AsynchronousExecution dummyExecution = new NormalExecution();
         final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
                 return "testExecutorMapClearedAfterNormalExecution";
@@ -87,7 +87,7 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
 
     //executor map must be cleared down otherwise memory leak will occur
     public void testExecutorMapClearedAfterExecutionWithError() {
-        CommandExecution dummyExecution = new ErrorInDoInBackgroundExecution();
+        AsynchronousExecution dummyExecution = new ErrorInDoInBackgroundExecution();
         final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
                 return "testExecutorMapClearedAfterExecutionWithError";
@@ -105,7 +105,7 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
         assertEquals(0, dummyCommand.executionToExecutorMap.size());
     }
 
-    private class NormalExecution implements CommandExecution {
+    private class NormalExecution implements AsynchronousExecution {
 
         public void doInBackground() throws Exception {
             isdoInBackgroundCalledInSubThread = ! SwingUtilities.isEventDispatchThread();
@@ -117,7 +117,7 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
         }
     }
 
-    private class ErrorInDoInBackgroundExecution implements CommandExecution {
+    private class ErrorInDoInBackgroundExecution implements AsynchronousExecution {
 
         public void doInBackground() throws Exception {
             throw new RuntimeException("ErrorInDoInBackgroundExecution");

@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
  * So a ExecutionObserver instance can be safely be used to update the UI to represent the progress of the command
  * </PRE>
  */
-public abstract class AbstractAsynchronousCommand<E extends CommandExecution> implements AsynchronousCommand<E> {
+public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecution> implements AsynchronousCommand<E> {
 
     private final ExecutionObserverSupport<E> executionObservingSupport = new ExecutionObserverSupport<E>();
     private final Executor executor;

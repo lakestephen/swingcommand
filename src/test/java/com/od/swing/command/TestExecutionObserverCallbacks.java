@@ -74,7 +74,7 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
         );
     }
 
-    private void testNormalExecution(final String name, final ExecutionObserver<CommandExecution>... extraLifeCycleObserver) {
+    private void testNormalExecution(final String name, final ExecutionObserver<AsynchronousExecution>... extraLifeCycleObserver) {
         final DummyExecution dummyExecution = new DummyExecution();
         final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
@@ -86,7 +86,7 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
             new Runnable() {
                 public void run() {
                     @SuppressWarnings("unchecked")
-                    final ExecutionObserver<CommandExecution> observer = (ExecutionObserver<CommandExecution>)mockery.mock(ExecutionObserver.class);
+                    final ExecutionObserver<AsynchronousExecution> observer = (ExecutionObserver<AsynchronousExecution>)mockery.mock(ExecutionObserver.class);
 
                     if ( extraLifeCycleObserver != null ) {
                         dummyCommand.addExecutionObservers(extraLifeCycleObserver);
@@ -108,7 +108,7 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
         validateMockeryAssertions();
     }
 
-    private void testErrorExecution(final String name, final DummyExecution dummyExecution, final ExecutionObserver<CommandExecution>... extraLifeCycleObserver) {
+    private void testErrorExecution(final String name, final DummyExecution dummyExecution, final ExecutionObserver<AsynchronousExecution>... extraLifeCycleObserver) {
         final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
                 return name;
@@ -119,7 +119,7 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
             new Runnable() {
                 public void run() {
                     @SuppressWarnings("unchecked")
-                    final ExecutionObserver<CommandExecution> observer = (ExecutionObserver<CommandExecution>)mockery.mock(ExecutionObserver.class);
+                    final ExecutionObserver<AsynchronousExecution> observer = (ExecutionObserver<AsynchronousExecution>)mockery.mock(ExecutionObserver.class);
 
                     if ( extraLifeCycleObserver != null ) {
                         dummyCommand.addExecutionObservers(extraLifeCycleObserver);

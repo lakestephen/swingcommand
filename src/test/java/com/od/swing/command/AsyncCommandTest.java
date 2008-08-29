@@ -66,7 +66,7 @@ public abstract class AsyncCommandTest extends TestCase {
     }
 
 
-    class DummyExecution implements CommandExecution {
+    class DummyExecution implements AsynchronousExecution {
         public void doInBackground() throws Exception {}
 
         public void done() throws Exception {}
@@ -77,19 +77,19 @@ public abstract class AsyncCommandTest extends TestCase {
     }
 
 
-    class DummyAsynchronousCommand extends AbstractAsynchronousCommand<CommandExecution> {
-        private CommandExecution commandExecution;
+    class DummyAsynchronousCommand extends AbstractAsynchronousCommand<AsynchronousExecution> {
+        private AsynchronousExecution asynchronousExecution;
 
-        public DummyAsynchronousCommand(CommandExecution singleExecutionForTesting) {
+        public DummyAsynchronousCommand(AsynchronousExecution singleExecutionForTesting) {
             super(new DefaultTestExecutor());
-            this.commandExecution = singleExecutionForTesting;
+            this.asynchronousExecution = singleExecutionForTesting;
         }
 
         //n.b. you should create a new command execution for each invocation of this method
         //the instance passed to the constructor is used just for testing here, since we need a handle to the
         //execution instance for the tests
-        public CommandExecution createExecution() {
-            return commandExecution;
+        public AsynchronousExecution createExecution() {
+            return asynchronousExecution;
         }
     }
 

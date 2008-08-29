@@ -7,7 +7,7 @@ package com.od.swing.command;
  * Time: 23:06:47
  * To change this template use File | Settings | File Templates.
  */
-public interface Command<E> {
+public interface Command<E extends CommandExecution> {
 
     /**
      * @param executionObservers a listener to receive execution observer events during command processing

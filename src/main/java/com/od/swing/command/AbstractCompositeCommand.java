@@ -23,10 +23,10 @@ import java.util.concurrent.Executor;
  *
  * E - the type of CompositeExecution, C the type of CommmandExecution the child commands will use
  */
-public abstract class AbstractCompositeCommand<E extends CompositeExecution, C> extends AbstractAsynchronousCommand<E> {
+public abstract class AbstractCompositeCommand<E extends CompositeExecution, C extends CommandExecution> extends AbstractAsynchronousCommand<E> {
 
     //use synchronized list in case non-event thread adds child commands
-    private List<Command<C>> childCommands = Collections.synchronizedList(new ArrayList<Command<C>>());
+    private List<Command<? extends C>> childCommands = Collections.synchronizedList(new ArrayList<Command<? extends C>>());
 
     public AbstractCompositeCommand(Command<C>... childCommands) {
         this.childCommands.addAll(Arrays.asList(childCommands));
@@ -37,31 +37,31 @@ public abstract class AbstractCompositeCommand<E extends CompositeExecution, C> 
         this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    public void addCommand(Command<C> command) {
+    public void addCommand(Command<? extends C> command) {
         childCommands.add(command);
     }
 
-    public void addCommands(Command<C>... commands) {
+    public void addCommands(Command<? extends C>... commands) {
         childCommands.addAll(Arrays.asList(commands));
     }
 
-    public void addCommands(Collection<Command<C>> commands) {
+    public void addCommands(Collection<Command<? extends C>> commands) {
         childCommands.addAll(commands);
     }
 
-    public void removeCommands(Command<C>... commands) {
+    public void removeCommands(Command<? extends C>... commands) {
         childCommands.removeAll(Arrays.asList(commands));
     }
 
-    public void removeCommands(Collection<Command<C>> commands) {
+    public void removeCommands(Collection<Command<? extends C>> commands) {
         childCommands.removeAll(commands);
     }
 
-    public void removeCommand(Command<C> command) {
+    public void removeCommand(Command<? extends C> command) {
         childCommands.remove(command);
     }
 
-    public List<Command<C>> getChildCommands() {
+    public List<Command<? extends C>> getChildCommands() {
         return Collections.unmodifiableList(childCommands);
     }
 }
