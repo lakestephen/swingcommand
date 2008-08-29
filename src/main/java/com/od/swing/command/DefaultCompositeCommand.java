@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.Executor;
 
 /**
  * Created by IntelliJ IDEA.
@@ -14,14 +15,22 @@ import java.util.Collection;
  *
  * A simple composite command which can be used out of the box, or subclassed
  */
-public class DefaultCompositeCommand<C extends CommandExecution> extends AbstractCompositeCommand<CompositeExecution, C> {
+public class DefaultCompositeCommand<C> extends AbstractCompositeCommand<CompositeExecution<C>, C> {
+
+    public DefaultCompositeCommand(Command<C>... childCommands) {
+        super(childCommands);
+    }
+
+    public DefaultCompositeCommand(Executor executor, Command<C>... childCommands) {
+        super(executor, childCommands);
+    }
 
     /**
      * Subclasses may override this method, to return a DefaultCompositeExecution with extra child commands added, for example
      *
      * @return a CompositeExecution
      */
-    public CompositeExecution createExecution() {
+    public CompositeExecution<C> createExecution() {
         return new DefaultCompositeExecution();
     }
 
@@ -34,9 +43,9 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
      * Subclass executions can add extra child commands, or modify the command list to be used for this execution only - sometimes it is
      * convenient to decide on the required child commands only at the point the composite execution is created.
      */
-    protected class DefaultCompositeExecution implements CompositeExecution {
+    protected class DefaultCompositeExecution implements CompositeExecution<C> {
 
-        private List<AsynchronousCommand<C>> executionCommands = new ArrayList<AsynchronousCommand<C>>(3);
+        private List<Command<C>> executionCommands = new ArrayList<Command<C>>();
         private int totalChildCommands = executionCommands.size();
         private int currentCommandId;
         private volatile boolean isCancelled;
@@ -55,7 +64,7 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
          */
         public void doInBackground() throws Exception {
             currentCommandId = 0;
-            for (AsynchronousCommand<C> command : executionCommands) {
+            for (Command<C> command : executionCommands) {
                 currentCommandId++;
                 command.execute(executionObserverProxy);  //we are not in event thread here, so this should be synchronous
 
@@ -73,15 +82,15 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
             this.abortOnError = abortOnError;
         }
 
-        public void addCommand(AsynchronousCommand<C> command) {
+        public void addCommand(Command<C> command) {
             executionCommands.add(command);
         }
 
-        public void addCommands(AsynchronousCommand<C>... commands) {
+        public void addCommands(Command<C>... commands) {
             executionCommands.addAll(Arrays.asList(commands));
         }
 
-        public void addCommands(Collection<AsynchronousCommand<C>> commands) {
+        public void addCommands(Collection<Command<C>> commands) {
             executionCommands.addAll(commands);
         }
 
@@ -99,7 +108,7 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
 
         public void cancelExecution() {
             isCancelled = true;
-            CommandExecution c = executionObserverProxy.getCurrentChildExecution();
+            C c = executionObserverProxy.getCurrentChildExecution();
             if ( c instanceof CancelableExecution ) {
                 ((CancelableExecution)c).cancelExecution();
             }

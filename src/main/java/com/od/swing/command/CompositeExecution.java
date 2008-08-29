@@ -6,9 +6,9 @@ package com.od.swing.command;
  * Date: 21-Aug-2008
  * Time: 17:43:43
  */
-public interface CompositeExecution extends CancelableExecution {
+public interface CompositeExecution<C> extends CancelableExecution {
 
-   public CommandExecution getCurrentChildExecution();
+   public C getCurrentChildExecution();
 
    public int getCurrentChildId();
 

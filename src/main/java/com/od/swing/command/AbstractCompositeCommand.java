@@ -23,45 +23,45 @@ import java.util.concurrent.Executor;
  *
  * E - the type of CompositeExecution, C the type of CommmandExecution the child commands will use
  */
-public abstract class AbstractCompositeCommand<E extends CompositeExecution, C extends CommandExecution> extends AbstractAsynchronousCommand<E> {
+public abstract class AbstractCompositeCommand<E extends CompositeExecution, C> extends AbstractAsynchronousCommand<E> {
 
     //use synchronized list in case non-event thread adds child commands
-    private List<AsynchronousCommand<C>> childCommands = Collections.synchronizedList(new ArrayList<AsynchronousCommand<C>>());
+    private List<Command<C>> childCommands = Collections.synchronizedList(new ArrayList<Command<C>>());
 
-    public AbstractCompositeCommand(AsynchronousCommand<C>... childCommands) {
+    public AbstractCompositeCommand(Command<C>... childCommands) {
         this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    protected AbstractCompositeCommand(Executor executor, AsynchronousCommand<C>... childCommands) {
+    protected AbstractCompositeCommand(Executor executor, Command<C>... childCommands) {
         super(executor);
         this.childCommands.addAll(Arrays.asList(childCommands));
     }
 
-    public void addCommand(AsynchronousCommand<C> command) {
+    public void addCommand(Command<C> command) {
         childCommands.add(command);
     }
 
-    public void addCommands(AsynchronousCommand<C>... commands) {
+    public void addCommands(Command<C>... commands) {
         childCommands.addAll(Arrays.asList(commands));
     }
 
-    public void addCommands(Collection<AsynchronousCommand<C>> commands) {
+    public void addCommands(Collection<Command<C>> commands) {
         childCommands.addAll(commands);
     }
 
-    public void removeCommands(AsynchronousCommand<C>... commands) {
+    public void removeCommands(Command<C>... commands) {
         childCommands.removeAll(Arrays.asList(commands));
     }
 
-    public void removeCommands(Collection<AsynchronousCommand<C>> commands) {
+    public void removeCommands(Collection<Command<C>> commands) {
         childCommands.removeAll(commands);
     }
 
-    public void removeCommand(AsynchronousCommand<C> command) {
+    public void removeCommand(Command<C> command) {
         childCommands.remove(command);
     }
 
-    public List<AsynchronousCommand<C>> getChildCommands() {
+    public List<Command<C>> getChildCommands() {
         return Collections.unmodifiableList(childCommands);
     }
 }

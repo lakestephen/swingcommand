@@ -40,11 +40,7 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
 
     public final E execute(ExecutionObserver<? super E>... instanceExecutionObservers) {
         E execution = createExecutionInEventThread();
-        if ( execution != null ) {
-            executeCommand(execution, instanceExecutionObservers);
-        } else {
-            System.err.println("Cannot run command " + this + ". createExecution returned null");
-        }
+        executeCommand(execution, instanceExecutionObservers); //this will be asynchronous unless we have a synchronous executor or are already in a worker thread
         return execution;
      }
 
@@ -88,11 +84,13 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
 
         CreateExecutionRunnable r = new CreateExecutionRunnable();
         Throwable t = ExecutionObserverSupport.executeSynchronouslyOnEventThread(r, false);
+        E execution = r.getExecution();
         if ( t != null ) {
-            System.err.println("Error while creating execution for command " + this);
-            t.printStackTrace();
+            throw new SwingCommandRuntimeException("Cannot run command \" + getClass().getName() + \" createExecution() threw an execption");
+        } else if ( execution == null ) {
+            throw new SwingCommandRuntimeException("Cannot run command " + getClass().getName() + " createExecution() returned null");
         }
-        return (E)r.getExecution();
+        return execution;
     }
 
     /**
@@ -121,11 +119,12 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
      * Fire command error to ExecutionObserver instances
      * Event will be fired on the Swing event thread
      *
-     * This has default visiblity so that CompositeAsyncCommand can use it but subclasses should raise an error by throwing it in doInBackground() or done()
+     * This has default visiblity so that DefaultCompositeCommand can use it but subclasses should raise an error by throwing it in doInBackground() or done()
      * Subclasses should usually throw an exception during processing - which will trigger an error to be fired and processing to be aborted
      *
      * @param commandExecution execution for executing command
      * @param t the error which occurred
+     * @throws SwingCommandRuntimeException, if the execution was not created by this AbstractAsynchronousCommand, or the execution has already ended
      */
     void fireError(E commandExecution, Throwable t) {
         CommandExecutor<E> c = executionToExecutorMap.get(commandExecution);
@@ -133,7 +132,7 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
             List<ExecutionObserver<? super E>> executionObservers = c.getExecutionObservers();
             ExecutionObserverSupport.fireError(executionObservers, commandExecution, t);
         } else {
-            System.err.println(getClass().getName() + " tried to fire error for unknown execution");
+            throw new SwingCommandRuntimeException("fireError called for unknown execution " + commandExecution);
         }
     }
 
@@ -141,7 +140,8 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
      * Fire step reached to ExecutionObserver instances
      * Event will be fired on the Swing event thread
      *
-     * @param commandExecution, execution for executing command
+     * @param commandExecution, execution for which to fire stepReached
+     * @throws SwingCommandRuntimeException, if the execution was not created by this AbstractAsynchronousCommand, or the execution has already ended
      */
     protected void fireStepReached(E commandExecution) {
         CommandExecutor<E> c = executionToExecutorMap.get(commandExecution);
@@ -149,7 +149,7 @@ public abstract class AbstractAsynchronousCommand<E extends CommandExecution> im
             List<ExecutionObserver<? super E>> executionObservers = c.getExecutionObservers();
             ExecutionObserverSupport.fireStepReached(executionObservers, commandExecution);
         } else {
-            System.err.println(getClass().getName() + " tried to fire step reached for unknown execution");
+            throw new SwingCommandRuntimeException("fireStepReached called for unknown execution " + commandExecution);
         }
     }
 }

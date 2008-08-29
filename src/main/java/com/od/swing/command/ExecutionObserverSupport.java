@@ -3,6 +3,7 @@ package com.od.swing.command;
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 import java.lang.reflect.InvocationTargetException;
 
 /**
@@ -21,18 +22,13 @@ class ExecutionObserverSupport<E> {
 
     public final void addExecutionObservers(ExecutionObserver<? super E>... observers) {
         synchronized (executionObservers) {
-            for (ExecutionObserver<? super E> observer : observers ) {
-                executionObservers.add(observer);
-            }
+            executionObservers.addAll(Arrays.asList(observers));
         }
     }
 
     public final void removeExecutionObservers(ExecutionObserver<? super E>... observers) {
-        //find the proxy for the real interface and remove
         synchronized (executionObservers) {
-            for (ExecutionObserver<? super E> observer : observers ) {
-                executionObservers.remove(observer);
-            }
+            executionObservers.removeAll(Arrays.asList(observers));
         }
     }
 

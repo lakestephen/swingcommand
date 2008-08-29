@@ -46,7 +46,7 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
 
     public void testDoneShouldNotBeCalledIfExceptionThrownInDoInBackground() {
 
-        CommandExecution dummyExecution = new ErrorInExecAsyncExecution();
+        CommandExecution dummyExecution = new ErrorInDoInBackgroundExecution();
 
         final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
@@ -87,7 +87,7 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
 
     //executor map must be cleared down otherwise memory leak will occur
     public void testExecutorMapClearedAfterExecutionWithError() {
-        CommandExecution dummyExecution = new ErrorInExecAsyncExecution();
+        CommandExecution dummyExecution = new ErrorInDoInBackgroundExecution();
         final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
                 return "testExecutorMapClearedAfterExecutionWithError";
@@ -117,10 +117,10 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
         }
     }
 
-    private class ErrorInExecAsyncExecution implements CommandExecution {
+    private class ErrorInDoInBackgroundExecution implements CommandExecution {
 
         public void doInBackground() throws Exception {
-            throw new RuntimeException("ErrorInExecAsyncExecution");
+            throw new RuntimeException("ErrorInDoInBackgroundExecution");
         }
 
         public void done() throws Exception {
