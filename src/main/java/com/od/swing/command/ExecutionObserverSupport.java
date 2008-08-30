@@ -81,11 +81,11 @@ class ExecutionObserverSupport<E> {
         }
     }
 
-    public static <E> void fireStepReached(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
+    public static <E> void fireProgress(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
         for (final ExecutionObserver<? super E> observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
-                    observer.stepReached(commandExecution);
+                    observer.progress(commandExecution);
                 }
             }, true);
         }

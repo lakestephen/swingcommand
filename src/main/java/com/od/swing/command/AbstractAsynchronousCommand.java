@@ -140,16 +140,16 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
      * Fire step reached to ExecutionObserver instances
      * Event will be fired on the Swing event thread
      *
-     * @param commandExecution, execution for which to fire stepReached
+     * @param commandExecution, execution for which to fire progress
      * @throws SwingCommandRuntimeException, if the execution was not created by this AbstractAsynchronousCommand, or the execution has already ended
      */
-    protected void fireStepReached(E commandExecution) {
+    protected void fireProgress(E commandExecution) {
         CommandExecutor<E> c = executionToExecutorMap.get(commandExecution);
         if ( c != null ) {
             List<ExecutionObserver<? super E>> executionObservers = c.getExecutionObservers();
-            ExecutionObserverSupport.fireStepReached(executionObservers, commandExecution);
+            ExecutionObserverSupport.fireProgress(executionObservers, commandExecution);
         } else {
-            throw new SwingCommandRuntimeException("fireStepReached called for unknown execution " + commandExecution);
+            throw new SwingCommandRuntimeException("fireProgress called for unknown execution " + commandExecution);
         }
     }
 }

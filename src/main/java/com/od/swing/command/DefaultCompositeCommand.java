@@ -155,10 +155,10 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
 
             public void started(C commandExecution) {
                 this.currentChildExecution = commandExecution;
-                fireStepReached(this.commandExecution);
+                fireProgress(this.commandExecution);
             }
 
-            public void stepReached(C commandExecution) {
+            public void progress(C commandExecution) {
             }
 
             public void ended(C commandExecution) {

@@ -12,7 +12,7 @@ public class ExecutionObserverAdapter<E> implements ExecutionObserver<E> {
 
     public void started(E commandExecution) {}
 
-    public void stepReached(E commandExecution) {}
+    public void progress(E commandExecution) {}
 
     public void ended(E commandExecution) {}
 

@@ -39,7 +39,7 @@ public interface ExecutionObserver<E> {
      *
      * @param commandExecution, the execution which has made progress
      */
-    void stepReached(E commandExecution);
+    void progress(E commandExecution);
 
     /**
      * This callback takes place once the execution has finished (the doInBackground and Done have been completed)
