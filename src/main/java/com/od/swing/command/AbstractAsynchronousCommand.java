@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
 public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecution> implements AsynchronousCommand<E> {
 
     private final ExecutionObserverSupport<E> executionObservingSupport = new ExecutionObserverSupport<E>();
-    private final Executor executor;
+    private Executor executor;
 
     //use of Hashtable rather than HashMap to ensure synchronized access, default access to facilitate testing
     Map<E, CommandExecutor<E>> executionToExecutorMap = new Hashtable<E, CommandExecutor<E>>();
@@ -35,6 +35,13 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
      * @param executor Executor to run this command
      */
     public AbstractAsynchronousCommand(Executor executor) {
+        this.executor = executor;
+    }
+
+    /**
+     * @param executor, the Executor used to run this command
+     */
+    public void setExecutor(Executor executor) {
         this.executor = executor;
     }
 

@@ -101,15 +101,15 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
             this.abortOnError = abortOnError;
         }
 
-        public void addCommand(Command<C> command) {
+        public void addCommand(Command<? extends C> command) {
             executionCommands.add(command);
         }
 
-        public void addCommands(Command<C>... commands) {
+        public void addCommands(Command<? extends C>... commands) {
             executionCommands.addAll(Arrays.asList(commands));
         }
 
-        public void addCommands(Collection<Command<C>> commands) {
+        public void addCommands(Collection<Command<? extends C>> commands) {
             executionCommands.addAll(commands);
         }
 
