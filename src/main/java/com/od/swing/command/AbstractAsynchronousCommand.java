@@ -84,7 +84,7 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
 
         CreateExecutionRunnable r = new CreateExecutionRunnable();
         Throwable t = ExecutionObserverSupport.executeSynchronouslyOnEventThread(r, false);
-        E execution = r.getExecution();
+        E execution = (E)r.getExecution();  //for some reason some jdk need the cast to E to compile
         if ( t != null ) {
             throw new SwingCommandRuntimeException("Cannot run command \" + getClass().getName() + \" createExecution() threw an execption");
         } else if ( execution == null ) {
