@@ -65,7 +65,7 @@ class ExecutionObserverSupport<E> {
         for (final ExecutionObserver<? super E> observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
-                    observer.ended(commandExecution);
+                    observer.stopped(commandExecution);
                 }
             }, true);
         }

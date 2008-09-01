@@ -124,7 +124,7 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
      *
      * @param commandExecution execution for executing command
      * @param t the error which occurred
-     * @throws SwingCommandRuntimeException, if the execution was not created by this AbstractAsynchronousCommand, or the execution has already ended
+     * @throws SwingCommandRuntimeException, if the execution was not created by this AbstractAsynchronousCommand, or the execution has already stopped
      */
     void fireError(E commandExecution, Throwable t) {
         CommandExecutor<E> c = executionToExecutorMap.get(commandExecution);
@@ -141,7 +141,7 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
      * Event will be fired on the Swing event thread
      *
      * @param commandExecution, execution for which to fire progress
-     * @throws SwingCommandRuntimeException, if the execution was not created by this AbstractAsynchronousCommand, or the execution has already ended
+     * @throws SwingCommandRuntimeException, if the execution was not created by this AbstractAsynchronousCommand, or the execution has already stopped
      */
     protected void fireProgress(E commandExecution) {
         CommandExecutor<E> c = executionToExecutorMap.get(commandExecution);

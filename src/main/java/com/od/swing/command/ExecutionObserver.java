@@ -47,9 +47,9 @@ public interface ExecutionObserver<E> {
      * n.b. if doInBackground raised an exeception, done will not have been invoked, and there will have been a
      * callback to executionObserver.error() before the stopped callback takes place
      *
-     * @param commandExecution, the execution which has ended
+     * @param commandExecution, the execution which has stopped
      */
-    void ended(E commandExecution);
+    void stopped(E commandExecution);
 
     /**
      * This callback takes place if an exeception is raised during doInBackground or done

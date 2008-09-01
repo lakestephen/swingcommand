@@ -14,7 +14,7 @@ public class ExecutionObserverAdapter<E> implements ExecutionObserver<E> {
 
     public void progress(E commandExecution) {}
 
-    public void ended(E commandExecution) {}
+    public void stopped(E commandExecution) {}
 
     public void error(E commandExecution, Throwable error) {}
 }

@@ -161,7 +161,7 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
             public void progress(C commandExecution) {
             }
 
-            public void ended(C commandExecution) {
+            public void stopped(C commandExecution) {
             }
 
             public void error(C commandExecution, Throwable e) {

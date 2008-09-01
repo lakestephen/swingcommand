@@ -18,7 +18,7 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
 
     /**
      * If an error is thrown during executeAsync, executionObserver.error() should be called,
-     * but you should still get a call to executionObserver.ended()
+     * but you should still get a call to executionObserver.stopped()
      */
     public void testLifecycleStartErrorAndStopAreCalledIfExceptionThrownDuringDoInBackground() {
         String name = "testLifecycleStartErrorAndStopAreCalledIfExceptionThrownDuringDoInBackground";
@@ -34,7 +34,7 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
 
     /**
      * If an error is thrown during done, executionObserver.error() should be called,
-     * but you should still get a call to executionObserver.ended()
+     * but you should still get a call to executionObserver.stopped()
      */
     public void testLifecycleStartErrorAndStopAreCalledIfExceptionThrownDuringDone() {
         String name = "testLifecycleStartErrorAndStopAreCalledIfExceptionThrownDuringDone";
@@ -97,7 +97,7 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
                     mockery.checking(new Expectations() {{
                         one(observer).starting(dummyExecution);
                         one(observer).started(dummyExecution);
-                        one(observer).ended(dummyExecution);
+                        one(observer).stopped(dummyExecution);
                     }});
 
                     dummyCommand.execute();
@@ -131,7 +131,7 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
                         one(observer).starting(dummyExecution);
                         one(observer).started(dummyExecution);
                         one(observer).error(with(equal(dummyExecution)), with(any(Exception.class)));
-                        one(observer).ended(dummyExecution);
+                        one(observer).stopped(dummyExecution);
                     }});
 
                     dummyCommand.execute();
