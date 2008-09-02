@@ -117,7 +117,7 @@ public abstract class AsyncCommandTest extends TestCase {
         }
 
         public void error(Object commandExecution, Throwable error) {
-            System.out.println("started " + " " + commandExecution + " " + error);
+            System.out.println("error " + " " + commandExecution);
         }
     }
 
