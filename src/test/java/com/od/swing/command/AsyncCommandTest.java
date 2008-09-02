@@ -112,6 +112,10 @@ public abstract class AsyncCommandTest extends TestCase {
             System.out.println("started " + commandExecution);
         }
 
+        public void success(Object commandExecution) {
+            System.out.println("success " + commandExecution);
+        }
+
         public void error(Object commandExecution, Throwable error) {
             System.out.println("started " + " " + commandExecution + " " + error);
         }
@@ -132,6 +136,10 @@ public abstract class AsyncCommandTest extends TestCase {
         }
 
         public void stopped(Object commandExecution) {
+            throw new RuntimeException("I shouldn't interrupt processing");
+        }
+
+        public void success(Object commandExecution) {
             throw new RuntimeException("I shouldn't interrupt processing");
         }
 

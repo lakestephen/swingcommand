@@ -141,7 +141,7 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
          * Receives execution observer events from child commands and fires step reached events to
          * this composites observers
          */
-        private class ExecutionObserverProxy implements ExecutionObserver<C> {
+        private class ExecutionObserverProxy extends ExecutionObserverAdapter<C> {
             private final DefaultCompositeExecution commandExecution;
             private volatile boolean errorOccurred;
             private volatile C currentChildExecution;
@@ -150,18 +150,9 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
                 this.commandExecution = commandExecution;
             }
 
-            public void starting(C commandExecution) {
-            }
-
             public void started(C commandExecution) {
                 this.currentChildExecution = commandExecution;
                 fireProgress(this.commandExecution);
-            }
-
-            public void progress(C commandExecution) {
-            }
-
-            public void stopped(C commandExecution) {
             }
 
             public void error(C commandExecution, Throwable e) {

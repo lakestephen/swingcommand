@@ -51,6 +51,15 @@ public interface ExecutionObserver<E> {
      */
     void stopped(E commandExecution);
 
+
+    /**
+     * This callback takes place only once a command has successfully completed.
+     * If an exception is generated during processing, a callback to error will occur instead
+     *
+     * @param commandExecution, the execution which has made progress
+     */
+    void success(E commandExecution);
+
     /**
      * This callback takes place if an exeception is raised during doInBackground or done
      *

@@ -83,6 +83,7 @@ class DefaultCommandExecutor<E extends AsynchronousExecution> implements Command
             //STAGE2 - this needs to be done on the event thread
             runDone(commandExecution);
 
+            ExecutionObserverSupport.fireSuccess(executionObservers, commandExecution);
         } catch (Throwable t ) {
             ExecutionObserverSupport.fireError(executionObservers, commandExecution, t);
             t.printStackTrace();

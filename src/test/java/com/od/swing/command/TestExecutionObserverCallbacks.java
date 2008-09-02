@@ -97,6 +97,7 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
                     mockery.checking(new Expectations() {{
                         one(observer).starting(dummyExecution);
                         one(observer).started(dummyExecution);
+                        one(observer).success(dummyExecution);
                         one(observer).stopped(dummyExecution);
                     }});
 

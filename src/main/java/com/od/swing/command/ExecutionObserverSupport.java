@@ -92,6 +92,17 @@ class ExecutionObserverSupport<E> {
     }
 
 
+    public static <E> void fireSuccess(List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
+        for (final ExecutionObserver<? super E> observer : executionObservers) {
+            executeSynchronouslyOnEventThread(new Runnable(){
+                public void run() {
+                    observer.success(commandExecution);
+                }
+            }, true);
+        }
+    }
+
+
     /**
      * Safely run on the event thread
      * If not on the event thead already does an invoke and wait
@@ -125,4 +136,5 @@ class ExecutionObserverSupport<E> {
 
         return error;
     }
+
 }
