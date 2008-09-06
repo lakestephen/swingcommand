@@ -1,4 +1,4 @@
-package com.od.swing.command;
+package swingcommand;
 
 import javax.swing.*;
 import java.util.List;
@@ -45,11 +45,11 @@ class DefaultCommandExecutor<E extends AsynchronousExecution> implements Command
         //Call fire starting before spawning a new thread. Provided execute was called on the
         //event thread, no more ui work can possibly get done before fireStarting is called
         //If fireStarting is used, for example, to disable a button, this guarantees that the button will be
-        //disabled before the action listener triggering the command returns.
+        //disabled before the action listener triggering the swingcommand returns.
         //otherwise the user might be able to click the button again before the fireStarting callback
         ExecutionObserverSupport.fireStarting(executionObservers, commandExecution);
 
-        //a runnable to do the async portion of the command
+        //a runnable to do the async portion of the swingcommand
         Runnable executionRunnable = new Runnable() {
             public void run() {
                 try {
@@ -60,8 +60,8 @@ class DefaultCommandExecutor<E extends AsynchronousExecution> implements Command
             }
         };
 
-        //unless we are already on a background thread, use the executor to execute command
-        //if we are already on a background thread, this command may be running as part of a composite command, so should execute synchronously
+        //unless we are already on a background thread, use the executor to execute swingcommand
+        //if we are already on a background thread, this swingcommand may be running as part of a composite swingcommand, so should execute synchronously
         if ( SwingUtilities.isEventDispatchThread()) {
             executor.execute(executionRunnable);
         } else {
@@ -76,7 +76,7 @@ class DefaultCommandExecutor<E extends AsynchronousExecution> implements Command
             ExecutionObserverSupport.fireStarted(executionObservers, commandExecution);
 
             synchronized (memorySync) {
-                //STAGE1  - in the current command processing thread
+                //STAGE1  - in the current swingcommand processing thread
                 commandExecution.doInBackground();
             }
 

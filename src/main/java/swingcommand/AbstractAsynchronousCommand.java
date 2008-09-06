@@ -1,4 +1,4 @@
-package com.od.swing.command;
+package swingcommand;
 
 import java.util.List;
 import java.util.Arrays;
@@ -57,7 +57,7 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
         final List<ExecutionObserver<? super E>> observersForExecution = executionObservingSupport.getExecutionObserverSnapshot();
         observersForExecution.addAll(Arrays.asList(instanceExecutionObservers));
 
-        //create a new executor unique to this command execution
+        //create a new executor unique to this swingcommand execution
         new DefaultCommandExecutor<E>(
             executor,
             executionToExecutorMap,
@@ -93,9 +93,9 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
         Throwable t = ExecutionObserverSupport.executeSynchronouslyOnEventThread(r, false);
         E execution = (E)r.getExecution();  //for some reason some jdk need the cast to E to compile
         if ( t != null ) {
-            throw new SwingCommandRuntimeException("Cannot run command \" + getClass().getName() + \" createExecution() threw an execption");
+            throw new SwingCommandRuntimeException("Cannot run swingcommand \" + getClass().getName() + \" createExecution() threw an execption");
         } else if ( execution == null ) {
-            throw new SwingCommandRuntimeException("Cannot run command " + getClass().getName() + " createExecution() returned null");
+            throw new SwingCommandRuntimeException("Cannot run swingcommand " + getClass().getName() + " createExecution() returned null");
         }
         return execution;
     }

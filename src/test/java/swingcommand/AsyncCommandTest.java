@@ -1,4 +1,4 @@
-package com.od.swing.command;
+package swingcommand;
 
 import junit.framework.TestCase;
 import org.jmock.Mockery;
@@ -85,7 +85,7 @@ public abstract class AsyncCommandTest extends TestCase {
             this.asynchronousExecution = singleExecutionForTesting;
         }
 
-        //n.b. you should create a new command execution for each invocation of this method
+        //n.b. you should create a new swingcommand execution for each invocation of this method
         //the instance passed to the constructor is used just for testing here, since we need a handle to the
         //execution instance for the tests
         public AsynchronousExecution createExecution() {

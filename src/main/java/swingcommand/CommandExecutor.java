@@ -1,4 +1,4 @@
-package com.od.swing.command;
+package swingcommand;
 
 import java.util.List;
 

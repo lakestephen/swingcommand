@@ -1,4 +1,4 @@
-package com.od.swing.command;
+package swingcommand;
 
 import javax.swing.*;
 import java.util.ArrayList;

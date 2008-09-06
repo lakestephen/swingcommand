@@ -1,4 +1,4 @@
-package com.od.swing.command;
+package swingcommand;
 
 /**
  * @author Nick Ebbutt, Object Definitions Ltd. http://www.objectdefinitions.com

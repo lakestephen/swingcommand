@@ -1,4 +1,4 @@
-package com.od.swing.command;
+package swingcommand;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -73,7 +73,7 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
                     executeChildCommand(command);
                 }
 
-                //abort processing if a command has generated an error via the TaskServicesProxy
+                //abort processing if a swingcommand has generated an error via the TaskServicesProxy
                 if ((executionObserverProxy.isErrorOccurred() && abortOnError) || isCancelled) {
                     break;
                 }

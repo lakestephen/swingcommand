@@ -1,4 +1,4 @@
-package com.od.swing.command;
+package swingcommand;
 
 import org.jmock.Expectations;
 
@@ -47,7 +47,7 @@ public class TestDefaultCompositeCommand extends AsyncCommandTest {
                     final AsynchronousExecution execution1 = mockery.mock(AsynchronousExecution.class, "commandExecution1");
                     final AsynchronousExecution execution2 = mockery.mock(AsynchronousExecution.class, "commandExecution2");
                     @SuppressWarnings("unchecked")
-                    final Command<CommandExecution> execution3 = (Command<CommandExecution>)mockery.mock(Command.class, "command");
+                    final Command<CommandExecution> execution3 = (Command<CommandExecution>)mockery.mock(Command.class, "swingcommand");
 
                     final DefaultCompositeCommand<CommandExecution> compositeCommand = new DefaultCompositeCommand<CommandExecution>(new DefaultTestExecutor());
                     compositeCommand.addCommand(new DummyAsynchronousCommand(execution1));
