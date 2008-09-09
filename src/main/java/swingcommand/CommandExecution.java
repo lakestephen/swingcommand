@@ -11,7 +11,7 @@ public interface CommandExecution extends Cancellable, Undoable {
 
      /**
      * Called in the Swing event thread to execute the command
-      *
+     *
      * For asynchronous commands this gives the command a chance to update the
      * Swing UI views & models once asynchronous processing is completed
      *

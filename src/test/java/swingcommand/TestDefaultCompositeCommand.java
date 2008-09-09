@@ -11,6 +11,12 @@ import org.jmock.Expectations;
  */
 public class TestDefaultCompositeCommand extends AsyncCommandTest {
 
+    private boolean failed;
+
+    public void doSetUp() {
+        failed = false;
+    }
+
     public void testDefaultCompositeWithAsyncCommands() {
         invokeAndWaitWithFail(
             new Runnable() {
@@ -32,6 +38,7 @@ public class TestDefaultCompositeCommand extends AsyncCommandTest {
                             one(execution2).isCancelled();
                         } catch (Exception e) {
                             e.printStackTrace();
+                            failed = true;
                         }
                     }});
                     compositeCommand.execute();
@@ -39,6 +46,7 @@ public class TestDefaultCompositeCommand extends AsyncCommandTest {
             }
         );
         joinLastExecutorThread();
+        assertFalse(failed);
         validateMockeryAssertions();
     }
 
@@ -67,6 +75,7 @@ public class TestDefaultCompositeCommand extends AsyncCommandTest {
                             one(execution3).execute(with(any(ExecutionObserver[].class))); //help ;./!...
                         } catch (Exception e) {
                             e.printStackTrace();
+                            failed = true;
                         }
                     }});
                     compositeCommand.execute();
@@ -74,6 +83,93 @@ public class TestDefaultCompositeCommand extends AsyncCommandTest {
             }
         );
         joinLastExecutorThread();
+        assertFalse(failed);
         validateMockeryAssertions();
+    }
+
+    public void testDefaultCompositeCancellingChildExecution() {
+        invokeAndWaitWithFail(
+            new Runnable() {
+                public void run() {
+
+                    AsynchronousExecution execution1 = new DefaultExecution(ExecutionAttribute.Cancellable);
+
+                    DummyAsynchronousCommand command1 = new DummyAsynchronousCommand(execution1);
+                    DummyAsynchronousCommand command2 = new DummyAsynchronousCommand(new DefaultExecution());
+
+
+                    final DefaultCompositeCommand<CommandExecution> compositeCommand = new DefaultCompositeCommand<CommandExecution>(new DefaultTestExecutor());
+                    compositeCommand.addCommand(command1);
+                    compositeCommand.addCommand(command2);
+
+                    command1.addExecutionObserver(
+                            new ExecutionObserverAdapter<AsynchronousExecution>() {
+                                public void started(AsynchronousExecution commandExecution) {
+                                    commandExecution.cancelExecution();
+                                }
+                            }
+                    );
+
+                    command2.addExecutionObserver(
+                            new ExecutionObserverAdapter<AsynchronousExecution>() {
+                                public void started(AsynchronousExecution commandExecution) {
+                                    failed = true;
+                                }
+                            }
+                    );
+
+
+                    compositeCommand.execute();
+                }
+            }
+        );
+        joinLastExecutorThread();
+        assertFalse("Failed to cancel", failed);
+    }
+
+
+    public void testDefaultCompositeExceptionInChildDoInBackgroundAbortsProcessing() {
+        final AsynchronousExecution execution1 = new DefaultExecution() {
+                public void doInBackground() throws Exception {
+                    throw new Exception("testDefaultCompositeExeceptionInChildExecutionAbortsProcessing");
+                }
+        };
+        testErrorInChildExecution(execution1);
+    }
+
+    public void testDefaultCompositeExceptionInChildDoInEventThreadAbortsProcessing() {
+        final AsynchronousExecution execution1 = new DefaultExecution() {
+                public void doInEventThread() throws Exception {
+                    throw new Exception("testDefaultCompositeExceptionInChildDoInEventThreadAbortsProcessing");
+                }
+        };
+        testErrorInChildExecution(execution1);
+    }
+
+    private void testErrorInChildExecution(final AsynchronousExecution execution1) {
+        invokeAndWaitWithFail(
+            new Runnable() {
+                public void run() {
+
+                    DummyAsynchronousCommand command1 = new DummyAsynchronousCommand(execution1);
+                    DummyAsynchronousCommand command2 = new DummyAsynchronousCommand(new DefaultExecution());
+
+                    final DefaultCompositeCommand<CommandExecution> compositeCommand = new DefaultCompositeCommand<CommandExecution>(new DefaultTestExecutor());
+                    compositeCommand.addCommand(command1);
+                    compositeCommand.addCommand(command2);
+
+                    command2.addExecutionObserver(
+                            new ExecutionObserverAdapter<AsynchronousExecution>() {
+                                public void started(AsynchronousExecution commandExecution) {
+                                    failed = true;
+                                }
+                            }
+                    );
+                    compositeCommand.execute();
+                }
+            }
+        );
+        joinLastExecutorThread();
+        assertFalse("Failed to cancel", failed);
     }
 }

@@ -19,7 +19,23 @@ public interface Undoable {
     boolean isUndoable();
 
     /**
-     * @return true, if the command was undone
+     * @return true, if the command was undone, and not redone again
      */
     boolean isUndone();
+
+    /**
+     * Call this method to request execution be redone
+     */
+    void redo();
+
+      /**
+     * @return true, if this execution can be redone
+     */
+    boolean isRedoable();
+
+    /**
+     * @return true, if the command was redone, and not undone again
+     */
+    boolean isRedone();
+
 }

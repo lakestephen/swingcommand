@@ -130,7 +130,7 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
      * Fire command error to ExecutionObserver instances
      * Event will be fired on the Swing event thread
      *
-     * This has default visiblity so that DefaultCompositeCommand can use it but subclasses should raise an error by throwing it in doInBackground() or done()
+     * This has default visiblity so that DefaultCompositeCommand can use it but subclasses should raise an error by throwing it in doInBackground() or doOnEventThread()
      * Subclasses should usually throw an exception during processing - which will trigger an error to be fired and processing to be aborted
      *
      * @param commandExecution execution for executing command
