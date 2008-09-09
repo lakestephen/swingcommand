@@ -41,7 +41,7 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
         testErrorExecution(
             name,
             new DummyExecution() {
-                public void done() throws Exception {
+                public void doInEventThread() throws Exception {
                     throw new Exception();
                 }
             }
@@ -66,7 +66,7 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
         testErrorExecution(
             name,
             new DummyExecution() {
-                public void done() throws Exception {
+                public void doInEventThread() throws Exception {
                     throw new Exception();
                 }
             },

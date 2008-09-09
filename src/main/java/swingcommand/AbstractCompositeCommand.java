@@ -18,7 +18,7 @@ import java.util.concurrent.Executor;
  *
  * Child tasks' ExecutionObserver instances will recieve events as normal as each child task is processed.
  *
- * The execution for CompositeAsyncCommand implements Cancelable
+ * The execution for CompositeAsyncCommand implements Cancellable
  * Cancelling the execution will cause the command to abort after the currently processing child command finished execution
  *
  * E - the type of CompositeExecution, C the type of CommmandExecution the child commands will use

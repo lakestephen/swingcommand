@@ -14,8 +14,29 @@ import java.util.concurrent.Executor;
  * To change this template use File | Settings | File Templates.
  *
  * A simple composite command which can be used out of the box, or subclassed
+ * This composite command executes its child commands sequentially, in the order they were added
+ *
+ * The composite command supplies an executor when it executes each of the child commands so
+ * that the child commands run on the composite's own execution thread - ie. any executors
+ * configured on the child commands directly are ignored while executing as part of a composite
+ *
+ * If a child command fails by throwing an Exception, the parent command will also fail, and
+ * propagate an exception to its ExecutionObservers with the child exception as the cause,
+ * before any subsequent commands are executed.
+ *
+ * If a cancellable child command's execution is cancelled, the parent will also be cancelled, before any
+ * subsequent commands are executed
+ *
+ * If the composite execution itself is cancelled, the current child command execution will be cancelled
+ * if it supports cancellation, and no subsequent child commands will be executed
  */
 public class DefaultCompositeCommand<C extends CommandExecution> extends AbstractCompositeCommand<CompositeExecution<C>, C> {
+
+    private static final Executor synchronousExecutor = new Executor() {
+        public void execute(Runnable command) {
+           command.run();
+        }
+    };
 
     public DefaultCompositeCommand(Command<C>... childCommands) {
         super(childCommands);
@@ -43,13 +64,12 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
      * Subclass executions can add extra child commands, or modify the command list to be used for this execution only - sometimes it is
      * convenient to decide on the required child commands only at the point the composite execution is created.
      */
-    protected class DefaultCompositeExecution implements CompositeExecution<C> {
+    protected class DefaultCompositeExecution extends DefaultExecution implements CompositeExecution<C> {
 
         private List<Command<? extends C>> executionCommands = new ArrayList<Command<? extends C>>();
         private int totalChildCommands = executionCommands.size();
         private int currentCommandId;
         private volatile boolean isCancelled;
-        private boolean abortOnError;
         private ExecutionObserverProxy executionObserverProxy = new ExecutionObserverProxy(this);
 
         public DefaultCompositeExecution() {
@@ -68,21 +88,29 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
                 currentCommandId++;
 
                 if ( command instanceof AsynchronousCommand ) {
-                    executeAsyncChildCommand(command);
+                    executeAsyncChildCommand((AsynchronousCommand)command);
                 } else {
                     executeChildCommand(command);
                 }
 
+                if ( executionObserverProxy.isErrorOccurred()) {
+                    throw new CompositeCommandException(executionObserverProxy.getLastCommandError());
+                }
+
+                isCancelled |= executionObserverProxy.isLastCommandCancelled();
                 //abort processing if a swingcommand has generated an error via the TaskServicesProxy
-                if ((executionObserverProxy.isErrorOccurred() && abortOnError) || isCancelled) {
+                if (isCancelled) {
                     break;
                 }
             }
         }
 
-        private void executeAsyncChildCommand(Command<? extends C> command) {
+        public void doInEventThread() throws Exception {}
+
+        @SuppressWarnings("unchecked")
+        private void executeAsyncChildCommand(AsynchronousCommand command) {
             //we are not in event thread here, so this call should be synchronous
-            command.execute(executionObserverProxy);
+            command.execute(synchronousExecutor, executionObserverProxy);
         }
 
         private void executeChildCommand(final Command<? extends C> command) {
@@ -92,13 +120,6 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
                     command.execute(executionObserverProxy);
                 }
             }, true);
-        }
-
-        /**
-         * @param abortOnError - whether an error in a command causes the remaining commands to be aborted.
-         */
-        public void setAbortOnError(boolean abortOnError) {
-            this.abortOnError = abortOnError;
         }
 
         public void addCommand(Command<? extends C> command) {
@@ -128,14 +149,18 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
         public void cancelExecution() {
             isCancelled = true;
             C c = executionObserverProxy.getCurrentChildExecution();
-            if ( c instanceof CancelableExecution ) {
-                ((CancelableExecution)c).cancelExecution();
+            if ( c.isCancellable()) {
+                c.cancelExecution();
             }
         }
 
-        public void done() throws Exception {
+        public boolean isCancelled() {
+            return isCancelled;
         }
 
+        public boolean isCancellable() {
+            return true;
+        }
 
         /**
          * Receives execution observer events from child commands and fires step reached events to
@@ -145,6 +170,8 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
             private final DefaultCompositeExecution commandExecution;
             private volatile boolean errorOccurred;
             private volatile C currentChildExecution;
+            private volatile boolean lastCommandCancelled;
+            private volatile Throwable lastCommandError;
 
             public ExecutionObserverProxy(DefaultCompositeExecution commandExecution) {
                 this.commandExecution = commandExecution;
@@ -155,9 +182,13 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
                 fireProgress(this.commandExecution);
             }
 
+            public void stopped(C commandExecution) {
+                lastCommandCancelled = commandExecution.isCancelled();
+            }
+
             public void error(C commandExecution, Throwable e) {
                 errorOccurred = true;
-                fireError(this.commandExecution, e);
+                lastCommandError = e;
             }
 
             public boolean isErrorOccurred() {
@@ -167,7 +198,21 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
             public C getCurrentChildExecution() {
                 return currentChildExecution;
             }
-        }
 
+            public boolean isLastCommandCancelled() {
+                return lastCommandCancelled;
+            }
+
+            public Throwable getLastCommandError() {
+                return lastCommandError;
+            }
+        }
+    }
+
+    private static class CompositeCommandException extends Exception {
+
+        private CompositeCommandException(Throwable cause) {
+            super("Error while executing composite command", cause);
+        }
     }
 }

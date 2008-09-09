@@ -1,6 +1,5 @@
 package swingcommand;
 
-import javax.swing.*;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -59,15 +58,7 @@ class DefaultCommandExecutor<E extends AsynchronousExecution> implements Command
                 }
             }
         };
-
-        //unless we are already on a background thread, use the executor to execute swingcommand
-        //if we are already on a background thread, this swingcommand may be running as part of a composite swingcommand, so should execute synchronously
-        if ( SwingUtilities.isEventDispatchThread()) {
-            executor.execute(executionRunnable);
-        } else {
-            executionRunnable.run();
-        }
-
+         executor.execute(executionRunnable);
     }
 
     private void doExecuteAsync() {
@@ -103,7 +94,7 @@ class DefaultCommandExecutor<E extends AsynchronousExecution> implements Command
             public void run() {
                 synchronized (memorySync) {  //make sure the event thread sees the latest state
                     try {
-                        commandExecution.done();
+                        commandExecution.doInEventThread();
                     }
                     catch (Throwable e) {
                         t = e;

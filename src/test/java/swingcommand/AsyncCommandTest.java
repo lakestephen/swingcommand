@@ -66,10 +66,10 @@ public abstract class AsyncCommandTest extends TestCase {
     }
 
 
-    class DummyExecution implements AsynchronousExecution {
+    class DummyExecution extends DefaultExecution implements AsynchronousExecution {
         public void doInBackground() throws Exception {}
 
-        public void done() throws Exception {}
+        public void doInEventThread() throws Exception {}
 
         public String toString() {
             return "Dummy Execution";

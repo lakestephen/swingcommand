@@ -105,25 +105,25 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
         assertEquals(0, dummyCommand.executionToExecutorMap.size());
     }
 
-    private class NormalExecution implements AsynchronousExecution {
+    private class NormalExecution extends DefaultExecution implements AsynchronousExecution {
 
         public void doInBackground() throws Exception {
             isdoInBackgroundCalledInSubThread = ! SwingUtilities.isEventDispatchThread();
         }
 
-        public void done() throws Exception {
+        public void doInEventThread() throws Exception {
             isDoneCalled = true;
             isDoneCalledInEventThread = SwingUtilities.isEventDispatchThread();
         }
     }
 
-    private class ErrorInDoInBackgroundExecution implements AsynchronousExecution {
+    private class ErrorInDoInBackgroundExecution extends DefaultExecution implements AsynchronousExecution {
 
         public void doInBackground() throws Exception {
             throw new RuntimeException("ErrorInDoInBackgroundExecution");
         }
 
-        public void done() throws Exception {
+        public void doInEventThread() throws Exception {
             isDoneCalled = true;
         }
     }

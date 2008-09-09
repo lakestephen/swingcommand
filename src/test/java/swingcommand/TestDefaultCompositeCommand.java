@@ -25,9 +25,11 @@ public class TestDefaultCompositeCommand extends AsyncCommandTest {
                     mockery.checking(new Expectations() {{
                         try {
                             one(execution1).doInBackground();
-                            one(execution1).done();
+                            one(execution1).doInEventThread();
+                            one(execution1).isCancelled();
                             one(execution2).doInBackground();
-                            one(execution2).done();
+                            one(execution2).doInEventThread();
+                            one(execution2).isCancelled();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -57,9 +59,11 @@ public class TestDefaultCompositeCommand extends AsyncCommandTest {
                     mockery.checking(new Expectations() {{
                         try {
                             one(execution1).doInBackground();
-                            one(execution1).done();
+                            one(execution1).doInEventThread();
+                            one(execution1).isCancelled();
                             one(execution2).doInBackground();
-                            one(execution2).done();
+                            one(execution2).doInEventThread();
+                            one(execution2).isCancelled();
                             one(execution3).execute(with(any(ExecutionObserver[].class))); //help ;./!...
                         } catch (Exception e) {
                             e.printStackTrace();

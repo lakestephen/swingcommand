@@ -10,17 +10,10 @@ public interface AsynchronousExecution extends CommandExecution {
 
     /**
      * Called in a background thread during command execution, to do the main task processing
-     * Command classes should implement implement this method to do the asynchronous processing required
+     * Command classes should implement this method to do the asynchronous processing required
+     * before doInEventThread
      *
      * @throws Exception, to abort execution if an error condition occurs
      */
     void doInBackground() throws Exception;
-
-    /**
-     * Called in the Swing event thread during command execution
-     * Gives the command a chance to update the Swing UI views & models once asynchronous processing is completed
-     *
-     * @throws Exception, to abort execution if an error condition occurs
-     */
-    void done() throws Exception;
 }

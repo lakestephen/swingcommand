@@ -45,13 +45,17 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
         this.executor = executor;
     }
 
-    public final E execute(ExecutionObserver<? super E>... instanceExecutionObservers) {
-        E execution = createExecutionInEventThread();
-        executeCommand(execution, instanceExecutionObservers); //this will be asynchronous unless we have a synchronous executor or are already in a worker thread
-        return execution;
-     }
+    public E execute(ExecutionObserver<? super E>... instanceExecutionObservers) {
+        return execute(executor, instanceExecutionObservers);
+    }
 
-    private void executeCommand(final E execution, ExecutionObserver<? super E>... instanceExecutionObservers) {
+    public E execute(Executor executor, ExecutionObserver<? super E>... instanceExecutionObservers) {
+        E execution = createExecutionInEventThread();
+        executeCommand(executor, execution, instanceExecutionObservers); //this will be asynchronous unless we have a synchronous executor or are already in a worker thread
+        return execution;
+    }
+
+    private void executeCommand(Executor executor, E execution, ExecutionObserver<? super E>... instanceExecutionObservers) {
 
         //get a snapshot list of the execution observers which will receive the events for this execution
         final List<ExecutionObserver<? super E>> observersForExecution = executionObservingSupport.getExecutionObserverSnapshot();
