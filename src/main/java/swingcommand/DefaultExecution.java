@@ -11,7 +11,6 @@ import java.util.Arrays;
  * Time: 14:52:16
  *
  * Supplied default implementation for Undoable and Cancellable executions
- * 
  */
 public class DefaultExecution implements AsynchronousExecution {
 
