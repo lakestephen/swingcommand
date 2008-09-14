@@ -72,7 +72,7 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
         private ExecutionObserverProxy executionObserverProxy = new ExecutionObserverProxy(this);
 
         public DefaultCompositeExecution() {
-            super(ExecutionAttribute.Cancellable);
+            setCancellable(true);
             executionCommands.addAll(getChildCommands());
         }
 
@@ -98,7 +98,7 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
                 }
 
                 if ( executionObserverProxy.isLastCommandCancelled() ) {
-                    cancelExecution();
+                    cancel();
                 }
 
                 //abort processing if a swingcommand has generated an error via the TaskServicesProxy
@@ -151,8 +151,8 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
 
         public void doCancel() {
             C c = executionObserverProxy.getCurrentChildExecution();
-            if ( c.isCancellable()) {
-                c.cancelExecution();
+            if ( c instanceof Cancellable && ((Cancellable)c).isCancellable()) {
+                ((Cancellable)c).cancel();
             }
         }
 
@@ -176,8 +176,9 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
                 fireProgress(this.commandExecution);
             }
 
-            public void stopped(C commandExecution) {
-                lastCommandCancelled = commandExecution.isCancelled();
+            public void done(C commandExecution) {
+                lastCommandCancelled = commandExecution instanceof Cancellable &&
+                        ((Cancellable) commandExecution).isCancelled();
             }
 
             public void error(C commandExecution, Throwable e) {

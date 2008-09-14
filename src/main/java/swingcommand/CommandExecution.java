@@ -1,5 +1,7 @@
 package swingcommand;
 
+import java.util.concurrent.ExecutionException;
+
 /**
  * Created by IntelliJ IDEA.
  * User: nick
@@ -7,7 +9,7 @@ package swingcommand;
  * Time: 00:40:16
  * To change this template use File | Settings | File Templates.
  */
-public interface CommandExecution extends Cancellable, Undoable {
+public interface CommandExecution {
 
      /**
      * Called in the Swing event thread to execute the command
@@ -19,4 +21,23 @@ public interface CommandExecution extends Cancellable, Undoable {
      */
     void doInEventThread() throws Exception;
 
+    /**
+     * @param executionState, the new state
+     */
+    void setState(ExecutionState executionState);
+
+    /**
+     * @return the execution state
+     */
+    ExecutionState getState();
+
+    /**
+     * @return ExecutionExeception, if the execution ended in ExecutionState.ERROR, or null
+     */
+    Throwable getExecutionException();
+
+    /**
+     * @param t, Throwable which caused the execution to fail
+     */
+    void setExecutionException(Throwable t);
 }

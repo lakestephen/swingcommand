@@ -41,7 +41,7 @@ class DefaultCommandExecutor<E extends AsynchronousExecution> implements Command
         //register the executor against the execution in the map
         executionToExecutorMap.put(commandExecution, DefaultCommandExecutor.this);
 
-        //Call fire starting before spawning a new thread. Provided execute was called on the
+        //Call fire pending before spawning a new thread. Provided execute was called on the
         //event thread, no more ui work can possibly get done before fireStarting is called
         //If fireStarting is used, for example, to disable a button, this guarantees that the button will be
         //disabled before the action listener triggering the swingcommand returns.
@@ -62,8 +62,9 @@ class DefaultCommandExecutor<E extends AsynchronousExecution> implements Command
     }
 
     private void doExecuteAsync() {
-        //this try block makes sure we always call end up calling fireEnded
+        //this try block makes sure we always call end up calling fireDone
         try {
+            setExecutionState(ExecutionState.STARTED);
             ExecutionObserverSupport.fireStarted(executionObservers, commandExecution);
 
             synchronized (memorySync) {
@@ -74,15 +75,25 @@ class DefaultCommandExecutor<E extends AsynchronousExecution> implements Command
             //STAGE2 - this needs to be done on the event thread
             runDone(commandExecution);
 
+            setExecutionState(ExecutionState.SUCCESS);
             ExecutionObserverSupport.fireSuccess(executionObservers, commandExecution);
         } catch (Throwable t ) {
+            commandExecution.setExecutionException(t);
+            setExecutionState(ExecutionState.ERROR);
             ExecutionObserverSupport.fireError(executionObservers, commandExecution, t);
             t.printStackTrace();
         } finally {
-            ExecutionObserverSupport.fireEnded(executionObservers, commandExecution);
+            ExecutionObserverSupport.fireDone(executionObservers, commandExecution);
         }
     }
 
+    private void setExecutionState(final ExecutionState newState) {
+        ExecutionObserverSupport.executeSynchronouslyOnEventThread(new Runnable(){
+            public void run() {
+                commandExecution.setState(newState);
+            }
+        }, true);
+    }
 
     private void runDone(final E commandExecution) throws Exception {
         class DoneRunnable implements Runnable {

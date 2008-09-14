@@ -11,7 +11,7 @@ public interface Cancellable {
     /**
     * Call this method to request execution be cancelled
     */
-    void cancelExecution();
+    void cancel();
 
     /**
      * @return true, if this execution was cancelled

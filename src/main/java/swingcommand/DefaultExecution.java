@@ -10,85 +10,14 @@ import java.util.Arrays;
  * Date: 09-Sep-2008
  * Time: 14:52:16
  *
- * Supplied default implementation for Undoable and Cancellable executions
+ * Supplied default implementation for AsynchronousExecution
  */
 public class DefaultExecution implements AsynchronousExecution {
 
+    private ExecutionState executionState = ExecutionState.PENDING;
     private boolean isCancelled;
-    private boolean isUndone;
-    private boolean isRedone;
-
-    private Set<ExecutionAttribute> attributes = new HashSet<ExecutionAttribute>();
-
-    public DefaultExecution(ExecutionAttribute... executionAttributes) {
-        this.attributes.addAll(Arrays.asList(executionAttributes));
-    }
-
-    /**
-     * Subclasses which wish to support cancel should override this method to provide the
-     * implementation
-     */
-    protected void doCancel() {}
-
-    /**
-     * Subclasses which wish to support undo should override this method to provide
-     * the implementation
-     */
-    protected void doUndo() {}
-
-    /**
-     * Subclasses which wish to support undo should override this method to provide
-     * the implementation
-     */
-    protected void doRedo() {}
-
-
-    public final void cancelExecution() {
-        if ( isCancellable() && ! isCancelled ) {
-            doCancel();
-            isCancelled = true;
-        }
-    }
-
-    public boolean isCancelled() {
-        return isCancelled;
-    }
-
-    public boolean isCancellable() {
-        return attributes.contains(ExecutionAttribute.Cancellable) && ! isCancelled;
-    }
-
-    public final void undo() {
-        if ( isUndoable()) {
-            doUndo();
-            isUndone = true;
-            isRedone = false;
-        }
-    }
-
-    public boolean isUndoable() {
-        return attributes.contains(ExecutionAttribute.Undoable) && ! isUndone && ! isCancelled;
-    }
-
-    public boolean isUndone() {
-        return isUndone;
-    }
-
-    public final void redo() {
-        if ( isRedoable()) {
-            doRedo();
-            isRedone = true;
-            isUndone = false;
-        }
-    }
-
-    public boolean isRedoable() {
-        return attributes.contains(ExecutionAttribute.Redoable) && isUndone;
-    }
-
-    public boolean isRedone() {
-        return isRedone;
-    }
+    private boolean isCancellable;
+    private Throwable executionException;
 
     public void doInBackground() throws Exception {
     }
@@ -96,4 +25,51 @@ public class DefaultExecution implements AsynchronousExecution {
     public void doInEventThread() throws Exception {
     }
 
+    public final void cancel() {
+        if ( isCancellable() && ! isCancelled ) {
+            doCancel();
+            isCancelled = true;
+        }
+    }
+
+    /**
+     * Subclasses which wish to support cancel should override this method
+     */
+    protected void doCancel() {}
+
+    public boolean isCancelled() {
+        return isCancelled;
+    }
+
+    public boolean isCancellable() {
+        return isCancellable && ! isCancelled;
+    }
+
+    public void setCancellable(boolean cancellable) {
+        isCancellable = cancellable;
+    }
+
+    public void setState(ExecutionState executionState) {
+        this.executionState = executionState;
+    }
+
+    public ExecutionState getState() {
+        return executionState;
+    }
+
+    public ExecutionState getExecutionState() {
+        return executionState;
+    }
+
+    public void setExecutionState(ExecutionState executionState) {
+        this.executionState = executionState;
+    }
+
+    public Throwable getExecutionException() {
+        return executionException;
+    }
+
+    public void setExecutionException(Throwable executionException) {
+        this.executionException = executionException;
+    }
 }

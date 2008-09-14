@@ -96,8 +96,8 @@ public abstract class AsyncCommandTest extends TestCase {
 
     class DebuggingExecutionObserver implements ExecutionObserver {
 
-        public void starting(Object commandExecution) {
-            System.out.println("starting " + commandExecution);
+        public void pending(Object commandExecution) {
+            System.out.println("pending " + commandExecution);
         }
 
         public void started(Object commandExecution) {
@@ -108,8 +108,8 @@ public abstract class AsyncCommandTest extends TestCase {
             System.out.println("progress "  + commandExecution);
         }
 
-        public void stopped(Object commandExecution) {
-            System.out.println("started " + commandExecution);
+        public void done(Object commandExecution) {
+            System.out.println("done " + commandExecution);
         }
 
         public void success(Object commandExecution) {
@@ -123,7 +123,7 @@ public abstract class AsyncCommandTest extends TestCase {
 
     class RuntimeExceptionThrowingExecutionObserver implements ExecutionObserver {
 
-        public void starting(Object commandExecution) {
+        public void pending(Object commandExecution) {
             throw new RuntimeException("I shouldn't interrupt processing");
         }
 
@@ -135,7 +135,7 @@ public abstract class AsyncCommandTest extends TestCase {
             throw new RuntimeException("I shouldn't interrupt processing");
         }
 
-        public void stopped(Object commandExecution) {
+        public void done(Object commandExecution) {
             throw new RuntimeException("I shouldn't interrupt processing");
         }
 

@@ -95,10 +95,10 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
                     dummyCommand.addExecutionObservers(observer, debuggingExecutionObserver);
 
                     mockery.checking(new Expectations() {{
-                        one(observer).starting(dummyExecution);
+                        one(observer).pending(dummyExecution);
                         one(observer).started(dummyExecution);
                         one(observer).success(dummyExecution);
-                        one(observer).stopped(dummyExecution);
+                        one(observer).done(dummyExecution);
                     }});
 
                     dummyCommand.execute();
@@ -129,10 +129,10 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
                     dummyCommand.addExecutionObservers(observer, debuggingExecutionObserver);
 
                     mockery.checking(new Expectations() {{
-                        one(observer).starting(dummyExecution);
+                        one(observer).pending(dummyExecution);
                         one(observer).started(dummyExecution);
                         one(observer).error(with(equal(dummyExecution)), with(any(Exception.class)));
-                        one(observer).stopped(dummyExecution);
+                        one(observer).done(dummyExecution);
                     }});
 
                     dummyCommand.execute();

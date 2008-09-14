@@ -16,7 +16,7 @@ import java.lang.reflect.InvocationTargetException;
  *
  * This provides an easy mechanism to update the UI to represent the progress of a command
  */
-class ExecutionObserverSupport<E> {
+class ExecutionObserverSupport<E extends CommandExecution> {
 
     private final List<ExecutionObserver<? super E>> executionObservers = new ArrayList<ExecutionObserver<? super E>>();
 
@@ -41,17 +41,17 @@ class ExecutionObserverSupport<E> {
         }
     }
 
-    public static <E> void fireStarting(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
+    public static <E extends CommandExecution> void fireStarting(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
         for (final ExecutionObserver<? super E> observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
-                    observer.starting(commandExecution);
+                    observer.pending(commandExecution);
                 }
             }, true);
         }
     }
 
-    public static <E> void fireStarted(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
+    public static <E extends CommandExecution> void fireStarted(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
         for (final ExecutionObserver<? super E> observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -61,17 +61,17 @@ class ExecutionObserverSupport<E> {
         }
     }
 
-    public static <E> void fireEnded(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
+    public static <E extends CommandExecution> void fireDone(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
         for (final ExecutionObserver<? super E> observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
-                    observer.stopped(commandExecution);
+                    observer.done(commandExecution);
                 }
             }, true);
         }
     }
 
-    public static <E> void fireError(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution, final Throwable t) {
+    public static <E extends CommandExecution> void fireError(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution, final Throwable t) {
         for (final ExecutionObserver<? super E> observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -81,7 +81,7 @@ class ExecutionObserverSupport<E> {
         }
     }
 
-    public static <E> void fireProgress(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
+    public static <E extends CommandExecution> void fireProgress(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
         for (final ExecutionObserver<? super E> observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -92,7 +92,7 @@ class ExecutionObserverSupport<E> {
     }
 
 
-    public static <E> void fireSuccess(List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
+    public static <E extends CommandExecution> void fireSuccess(List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
         for (final ExecutionObserver<? super E> observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {

@@ -9,7 +9,7 @@ package swingcommand;
  */
 public class ExecutionObserverAdapter<E> implements ExecutionObserver<E> {
 
-    public void starting(E commandExecution) {}
+    public void pending(E commandExecution) {}
 
     public void started(E commandExecution) {}
 
@@ -19,5 +19,5 @@ public class ExecutionObserverAdapter<E> implements ExecutionObserver<E> {
 
     public void error(E commandExecution, Throwable error) {}
 
-    public void stopped(E commandExecution) {}
+    public void done(E commandExecution) {}
 }

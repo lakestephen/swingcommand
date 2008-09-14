@@ -6,7 +6,7 @@ package swingcommand;
  * Date: 27-Jun-2008
  * Time: 17:43:57
  */
-public interface AsynchronousExecution extends CommandExecution {
+public interface AsynchronousExecution extends CommandExecution, Cancellable {
 
     /**
      * Called in a background thread during command execution, to do the main task processing

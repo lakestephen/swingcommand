@@ -30,11 +30,15 @@ public class TestDefaultCompositeCommand extends AsyncCommandTest {
 
                     mockery.checking(new Expectations() {{
                         try {
+                            one(execution1).setState(ExecutionState.STARTED);
                             one(execution1).doInBackground();
                             one(execution1).doInEventThread();
+                            one(execution1).setState(ExecutionState.SUCCESS);
                             one(execution1).isCancelled();
+                            one(execution2).setState(ExecutionState.STARTED);
                             one(execution2).doInBackground();
                             one(execution2).doInEventThread();
+                            one(execution2).setState(ExecutionState.SUCCESS);
                             one(execution2).isCancelled();
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -56,23 +60,28 @@ public class TestDefaultCompositeCommand extends AsyncCommandTest {
                 public void run() {
                     final AsynchronousExecution execution1 = mockery.mock(AsynchronousExecution.class, "commandExecution1");
                     final AsynchronousExecution execution2 = mockery.mock(AsynchronousExecution.class, "commandExecution2");
+
                     @SuppressWarnings("unchecked")
-                    final Command<CommandExecution> execution3 = (Command<CommandExecution>)mockery.mock(Command.class, "swingcommand");
+                    final Command<CommandExecution> synchronousCommand = (Command<CommandExecution>)mockery.mock(Command.class, "swingcommand");
 
                     final DefaultCompositeCommand<CommandExecution> compositeCommand = new DefaultCompositeCommand<CommandExecution>(new DefaultTestExecutor());
                     compositeCommand.addCommand(new DummyAsynchronousCommand(execution1));
                     compositeCommand.addCommand(new DummyAsynchronousCommand(execution2));
-                    compositeCommand.addCommand(execution3);
+                    compositeCommand.addCommand(synchronousCommand);
 
                     mockery.checking(new Expectations() {{
                         try {
+                            one(execution1).setState(ExecutionState.STARTED);
                             one(execution1).doInBackground();
                             one(execution1).doInEventThread();
+                            one(execution1).setState(ExecutionState.SUCCESS);
                             one(execution1).isCancelled();
+                            one(execution2).setState(ExecutionState.STARTED);
                             one(execution2).doInBackground();
                             one(execution2).doInEventThread();
+                            one(execution2).setState(ExecutionState.SUCCESS);
                             one(execution2).isCancelled();
-                            one(execution3).execute(with(any(ExecutionObserver[].class))); //help ;./!...
+                            one(synchronousCommand).execute(with(any(ExecutionObserver[].class)));
                         } catch (Exception e) {
                             e.printStackTrace();
                             failed = true;
@@ -92,7 +101,10 @@ public class TestDefaultCompositeCommand extends AsyncCommandTest {
             new Runnable() {
                 public void run() {
 
-                    AsynchronousExecution execution1 = new DefaultExecution(ExecutionAttribute.Cancellable);
+                    AsynchronousExecution execution1 = new DefaultExecution() {{
+                            setCancellable(true);
+                        }
+                    };
 
                     DummyAsynchronousCommand command1 = new DummyAsynchronousCommand(execution1);
                     DummyAsynchronousCommand command2 = new DummyAsynchronousCommand(new DefaultExecution());
@@ -105,7 +117,7 @@ public class TestDefaultCompositeCommand extends AsyncCommandTest {
                     command1.addExecutionObserver(
                             new ExecutionObserverAdapter<AsynchronousExecution>() {
                                 public void started(AsynchronousExecution commandExecution) {
-                                    commandExecution.cancelExecution();
+                                    commandExecution.cancel();
                                 }
                             }
                     );
