@@ -108,7 +108,7 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
     }
 
     /**
-     * @return an Execution for this asyncronous command
+     * @return an Execution for this asynchronous command
      */
     public abstract E createExecution();
 
@@ -249,7 +249,6 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
                 commandExecution.setExecutionException(t);
                 setExecutionState(ExecutionState.ERROR);
                 ExecutionObserverSupport.fireError(executionObservers, commandExecution, t);
-                t.printStackTrace();
             } finally {
                 ExecutionObserverSupport.fireDone(executionObservers, commandExecution);
             }
