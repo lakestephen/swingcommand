@@ -5,6 +5,11 @@ package swingcommand;
  * User: Nick Ebbutt
  * Date: 09-Sep-2008
  * Time: 14:50:21
+ *
+ * CommandExecution which are cancellable may implement this interface
+ *
+ * This is especially important for cancellable commands which are added as children to a composite command instance,
+ * since DefaultCompositeCommand checks for this interface when attempting to cancel the execution of child commands
  */
 public interface Cancellable {
     

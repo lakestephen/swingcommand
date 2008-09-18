@@ -8,6 +8,11 @@ import java.util.concurrent.ExecutionException;
  * Date: 30-Aug-2008
  * Time: 00:40:16
  * To change this template use File | Settings | File Templates.
+ *
+ * Each time a Command is executed, a CommandExecution is created.
+ *
+ * The CommandExecution contains the logic to run the command, and encapsulates the state/parameters used for the
+ * command's execution.
  */
 public interface CommandExecution {
 

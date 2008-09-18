@@ -9,9 +9,9 @@ package swingcommand;
 public interface AsynchronousExecution extends CommandExecution, Cancellable {
 
     /**
-     * Called in a background thread during command execution, to do the main task processing
+     * Called in a background thread during command execution, to do the asynchronous task processing
      * Command classes should implement this method to do the asynchronous processing required
-     * before doInEventThread
+     * before doInEventThread is called to update the UI
      *
      * @throws Exception, to abort execution if an error condition occurs
      */

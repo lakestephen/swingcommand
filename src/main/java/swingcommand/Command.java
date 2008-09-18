@@ -6,6 +6,11 @@ package swingcommand;
  * Date: 29-Aug-2008
  * Time: 23:06:47
  * To change this template use File | Settings | File Templates.
+ *
+ * A reusable command, which can be observed by CommandObserver instances.
+ *
+ * Each time the command is executed, a CommandExecution is created, which contains the logic to process the command and
+ * enacapsulates the parameters/state
  */
 public interface Command<E extends CommandExecution> {
 
