@@ -123,28 +123,40 @@ public abstract class AsyncCommandTest extends TestCase {
 
     class RuntimeExceptionThrowingExecutionObserver implements ExecutionObserver {
 
+        private String message = "This execption is expected. It is to verify that exceptions if observers do not interrupt the command processing workflow";
+
         public void pending(Object commandExecution) {
-            throw new RuntimeException("I shouldn't interrupt processing");
+            throw new TracelessRuntimeException(message);
         }
 
         public void started(Object commandExecution) {
-            throw new RuntimeException("I shouldn't interrupt processing");
+            throw new TracelessRuntimeException(message);
         }
 
         public void progress(Object commandExecution) {
-            throw new RuntimeException("I shouldn't interrupt processing");
+            throw new TracelessRuntimeException(message);
         }
 
         public void done(Object commandExecution) {
-            throw new RuntimeException("I shouldn't interrupt processing");
+            throw new TracelessRuntimeException(message);
         }
 
         public void success(Object commandExecution) {
-            throw new RuntimeException("I shouldn't interrupt processing");
+            throw new TracelessRuntimeException(message);
         }
 
         public void error(Object commandExecution, Throwable error) {
-            throw new RuntimeException("I shouldn't interrupt processing");
+            throw new TracelessRuntimeException(message);
+        }
+    }
+
+    private static class TracelessRuntimeException extends RuntimeException {
+        private TracelessRuntimeException(String message) {
+            super(message);
+        }
+
+        public Throwable fillInStackTrace() {
+            return this;
         }
     }
 

@@ -11,6 +11,8 @@ package swingcommand;
  *
  * Each time the command is executed, a CommandExecution is created, which contains the logic to process the command and
  * enacapsulates the parameters/state
+ *
+ *  @param <E> The type of Execution this command will use
  */
 public interface Command<E extends CommandExecution> {
 

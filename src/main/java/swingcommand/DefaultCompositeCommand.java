@@ -29,6 +29,8 @@ import java.util.concurrent.Executor;
  *
  * If the composite execution itself is cancelled, the current child command execution will be cancelled
  * if it supports cancellation, and no subsequent child commands will be executed
+ *
+ * @param <C> The type of CommandExecution this composite command's child commands will use
  */
 public class DefaultCompositeCommand<C extends CommandExecution> extends AbstractCompositeCommand<CompositeExecution<C>, C> {
 

@@ -49,7 +49,7 @@ public interface ExecutionObserver<E> {
 
     /**
      * This callback takes place if an exeception is raised during command execution, which prevents
-     * successful completion
+     * successful completion. If this callback occurs, the callback to success will not occur.
      *
      * @param commandExecution, the execution for which an error occurred
      * @param error error which occurred

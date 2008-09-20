@@ -5,6 +5,8 @@ import java.util.concurrent.Executor;
 
 /**
  * @author Nick Ebbutt, Object Definitions Ltd. http://www.objectdefinitions.com
+ *
+ *  @param <E> The type of AsynchronousExecution this asynchronous command will use
  */
 public interface AsynchronousCommand<E extends AsynchronousExecution> extends Command<E> {
 

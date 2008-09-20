@@ -21,7 +21,8 @@ import java.util.concurrent.Executor;
  * The execution for CompositeAsyncCommand implements Cancellable
  * Cancelling the execution will cause the command to abort after the currently processing child command finished execution
  *
- * E - the type of CompositeExecution, C the type of CommmandExecution the child commands will use
+ * @param <E>  - the type of CompositeExecution used by this composite command,
+ * @param <C>  - the type of CommmandExecution the child commands will use
  */
 public abstract class AbstractCompositeCommand<E extends CompositeExecution, C extends CommandExecution> extends AbstractAsynchronousCommand<E> {
 

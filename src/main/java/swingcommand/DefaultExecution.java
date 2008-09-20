@@ -10,7 +10,7 @@ import java.util.Arrays;
  * Date: 09-Sep-2008
  * Time: 14:52:16
  *
- * Supplied default implementation for AsynchronousExecution
+ * Default implementation for AsynchronousExecution
  */
 public class DefaultExecution implements AsynchronousExecution {
 
