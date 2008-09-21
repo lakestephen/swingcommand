@@ -19,12 +19,12 @@ public interface Command<E extends CommandExecution> {
     /**
      * @param executionObservers a listener to receive execution observer events during command processing
      */
-    void addExecutionObservers(ExecutionObserver<? super E>... executionObservers);
+    void addExecutionObserver(ExecutionObserver<? super E>... executionObservers);
 
     /**
      * @param executionObservers a listener to receive execution observer events during command processing
      */
-    void removeExecutionObservers(ExecutionObserver<? super E>... executionObservers);
+    void removeExecutionObserver(ExecutionObserver<? super E>... executionObservers);
 
     /**
      * @param executionObservers extra observers to be notified during this execution only

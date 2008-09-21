@@ -114,18 +114,18 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
 
 
     public void addExecutionObserver(ExecutionObserver<? super E> executionObserver) {
-        addExecutionObservers(executionObserver);
+        addExecutionObserver(executionObserver);
     }
 
-    public void addExecutionObservers(ExecutionObserver<? super E>... executionObservers) {
+    public void addExecutionObserver(ExecutionObserver<? super E>... executionObservers) {
         executionObservingSupport.addExecutionObservers(executionObservers);
     }
 
     public void removeExecutionObserver(ExecutionObserver<? super E> executionObserver) {
-        removeExecutionObservers(executionObserver);
+        removeExecutionObserver(executionObserver);
     }
 
-    public void removeExecutionObservers(ExecutionObserver<? super E>... executionObservers) {
+    public void removeExecutionObserver(ExecutionObserver<? super E>... executionObservers) {
         executionObservingSupport.removeExecutionObservers(executionObservers);
     }
 

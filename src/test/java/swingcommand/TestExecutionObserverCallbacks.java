@@ -89,10 +89,10 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
                     final ExecutionObserver<AsynchronousExecution> observer = (ExecutionObserver<AsynchronousExecution>)mockery.mock(ExecutionObserver.class);
 
                     if ( extraLifeCycleObserver != null ) {
-                        dummyCommand.addExecutionObservers(extraLifeCycleObserver);
+                        dummyCommand.addExecutionObserver(extraLifeCycleObserver);
                     }
 
-                    dummyCommand.addExecutionObservers(observer, debuggingExecutionObserver);
+                    dummyCommand.addExecutionObserver(observer, debuggingExecutionObserver);
 
                     mockery.checking(new Expectations() {{
                         one(observer).pending(dummyExecution);
@@ -123,10 +123,10 @@ public class TestExecutionObserverCallbacks extends AsyncCommandTest {
                     final ExecutionObserver<AsynchronousExecution> observer = (ExecutionObserver<AsynchronousExecution>)mockery.mock(ExecutionObserver.class);
 
                     if ( extraLifeCycleObserver != null ) {
-                        dummyCommand.addExecutionObservers(extraLifeCycleObserver);
+                        dummyCommand.addExecutionObserver(extraLifeCycleObserver);
                     }
 
-                    dummyCommand.addExecutionObservers(observer, debuggingExecutionObserver);
+                    dummyCommand.addExecutionObserver(observer, debuggingExecutionObserver);
 
                     mockery.checking(new Expectations() {{
                         one(observer).pending(dummyExecution);

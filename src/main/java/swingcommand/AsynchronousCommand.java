@@ -16,4 +16,9 @@ public interface AsynchronousCommand<E extends AsynchronousExecution> extends Co
      * @return an object which represents the result of this command execution, or for asynchronous commands, the execution in progress
      */
     E execute(Executor executor, ExecutionObserver<? super E>... executionObservers);
+
+    /**
+     * @param executor the default executor to use for this Command
+     */
+    void setExecutor(Executor executor);
 }
