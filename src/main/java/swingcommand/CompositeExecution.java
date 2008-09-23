@@ -8,13 +8,9 @@ package swingcommand;
  */
 public interface CompositeExecution<C extends CommandExecution> extends AsynchronousExecution {
 
-    /**
-     * @return the child command, or execution for AsynchronousCommand instances
-     */
-   public C getCurrentChildExecution();
+   public int getCompletedCommandCount();
 
-   public int getCurrentChildId();
+   public int getTotalCommands();
 
-   public int getTotalChildren();
-    
+
 }

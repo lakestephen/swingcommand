@@ -32,7 +32,7 @@ import java.util.concurrent.Executor;
  *
  * @param <C> The type of CommandExecution this composite command's child commands will use
  */
-public class DefaultCompositeCommand<C extends CommandExecution> extends AbstractCompositeCommand<CompositeExecution<C>, C> {
+public class DefaultCompositeCommand<C extends CommandExecution> extends AbstractCompositeCommand<SequentialExecution<C>, C> {
 
     private static final Executor synchronousExecutor = new Executor() {
         public void execute(Runnable command) {
@@ -53,7 +53,7 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
      *
      * @return a CompositeExecution
      */
-    public CompositeExecution<C> createExecution() {
+    public SequentialExecution<C> createExecution() {
         return new DefaultCompositeExecution();
     }
 
@@ -66,7 +66,7 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
      * Subclass executions can add extra child commands, or modify the command list to be used for this execution only - sometimes it is
      * convenient to decide on the required child commands only at the point the composite execution is created.
      */
-    protected class DefaultCompositeExecution extends DefaultExecution implements CompositeExecution<C> {
+    protected class DefaultCompositeExecution extends DefaultExecution implements SequentialExecution<C> {
 
         private List<Command<? extends C>> executionCommands = new ArrayList<Command<? extends C>>();
         private int totalChildCommands = executionCommands.size();
@@ -139,15 +139,15 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
             executionCommands.addAll(commands);
         }
 
-        public C getCurrentChildExecution() {
+        public C getCurrentExecution() {
             return executionObserverProxy.getCurrentChildExecution();
         }
 
-        public int getCurrentChildId() {
+        public int getCompletedCommandCount() {
             return currentCommandId;
         }
 
-        public int getTotalChildren() {
+        public int getTotalCommands() {
             return totalChildCommands;
         }
 
@@ -212,4 +212,5 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
             super("Error while executing composite command", cause);
         }
     }
+
 }

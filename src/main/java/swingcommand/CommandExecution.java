@@ -1,7 +1,5 @@
 package swingcommand;
 
-import java.util.concurrent.ExecutionException;
-
 /**
  * Created by IntelliJ IDEA.
  * User: nick

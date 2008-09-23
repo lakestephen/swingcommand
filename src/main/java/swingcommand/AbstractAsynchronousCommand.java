@@ -59,12 +59,12 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
         observersForExecution.addAll(Arrays.asList(instanceExecutionObservers));
 
         //create a new execution controller for this execution
-        ExecutionManager<E> executionManager = createExecutionController(executor, execution, observersForExecution);
+        ExecutionManager<E> executionManager = createExecutionManager(executor, execution, observersForExecution);
         executionManager.executeCommand();
     }
 
     //subclasses may override this to provide a custom ExecutionManager
-    protected ExecutionManager<E> createExecutionController(Executor executor, E execution, List<ExecutionObserver<? super E>> observersForExecution) {
+    protected ExecutionManager<E> createExecutionManager(Executor executor, E execution, List<ExecutionObserver<? super E>> observersForExecution) {
         return new DefaultExecutionManager<E>(
             executor,
             executionToExecutorMap,
@@ -112,17 +112,8 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
      */
     public abstract E createExecution();
 
-
-    public void addExecutionObserver(ExecutionObserver<? super E> executionObserver) {
-        addExecutionObserver(executionObserver);
-    }
-
     public void addExecutionObserver(ExecutionObserver<? super E>... executionObservers) {
         executionObservingSupport.addExecutionObservers(executionObservers);
-    }
-
-    public void removeExecutionObserver(ExecutionObserver<? super E> executionObserver) {
-        removeExecutionObserver(executionObserver);
     }
 
     public void removeExecutionObserver(ExecutionObserver<? super E>... executionObservers) {
