@@ -53,12 +53,16 @@ public abstract class AbstractCommand<E extends CommandExecution> implements Com
         observers.addAll(Arrays.asList(executionObservers));
         executionToObserversMap.put(execution,  observers);
         try {
+            execution.setState(ExecutionState.PENDING);
             ExecutionObserverSupport.firePending(observers, execution);
+            execution.setState(ExecutionState.STARTED);
             ExecutionObserverSupport.fireStarted(observers, execution);
             execution.doInEventThread();
+            execution.setState(ExecutionState.SUCCESS);
             ExecutionObserverSupport.fireSuccess(observers, execution);
         } catch ( Throwable t) {
             execution.setExecutionException(t);
+            execution.setState(ExecutionState.ERROR);
             ExecutionObserverSupport.fireError(observers, execution, t);
             ExecutionObserverSupport.fireDone(observers, execution);
         } finally {

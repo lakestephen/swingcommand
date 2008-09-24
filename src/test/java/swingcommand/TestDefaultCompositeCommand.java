@@ -9,7 +9,7 @@ import org.jmock.Expectations;
  * Time: 00:16:27
  * To change this template use File | Settings | File Templates.
  */
-public class TestDefaultCompositeCommand extends AsyncCommandTest {
+public class TestDefaultCompositeCommand extends CommandTest {
 
     private boolean failed;
 
@@ -146,7 +146,7 @@ public class TestDefaultCompositeCommand extends AsyncCommandTest {
                     throw new Exception("testDefaultCompositeExeceptionInChildExecutionAbortsProcessing");
                 }
         };
-        testErrorInChildExecution(execution1);
+        testErrorInChildExecutionHaltsProcessing(execution1);
     }
 
     public void testDefaultCompositeExceptionInChildDoInEventThreadAbortsProcessing() {
@@ -155,10 +155,10 @@ public class TestDefaultCompositeCommand extends AsyncCommandTest {
                     throw new Exception("testDefaultCompositeExceptionInChildDoInEventThreadAbortsProcessing");
                 }
         };
-        testErrorInChildExecution(execution1);
+        testErrorInChildExecutionHaltsProcessing(execution1);
     }
 
-    private void testErrorInChildExecution(final AsynchronousExecution execution1) {
+    private void testErrorInChildExecutionHaltsProcessing(final AsynchronousExecution execution1) {
         invokeAndWaitWithFail(
             new Runnable() {
                 public void run() {

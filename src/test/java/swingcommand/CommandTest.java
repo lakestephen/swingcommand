@@ -13,7 +13,7 @@ import java.util.concurrent.Executor;
  * Time: 15:20:04
  * To change this template use File | Settings | File Templates.
  */
-public abstract class AsyncCommandTest extends TestCase {
+public abstract class CommandTest extends TestCase {
 
     Mockery mockery;
     ExecutionObserver debuggingExecutionObserver = new DebuggingExecutionObserver();

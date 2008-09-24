@@ -9,8 +9,9 @@ import javax.swing.*;
  * Time: 18:08:30
  * To change this template use File | Settings | File Templates.
  */
-public class TestExecutionCallbacks extends AsyncCommandTest {
+public class TestAbstractAsynchronousCommandExecutions extends CommandTest {
 
+    private RuntimeException doInBackgroundRuntimeException;
     private boolean isdoInBackgroundCalledInSubThread;
     private boolean isDoneCalledInEventThread;
     private boolean isDoneCalled;
@@ -19,11 +20,13 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
         isDoneCalledInEventThread = false;
         isDoneCalled = false;
         isdoInBackgroundCalledInSubThread = false;
+        doInBackgroundRuntimeException = null;
     }
 
     //test the correct threads receive the callbacks
     public void testExecutionCallbacksNormalProcessing() {
         AsynchronousExecution dummyExecution = new NormalExecution();
+        assertEquals(ExecutionState.PENDING, dummyExecution.getState());
 
         final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
@@ -39,14 +42,15 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
             }
         );
         joinLastExecutorThread();
+        assertEquals(ExecutionState.SUCCESS, dummyExecution.getState());
         assertTrue(isdoInBackgroundCalledInSubThread);
         assertTrue(isDoneCalled);
         assertTrue(isDoneCalledInEventThread);
     }
 
     public void testDoneShouldNotBeCalledIfExceptionThrownInDoInBackground() {
-
         AsynchronousExecution dummyExecution = new ErrorInDoInBackgroundExecution();
+        assertEquals(ExecutionState.PENDING, dummyExecution.getState());
 
         final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
@@ -63,6 +67,9 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
         );
         joinLastExecutorThread();
         assertFalse(isDoneCalled);
+        assertEquals(ExecutionState.ERROR, dummyExecution.getState());
+        assertEquals(doInBackgroundRuntimeException, dummyExecution.getExecutionException());
+
     }
 
     //executor map must be cleared down otherwise memory leak will occur
@@ -109,22 +116,27 @@ public class TestExecutionCallbacks extends AsyncCommandTest {
 
         public void doInBackground() throws Exception {
             isdoInBackgroundCalledInSubThread = ! SwingUtilities.isEventDispatchThread();
+            assertEquals(ExecutionState.STARTED, getState());
         }
 
         public void doInEventThread() throws Exception {
             isDoneCalled = true;
             isDoneCalledInEventThread = SwingUtilities.isEventDispatchThread();
+            assertEquals(ExecutionState.STARTED, getState());
         }
     }
 
     private class ErrorInDoInBackgroundExecution extends DefaultExecution implements AsynchronousExecution {
 
         public void doInBackground() throws Exception {
-            throw new RuntimeException("ErrorInDoInBackgroundExecution");
+            assertEquals(ExecutionState.STARTED, getState());
+            doInBackgroundRuntimeException = new RuntimeException("ErrorInDoInBackgroundExecution");
+            throw doInBackgroundRuntimeException;
         }
 
         public void doInEventThread() throws Exception {
             isDoneCalled = true;
+            fail("Should not get to doInEventThread since doInBackground raised Exception");
         }
     }
 }
