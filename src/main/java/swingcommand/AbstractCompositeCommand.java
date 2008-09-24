@@ -63,7 +63,7 @@ public abstract class AbstractCompositeCommand<E extends CompositeExecution, C e
     }
 
     public List<Command<? extends C>> getChildCommands() {
-        return Collections.unmodifiableList(childCommands);
+        return childCommands;
     }
 }
 

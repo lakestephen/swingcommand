@@ -100,7 +100,7 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
         Throwable t = ExecutionObserverSupport.executeSynchronouslyOnEventThread(r, false);
         E execution = (E)r.getExecution();  //for some reason some jdk need the cast to E to compile
         if ( t != null ) {
-            throw new SwingCommandRuntimeException("Cannot run swingcommand \" + getClass().getName() + \" createExecution() threw an execption");
+            throw new SwingCommandRuntimeException("Cannot run swingcommand \" + getClass().getName() + \" createExecution() threw an exception");
         } else if ( execution == null ) {
             throw new SwingCommandRuntimeException("Cannot run swingcommand " + getClass().getName() + " createExecution() returned null");
         }
@@ -118,27 +118,6 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
 
     public void removeExecutionObserver(ExecutionObserver<? super E>... executionObservers) {
         executionObservingSupport.removeExecutionObservers(executionObservers);
-    }
-
-    /**
-     * Fire command error to ExecutionObserver instances
-     * Event will be fired on the Swing event thread
-     *
-     * This has default visiblity so that DefaultCompositeCommand can use it but subclasses should raise an error by throwing it in doInBackground() or doOnEventThread()
-     * Subclasses should usually throw an exception during processing - which will trigger an error to be fired and processing to be aborted
-     *
-     * @param commandExecution execution for executing command
-     * @param t the error which occurred
-     * @throws SwingCommandRuntimeException, if the execution was not created by this AbstractAsynchronousCommand, or the execution has already stopped
-     */
-    void fireError(E commandExecution, Throwable t) {
-        ExecutionManager<E> c = executionToExecutorMap.get(commandExecution);
-        if ( c != null ) {
-            List<ExecutionObserver<? super E>> executionObservers = c.getExecutionObservers();
-            ExecutionObserverSupport.fireError(executionObservers, commandExecution, t);
-        } else {
-            throw new SwingCommandRuntimeException("fireError called for unknown execution " + commandExecution);
-        }
     }
 
     /**
@@ -205,7 +184,7 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
             //If fireStarting is used, for example, to disable a button, this guarantees that the button will be
             //disabled before the action listener triggering the swingcommand returns.
             //otherwise the user might be able to click the button again before the fireStarting callback
-            ExecutionObserverSupport.fireStarting(executionObservers, commandExecution);
+            ExecutionObserverSupport.firePending(executionObservers, commandExecution);
 
             //a runnable to do the async portion of the swingcommand
             Runnable executionRunnable = new Runnable() {

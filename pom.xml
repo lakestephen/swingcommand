@@ -9,9 +9,9 @@
 	<groupId>od</groupId>
 	<artifactId>swingcommand</artifactId>
 	<name>swingcommand</name>
-	<description>Swing Command Utilities</description>
+	<description>SwingCommand library for asynchronous Swing commands</description>
 	<packaging>jar</packaging>
-	<version>1.1</version>
+	<version>1.2-SNAPSHOT</version>
 	<build/>
     <dependencies>
         <dependency>

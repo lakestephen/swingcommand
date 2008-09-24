@@ -1,9 +1,6 @@
 package swingcommand;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 import java.util.concurrent.Executor;
 
 /**
@@ -75,7 +72,7 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
 
         public DefaultCompositeExecution() {
             setCancellable(true);
-            executionCommands.addAll(getChildCommands());
+            executionCommands.addAll(DefaultCompositeCommand.this.getChildCommands());
         }
 
         /**
@@ -149,6 +146,10 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
 
         public int getTotalCommands() {
             return totalChildCommands;
+        }
+
+        public List<Command<? extends C>> getChildCommands() {
+            return Collections.unmodifiableList(executionCommands);
         }
 
         public void doCancel() {

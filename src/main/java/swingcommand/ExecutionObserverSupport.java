@@ -41,7 +41,7 @@ class ExecutionObserverSupport<E extends CommandExecution> {
         }
     }
 
-    public static <E extends CommandExecution> void fireStarting(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
+    public static <E extends CommandExecution> void firePending(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
         for (final ExecutionObserver<? super E> observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
