@@ -13,12 +13,43 @@
 	<packaging>jar</packaging>
 	<version>1.2</version>
 	<build/>
-    <dependencies>
-        <dependency>
-            <scope>test</scope>
-            <groupId>org.jmock</groupId>
-            <artifactId>jmock</artifactId>
-            <version>2.5.0</version>
-        </dependency>
-    </dependencies>
+	
+	<licenses>
+	  <license>
+	    <name>Academic Free License v 3.0</name>
+	    <url>http://www.opensource.org/licenses/academic.php</url>
+	    <distribution>repo</distribution>
+	    <comments>A business-friendly free license</comments>
+	  </license>
+  </licenses>
+  
+  <organization>
+    <name>Object Definitions Ltd</name>
+    <url>http://www.objectdefinitions.com</url>
+  </organization>
+  
+  <developers>
+    <developer>
+      <id>nick</id>
+      <name>Nick</name>
+      <email>nick@objectdefinitions.com</email>
+      <url>http://www.objectdefinitions.com/odblog</url>
+      <organization>Object Definitions Ltd</organization>
+      <organizationUrl>http://www.objectdefinitions.com</organizationUrl>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+      <timezone>0</timezone>
+    </developer>
+  </developers>
+	
+  <dependencies>
+      <dependency>
+          <scope>test</scope>
+          <groupId>org.jmock</groupId>
+          <artifactId>jmock</artifactId>
+          <version>2.5.0</version>
+      </dependency>
+  </dependencies>
 </project>
