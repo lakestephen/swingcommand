@@ -16,9 +16,9 @@ package swingcommand;
  * Date: 25-Sep-2008
  * Time: 09:47:22
  *
- * Some shared methods for
+ * Some shared methods for abstract command classes
  */
-public abstract class CommandBase<E extends CommandExecution> {
+abstract class CommandBase<E extends CommandExecution> {
 
     ExecutionObserverSupport<E> executionObserverSupport = new ExecutionObserverSupport<E>();
 
