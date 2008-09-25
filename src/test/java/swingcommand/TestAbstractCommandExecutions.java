@@ -18,46 +18,62 @@ public class TestAbstractCommandExecutions extends CommandTest {
     }
 
     public void testNormalProcessing() {
-        final CommandExecution execution = new DefaultExecution() {
-                public void doInEventThread() throws Exception {
-                    doInEventThreadCalled = true;
-                    assertEquals(ExecutionState.STARTED, getState());
+        invokeAndWaitWithFail(
+            new Runnable() {
+                public void run() {
+                    final CommandExecution execution = new DefaultExecution() {
+                        public void doInEventThread() throws Exception {
+                            doInEventThreadCalled = true;
+                            assertEquals(ExecutionState.STARTED, getState());
+                        }
+                    };
+
+                    DefaultCommand c = new DefaultCommand() {
+                        protected CommandExecution createExecution() {
+                            return execution;
+                        }
+                    };
+
+                    assertEquals(ExecutionState.PENDING, execution.getState());
+                    c.execute();
+                    assertEquals(ExecutionState.SUCCESS, execution.getState());
+                    assertTrue(doInEventThreadCalled);
                 }
-        };
-
-        DefaultCommand c = new DefaultCommand() {
-            protected CommandExecution createExecution() {
-                return execution;
             }
-        };
+        );
 
-        assertEquals(ExecutionState.PENDING, execution.getState());
-        c.execute();
-        assertEquals(ExecutionState.SUCCESS, execution.getState());
-        assertTrue(doInEventThreadCalled);
     }
 
     public void testErrorProcessing() {
-        final CommandExecution execution = new DefaultExecution() {
-                public void doInEventThread() throws Exception {
-                    doInEventThreadCalled = true;
-                    assertEquals(ExecutionState.STARTED, getState());
-                    executionException = new RuntimeException("testErrorProcessing");
-                    throw executionException;
+        invokeAndWaitWithFail(
+            new Runnable() {
+                public void run() {
+                    final CommandExecution execution = new DefaultExecution() {
+                        public void doInEventThread() throws Exception {
+                            doInEventThreadCalled = true;
+                            assertEquals(ExecutionState.STARTED, getState());
+                            executionException = new RuntimeException("testErrorProcessing");
+                            throw executionException;
+                        }
+                    };
+
+                    DefaultCommand c = new DefaultCommand() {
+                        protected CommandExecution createExecution() {
+                            return execution;
+                        }
+                    };
+
+                    assertEquals(ExecutionState.PENDING, execution.getState());
+                    c.execute();
+                    assertEquals(ExecutionState.ERROR, execution.getState());
+                    assertTrue(doInEventThreadCalled);
+                    assertEquals(executionException, execution.getExecutionException());
                 }
-        };
-
-        DefaultCommand c = new DefaultCommand() {
-            protected CommandExecution createExecution() {
-                return execution;
             }
-        };
+        );
 
-        assertEquals(ExecutionState.PENDING, execution.getState());
-        c.execute();
-        assertEquals(ExecutionState.ERROR, execution.getState());
-        assertTrue(doInEventThreadCalled);
-        assertEquals(executionException, execution.getExecutionException());
+
+
     }
 
 }

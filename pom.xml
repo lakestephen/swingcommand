@@ -11,7 +11,7 @@
 	<name>swingcommand</name>
 	<description>SwingCommand library for asynchronous Swing commands</description>
 	<packaging>jar</packaging>
-	<version>1.2-SNAPSHOT</version>
+	<version>1.2</version>
 	<build/>
     <dependencies>
         <dependency>

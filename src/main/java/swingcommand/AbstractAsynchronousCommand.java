@@ -15,9 +15,8 @@ import java.util.concurrent.Executors;
  * Supports ExecutionObserver instances. Events fired to ExecutionObserver instances are always fired on the swing event thread.
  * So a ExecutionObserver instance can be safely be used to update the UI to represent the progress of the command
  */
-public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecution> implements AsynchronousCommand<E> {
+public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecution> extends CommandBase<E> implements AsynchronousCommand<E> {
 
-    private final ExecutionObserverSupport<E> executionObservingSupport = new ExecutionObserverSupport<E>();
     private Executor executor;
 
     //use of Hashtable rather than HashMap to ensure synchronized access, default access to facilitate testing
@@ -55,7 +54,7 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
     private void executeCommand(Executor executor, E execution, ExecutionObserver<? super E>... instanceExecutionObservers) {
 
         //get a snapshot list of the execution observers which will receive the events for this execution
-        final List<ExecutionObserver<? super E>> observersForExecution = executionObservingSupport.getExecutionObserverSnapshot();
+        final List<ExecutionObserver<? super E>> observersForExecution = executionObserverSupport.getExecutionObserverSnapshot();
         observersForExecution.addAll(Arrays.asList(instanceExecutionObservers));
 
         //create a new execution controller for this execution
@@ -71,53 +70,6 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
             execution,
             observersForExecution
         );
-    }
-
-    /**
-     * Create an execution.
-     * It is important this is done on the event thread because, while creating
-     * the execution, state from the ui models or components likely has to be copied/cloned to use as
-     * parameters for the async processing. For safety only the event thread should interact with ui
-     * components/models. Cloning state from the ui models ensures the background thread has its own
-     * copy during execution, and there are no potential race conditions
-     */
-    private E createExecutionInEventThread() {
-
-        class CreateExecutionRunnable implements Runnable {
-
-            volatile E execution;
-
-            public E getExecution() {
-                return execution;
-            }
-
-            public void run() {
-                execution = createExecution();
-            }
-        }
-
-        CreateExecutionRunnable r = new CreateExecutionRunnable();
-        Throwable t = ExecutionObserverSupport.executeSynchronouslyOnEventThread(r, false);
-        E execution = (E)r.getExecution();  //for some reason some jdk need the cast to E to compile
-        if ( t != null ) {
-            throw new SwingCommandRuntimeException("Cannot run swingcommand \" + getClass().getName() + \" createExecution() threw an exception");
-        } else if ( execution == null ) {
-            throw new SwingCommandRuntimeException("Cannot run swingcommand " + getClass().getName() + " createExecution() returned null");
-        }
-        return execution;
-    }
-
-    /**
-     * @return an Execution for this asynchronous command
-     */
-    public abstract E createExecution();
-
-    public void addExecutionObserver(ExecutionObserver<? super E>... executionObservers) {
-        executionObservingSupport.addExecutionObservers(executionObservers);
-    }
-
-    public void removeExecutionObserver(ExecutionObserver<? super E>... executionObservers) {
-        executionObservingSupport.removeExecutionObservers(executionObservers);
     }
 
     /**
