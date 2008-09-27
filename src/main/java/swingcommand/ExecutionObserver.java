@@ -46,8 +46,9 @@ public interface ExecutionObserver<E> {
      * The execution may provide methods or implement an interface to make available more details of the progress
      *
      * @param commandExecution, the execution which has made progress
+     * @param progressDescription, String describing the progress made
      */
-    void progress(E commandExecution);
+    void progress(E commandExecution, String progressDescription);
 
     /**
      * This callback takes place once a command has successfully completed.

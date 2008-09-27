@@ -23,7 +23,7 @@ public class ExecutionObserverAdapter<E> implements ExecutionObserver<E> {
 
     public void started(E commandExecution) {}
 
-    public void progress(E commandExecution) {}
+    public void progress(E commandExecution, String progressDescription) {}
 
     public void success(E commandExecution) {}
 

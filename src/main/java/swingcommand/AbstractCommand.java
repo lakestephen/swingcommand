@@ -86,10 +86,10 @@ public abstract class AbstractCommand<E extends CommandExecution> extends Comman
         return executeRunnable;
     }
 
-    protected void fireProgress(E commandExecution) {
+    protected void fireProgress(E commandExecution, String description) {
         List<ExecutionObserver<? super E>> observers = executionToObserversMap.get(commandExecution);
         if ( observers != null ) {
-            ExecutionObserverSupport.fireProgress(observers, commandExecution);
+            ExecutionObserverSupport.fireProgress(observers, commandExecution, description);
         } else {
             throw new SwingCommandRuntimeException("fireProgress called for unknown execution " + commandExecution);
         }

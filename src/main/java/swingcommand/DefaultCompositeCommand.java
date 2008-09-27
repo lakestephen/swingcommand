@@ -186,7 +186,7 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
 
             public void started(C commandExecution) {
                 this.currentChildExecution = commandExecution;
-                fireProgress(this.commandExecution);
+                fireProgress(this.commandExecution, currentChildExecution + " started");
             }
 
             public void done(C commandExecution) {

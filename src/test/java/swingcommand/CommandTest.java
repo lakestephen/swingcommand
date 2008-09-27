@@ -114,7 +114,7 @@ public abstract class CommandTest extends TestCase {
             System.out.println("started " + commandExecution);
         }
 
-        public void progress(Object commandExecution) {
+        public void progress(Object commandExecution, String description) {
             System.out.println("progress "  + commandExecution);
         }
 
@@ -143,7 +143,7 @@ public abstract class CommandTest extends TestCase {
             throw new TracelessRuntimeException(message);
         }
 
-        public void progress(Object commandExecution) {
+        public void progress(Object commandExecution, String description) {
             throw new TracelessRuntimeException(message);
         }
 

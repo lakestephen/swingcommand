@@ -91,11 +91,16 @@ class ExecutionObserverSupport<E extends CommandExecution> {
         }
     }
 
-    public static <E extends CommandExecution> void fireProgress(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
+    public static <E extends CommandExecution> void fireProgress(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution, final String description) {
         for (final ExecutionObserver<? super E> observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
-                    observer.progress(commandExecution);
+                    //this synchronized block is to handle the case where the event thread might not otherwise
+                    //see state changes to fields in the execution carried out in the background thread
+                    //which is calling progress, due to the memory model
+                    synchronized(this) {
+                        observer.progress(commandExecution, description);
+                    }
                 }
             }, true);
         }

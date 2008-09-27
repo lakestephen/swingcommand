@@ -10,10 +10,6 @@
 
 package swingcommand;
 
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Arrays;
-
 /**
  * Created by IntelliJ IDEA.
  * User: Nick Ebbutt
@@ -24,10 +20,10 @@ import java.util.Arrays;
  */
 public class DefaultExecution implements AsynchronousExecution {
 
-    private ExecutionState executionState = ExecutionState.PENDING;
-    private boolean isCancelled;
-    private boolean isCancellable;
-    private Throwable executionException;
+    private volatile ExecutionState executionState = ExecutionState.PENDING;
+    private volatile boolean cancelled;
+    private volatile boolean cancellable;
+    private volatile Throwable executionException;
 
     public void doInBackground() throws Exception {
     }
@@ -36,9 +32,10 @@ public class DefaultExecution implements AsynchronousExecution {
     }
 
     public final void cancel() {
-        if ( isCancellable() && ! isCancelled ) {
+        if ( !cancelled) {
+            cancelled = true;
+            cancellable = false;
             doCancel();
-            isCancelled = true;
         }
     }
 
@@ -48,15 +45,15 @@ public class DefaultExecution implements AsynchronousExecution {
     protected void doCancel() {}
 
     public boolean isCancelled() {
-        return isCancelled;
+        return cancelled;
     }
 
     public boolean isCancellable() {
-        return isCancellable && ! isCancelled;
+        return cancellable;
     }
 
     public void setCancellable(boolean cancellable) {
-        isCancellable = cancellable;
+        this.cancellable = cancellable;
     }
 
     public void setState(ExecutionState executionState) {

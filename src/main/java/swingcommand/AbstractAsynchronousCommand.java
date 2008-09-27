@@ -87,13 +87,14 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
      * Event will be fired on the Swing event thread
      *
      * @param commandExecution, execution for which to fire progress
+     * @param description, objects containing a description of the progress made
      * @throws SwingCommandRuntimeException, if the execution was not created by this AbstractAsynchronousCommand, or the execution has already stopped
      */
-    protected void fireProgress(E commandExecution) {
+    protected void fireProgress(E commandExecution, String description) {
         ExecutionManager<E> c = executionToExecutorMap.get(commandExecution);
         if ( c != null ) {
             List<ExecutionObserver<? super E>> executionObservers = c.getExecutionObservers();
-            ExecutionObserverSupport.fireProgress(executionObservers, commandExecution);
+            ExecutionObserverSupport.fireProgress(executionObservers, commandExecution, description);
         } else {
             throw new SwingCommandRuntimeException("fireProgress called for unknown execution " + commandExecution);
         }
