@@ -106,27 +106,27 @@ public abstract class CommandTest extends TestCase {
 
     class DebuggingExecutionObserver implements ExecutionObserver {
 
-        public void pending(Object commandExecution) {
+        public void pending(CommandExecution commandExecution) {
             System.out.println("pending " + commandExecution);
         }
 
-        public void started(Object commandExecution) {
+        public void started(CommandExecution commandExecution) {
             System.out.println("started " + commandExecution);
         }
 
-        public void progress(Object commandExecution, String description) {
+        public void progress(CommandExecution commandExecution, String description) {
             System.out.println("progress "  + commandExecution);
         }
 
-        public void done(Object commandExecution) {
+        public void done(CommandExecution commandExecution) {
             System.out.println("done " + commandExecution);
         }
 
-        public void success(Object commandExecution) {
+        public void success(CommandExecution commandExecution) {
             System.out.println("success " + commandExecution);
         }
 
-        public void error(Object commandExecution, Throwable error) {
+        public void error(CommandExecution commandExecution, Throwable error) {
             System.out.println("error " + " " + commandExecution);
         }
     }
@@ -135,27 +135,27 @@ public abstract class CommandTest extends TestCase {
 
         private String message = "This execption is expected. It is to verify that exceptions if observers do not interrupt the command processing workflow";
 
-        public void pending(Object commandExecution) {
+        public void pending(CommandExecution commandExecution) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void started(Object commandExecution) {
+        public void started(CommandExecution commandExecution) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void progress(Object commandExecution, String description) {
+        public void progress(CommandExecution commandExecution, String description) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void done(Object commandExecution) {
+        public void done(CommandExecution commandExecution) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void success(Object commandExecution) {
+        public void success(CommandExecution commandExecution) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void error(Object commandExecution, Throwable error) {
+        public void error(CommandExecution commandExecution, Throwable error) {
             throw new TracelessRuntimeException(message);
         }
     }

@@ -17,7 +17,7 @@ package swingcommand;
  * which want to inherit a default implementation of the observer methods, overriding
  * only those which they are interested in
  */
-public class ExecutionObserverAdapter<E> implements ExecutionObserver<E> {
+public class ExecutionObserverAdapter<E extends CommandExecution> implements ExecutionObserver<E> {
 
     public void pending(E commandExecution) {}
 

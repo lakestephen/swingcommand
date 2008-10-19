@@ -20,7 +20,7 @@ package swingcommand;
  * These callbacks provide an easy and safe way to update the UI to show the progress of a task.
  * 
  */
-public interface ExecutionObserver<E> {
+public interface ExecutionObserver<E extends CommandExecution> {
 
     /**
      * Called when an execution is created in response to Command.execute()
