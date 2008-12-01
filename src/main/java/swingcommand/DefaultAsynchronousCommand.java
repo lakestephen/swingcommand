@@ -17,7 +17,7 @@ package swingcommand;
  * Time: 14:38:36
  * To change this template use File | Settings | File Templates.
  *
- * Extend this class if you don't want to specify a custom execution type for your AsynchronousCommand
+ * Extend this class if you don't want to use generics to specify a custom execution type for your AsynchronousCommand
  */
 public abstract class DefaultAsynchronousCommand extends AbstractAsynchronousCommand<AsynchronousExecution> {
 }

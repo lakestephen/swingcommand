@@ -35,7 +35,7 @@ abstract class CommandBase<E extends CommandExecution> {
      * components/models. Cloning state from the ui models ensures the background thread has its own
      * copy during execution, and there are no potential race conditions
      */
-    protected E createExecutionInEventThread() {
+    E performCreateExecution() {
 
         class CreateExecutionRunnable implements Runnable {
 

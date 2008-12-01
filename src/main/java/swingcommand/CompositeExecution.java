@@ -18,9 +18,8 @@ package swingcommand;
  */
 public interface CompositeExecution<C extends CommandExecution> extends AsynchronousExecution {
 
-   public int getCompletedCommandCount();
+   int getCompletedCommandCount();
 
-   public int getTotalCommands();
-
+   int getTotalCommands();
 
 }

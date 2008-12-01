@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.concurrent.Executor;
 
 /**
- * DefaultCompositeExecution provides the logic to execute the set of child commands added to the parent composite command
+ * AbstractCompositeExecution provides the logic to execute the set of child commands added to the parent composite command
  * When it is constructed it takes a copy of the commands child commands to use for this execution. Changes to the parent command's list
  * of child commands which are made during asynchronous execution should therefore not have any side effects.
  *
@@ -16,7 +16,7 @@ import java.util.concurrent.Executor;
  * Subclass executions can add extra child commands, or modify the command list to be used for this execution only - sometimes it is
  * convenient to decide on the required child commands only at the point the composite execution is created.
  */
-public class DefaultCompositeExecution<E extends CompositeExecution, C extends CommandExecution> extends DefaultExecution implements SequentialExecution<C> {
+public abstract class AbstractCompositeExecution<C extends CommandExecution> extends DefaultExecution implements SequentialExecution<C> {
 
     private static final Executor synchronousExecutor = new Executor() {
         public void execute(Runnable command) {
@@ -27,13 +27,11 @@ public class DefaultCompositeExecution<E extends CompositeExecution, C extends C
     private List<Command<? extends C>> executionCommands = new ArrayList<Command<? extends C>>();
     private int totalChildCommands = executionCommands.size();
     private int currentCommandId;
-    private ExecutionObserverProxy executionObserverProxy = new ExecutionObserverProxy((E)this);
-    private AbstractCompositeCommand<E, C> compositeCommand;
+    private ExecutionObserverProxy executionObserverProxy = new ExecutionObserverProxy();
 
-    public DefaultCompositeExecution(AbstractCompositeCommand<E,C> compositeCommand) {
-        this.compositeCommand = compositeCommand;
+    public AbstractCompositeExecution(List<Command<? extends C>> commands) {
         setCancellable(true);
-        executionCommands.addAll(compositeCommand.getChildCommands());
+        executionCommands.addAll(commands);
     }
 
     /**
@@ -120,24 +118,24 @@ public class DefaultCompositeExecution<E extends CompositeExecution, C extends C
         }
     }
 
+    protected abstract void fireProgress(String description);
+
     /**
      * Receives execution observer events from child commands and fires step reached events to
      * this composites observers
      */
     private class ExecutionObserverProxy extends ExecutionObserverAdapter<C> {
-        private final E commandExecution;
         private volatile boolean errorOccurred;
         private volatile C currentChildExecution;
         private volatile boolean lastCommandCancelled;
         private volatile Throwable lastCommandError;
 
-        public ExecutionObserverProxy(E commandExecution) {
-            this.commandExecution = commandExecution;
+        public ExecutionObserverProxy() {
         }
 
         public void started(C commandExecution) {
             this.currentChildExecution = commandExecution;
-            compositeCommand.fireProgress(this.commandExecution, currentChildExecution.toString());
+            fireProgress(currentChildExecution.toString());
         }
 
         public void done(C commandExecution) {
@@ -168,7 +166,7 @@ public class DefaultCompositeExecution<E extends CompositeExecution, C extends C
     }
 
 
-    protected static class CompositeCommandException extends Exception {
+    private static class CompositeCommandException extends Exception {
 
         private CompositeCommandException(Throwable cause) {
             super("Error while executing composite command", cause);

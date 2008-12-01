@@ -56,7 +56,7 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
     }
 
     public E execute(Executor executor, ExecutionObserver<? super E>... instanceExecutionObservers) {
-        E execution = createExecutionInEventThread();
+        E execution = performCreateExecution();
         executeCommand(executor, execution, instanceExecutionObservers); //this will be asynchronous unless we have a synchronous executor or are already in a worker thread
         return execution;
     }
@@ -104,7 +104,7 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
      * One ExecutionManager exists per execution
      * It maintains the set of observers for the execution, and contains the logic to run the execution, while notifying ExecutionObserver of the progress
      */
-    static interface ExecutionManager<E> {
+    public static interface ExecutionManager<E> {
 
         List<ExecutionObserver<? super E>> getExecutionObservers();
 

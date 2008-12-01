@@ -16,7 +16,7 @@ package swingcommand;
  * Date: 24-Sep-2008
  * Time: 15:44:48
  *
- * Extend this class if you don't want to specify a custom execution type for your Command
+ * Extend this class if you don't want to use generics to specify a custom execution type for your Command
  */
 public abstract class DefaultCommand extends AbstractCommand<CommandExecution> {
 }

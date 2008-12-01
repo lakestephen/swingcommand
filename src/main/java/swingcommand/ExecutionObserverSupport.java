@@ -51,7 +51,7 @@ class ExecutionObserverSupport<E extends CommandExecution> {
         }
     }
 
-    public static <E extends CommandExecution> void firePending(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
+    static <E extends CommandExecution> void firePending(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
         for (final ExecutionObserver<? super E> observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -61,7 +61,7 @@ class ExecutionObserverSupport<E extends CommandExecution> {
         }
     }
 
-    public static <E extends CommandExecution> void fireStarted(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
+    static <E extends CommandExecution> void fireStarted(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
         for (final ExecutionObserver<? super E> observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -71,7 +71,7 @@ class ExecutionObserverSupport<E extends CommandExecution> {
         }
     }
 
-    public static <E extends CommandExecution> void fireDone(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
+    static <E extends CommandExecution> void fireDone(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
         for (final ExecutionObserver<? super E> observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -81,7 +81,7 @@ class ExecutionObserverSupport<E extends CommandExecution> {
         }
     }
 
-    public static <E extends CommandExecution> void fireError(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution, final Throwable t) {
+    static <E extends CommandExecution> void fireError(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution, final Throwable t) {
         for (final ExecutionObserver<? super E> observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -91,7 +91,7 @@ class ExecutionObserverSupport<E extends CommandExecution> {
         }
     }
 
-    public static <E extends CommandExecution> void fireProgress(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution, final String description) {
+    static <E extends CommandExecution> void fireProgress(final List<ExecutionObserver<? super E>> executionObservers, final E commandExecution, final String description) {
         for (final ExecutionObserver<? super E> observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -107,7 +107,7 @@ class ExecutionObserverSupport<E extends CommandExecution> {
     }
 
 
-    public static <E extends CommandExecution> void fireSuccess(List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
+    static <E extends CommandExecution> void fireSuccess(List<ExecutionObserver<? super E>> executionObservers, final E commandExecution) {
         for (final ExecutionObserver<? super E> observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -126,7 +126,7 @@ class ExecutionObserverSupport<E extends CommandExecution> {
      * @param logError - whether any Exeception should be logged
      * @return an Exception - as thrown by the Runnable throws one, or null
      */
-    public static Throwable executeSynchronouslyOnEventThread(Runnable task, boolean logError) {
+    static Throwable executeSynchronouslyOnEventThread(Runnable task, boolean logError) {
         Throwable error = null;
         if (!SwingUtilities.isEventDispatchThread()) {
             try {

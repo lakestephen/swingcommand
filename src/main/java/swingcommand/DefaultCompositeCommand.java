@@ -54,7 +54,12 @@ public class DefaultCompositeCommand<C extends CommandExecution> extends Abstrac
      * @return a CompositeExecution
      */
     public SequentialExecution<C> createExecution() {
-        return new DefaultCompositeExecution<SequentialExecution<C>, C>(this);
+        return new AbstractCompositeExecution<C>(getChildCommands()) {
+
+            protected void fireProgress(String s) {
+                DefaultCompositeCommand.this.fireProgress(this, s);
+            }
+        };
     }
 
 }

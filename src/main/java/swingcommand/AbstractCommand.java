@@ -43,7 +43,7 @@ public abstract class AbstractCommand<E extends CommandExecution> extends Comman
     private Map<E,List<ExecutionObserver<? super E>>> executionToObserversMap = new Hashtable<E,List<ExecutionObserver<? super E>>>();
 
     public E execute(ExecutionObserver<? super E>... executionObservers) {
-        E execution = createExecutionInEventThread();
+        E execution = performCreateExecution();
         Runnable executeRunnable = createExecutionRunnable(execution, executionObservers);
         runInEventThread(executeRunnable);
         return execution;
@@ -54,7 +54,7 @@ public abstract class AbstractCommand<E extends CommandExecution> extends Comman
             executeRunnable.run();
         } else {
             //if command kicked off on a subthread we don't want to block it on the event thread
-            //longer than necessary for performance reasons, so use invoke later
+            //longer than necessary for performance reasons, so use invoke later rather than invokeAndWait
             SwingUtilities.invokeLater(executeRunnable);
         }
     }

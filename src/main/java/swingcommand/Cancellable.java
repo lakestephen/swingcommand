@@ -18,8 +18,8 @@ package swingcommand;
  *
  * CommandExecution which are cancellable may implement this interface
  *
- * This is especially important for cancellable commands which are added as children to a composite command instance,
- * since DefaultCompositeCommand checks for this interface when attempting to cancel the execution of child commands
+ * n.b. DefaultCompositeCommand checks whether child commands implement this interface when the composite command
+ * execution is cancelled
  */
 public interface Cancellable {
     
@@ -34,7 +34,7 @@ public interface Cancellable {
     boolean isCancelled();
 
     /**
-     * @return true, if the command supports cancellation
+     * @return true, if the command supports cancellation, and it has not yet been cancelled
      */
     boolean isCancellable();
 }
