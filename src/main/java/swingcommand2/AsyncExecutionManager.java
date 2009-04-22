@@ -10,13 +10,13 @@ import java.util.List;
 * Time: 20:13:26
 * To change this template use File | Settings | File Templates.
 */
-class AsynchronousCommandExecutionManager implements ExecutionManager {
+class AsyncExecutionManager implements ExecutionManager {
 
     private final Executor executor;
-    private final AsynchronousExecution commandExecution;
+    private final AsyncExecution commandExecution;
     private final ExecutionObserver[] executionObservers;
 
-    public AsynchronousCommandExecutionManager(Executor executor, AsynchronousExecution commandExecution, List<ExecutionObserver> executionObservers) {
+    public AsyncExecutionManager(Executor executor, AsyncExecution commandExecution, List<ExecutionObserver> executionObservers) {
         this.executor = executor;
         this.commandExecution = commandExecution;
         this.executionObservers = executionObservers.toArray(new ExecutionObserver[executionObservers.size()]);
@@ -83,7 +83,7 @@ class AsynchronousCommandExecutionManager implements ExecutionManager {
         }, true);
     }
 
-    private void runDone(final AsynchronousExecution commandExecution) throws Exception {
+    private void runDone(final AsyncExecution commandExecution) throws Exception {
         class DoneRunnable implements Runnable {
             volatile Throwable t;
             protected Throwable getError() {

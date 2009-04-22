@@ -35,12 +35,12 @@ public abstract class SwingCommand {
         this.executor = executor;
     }
 
-    public CommandExecution execute(ExecutionObserver... instanceExecutionObservers) {
+    public Execution execute(ExecutionObserver... instanceExecutionObservers) {
         return execute(executor, instanceExecutionObservers);
     }
 
-    public CommandExecution execute(Executor executor, ExecutionObserver... instanceExecutionObservers) {
-        CommandExecution execution = performCreateExecution();
+    public Execution execute(Executor executor, ExecutionObserver... instanceExecutionObservers) {
+        Execution execution = performCreateExecution();
         executeCommand(executor, execution, instanceExecutionObservers); //this will be asynchronous unless we have a synchronous executor or are already in a worker thread
         return execution;
     }
@@ -61,13 +61,13 @@ public abstract class SwingCommand {
      * components/models. Cloning state from the ui models ensures the background thread has its own
      * copy during execution, and there are no potential race conditions
      */
-    private CommandExecution performCreateExecution() {
+    private Execution performCreateExecution() {
 
         class CreateExecutionRunnable implements Runnable {
 
-            volatile CommandExecution execution;
+            volatile Execution execution;
 
-            public CommandExecution getExecution() {
+            public Execution getExecution() {
                 return execution;
             }
 
@@ -78,7 +78,7 @@ public abstract class SwingCommand {
 
         CreateExecutionRunnable r = new CreateExecutionRunnable();
         Throwable t = ExecutionObserverSupport.executeSynchronouslyOnEventThread(r, false);
-        CommandExecution execution = r.getExecution();  //for some reason some jdk need the cast to E to compile
+        Execution execution = r.getExecution();  //for some reason some jdk need the cast to E to compile
         if ( t != null ) {
             throw new SwingCommandRuntimeException("Cannot run swingcommand \" + getClass().getName() + \" createExecution() threw an exception");
         } else if ( execution == null ) {
@@ -90,9 +90,9 @@ public abstract class SwingCommand {
      /**
      * @return an Execution for this asynchronous command
      */
-    protected abstract CommandExecution createExecution();
+    protected abstract Execution createExecution();
 
-    private void executeCommand(Executor executor, CommandExecution execution, ExecutionObserver... instanceExecutionObservers) {
+    private void executeCommand(Executor executor, Execution execution, ExecutionObserver... instanceExecutionObservers) {
 
         //get a snapshot list of the execution observers which will receive the events for this execution
         final List<ExecutionObserver> observersForExecution = executionObserverSupport.getExecutionObserverSnapshot();
@@ -104,35 +104,16 @@ public abstract class SwingCommand {
     }
 
     //subclasses may override this to provide a custom ExecutionManager
-    protected ExecutionManager createExecutionManager(Executor executor, CommandExecution execution, List<ExecutionObserver> observersForExecution) {
+    protected ExecutionManager createExecutionManager(Executor executor, Execution execution, List<ExecutionObserver> observersForExecution) {
         ExecutionManager result = null; //TODO - support synchronous executions
-        if ( execution instanceof AsynchronousExecution ) {
-            result = new AsynchronousCommandExecutionManager(
+        if ( execution instanceof AsyncExecution) {
+            result = new AsyncExecutionManager(
                 executor,
-                (AsynchronousExecution)execution,
+                (AsyncExecution)execution,
                 observersForExecution
             );
         }
         return result;
     }
-
-    /**
-     * Fire step reached to ExecutionObserver instances
-     * Event will be fired on the Swing event thread
-     *
-     * @param commandExecution, execution for which to fire progress
-     * @param description, objects containing a description of the progress made
-     * @throws swingcommand.SwingCommandRuntimeException, if the execution was not created by this AbstractAsynchronousCommand, or the execution has already stopped
-     */
-//    protected void fireProgress(CommandExecution commandExecution, String description) {
-//        ExecutionManager c = executionToExecutorMap.get(commandExecution);
-//        if ( c != null ) {
-//            List<ExecutionObserver<? super E>> executionObservers = c.getExecutionObservers();
-//            ExecutionObserverSupport.fireProgress(executionObservers, commandExecution, description);
-//        } else {
-//            throw new SwingCommandRuntimeException("fireProgress called for unknown execution " + commandExecution);
-//        }
-//    }
-
 
 }

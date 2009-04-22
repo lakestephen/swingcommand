@@ -51,7 +51,7 @@ class ExecutionObserverSupport {
         }
     }
 
-    static void firePending(final List<ExecutionObserver> executionObservers, final CommandExecution commandExecution) {
+    static void firePending(final List<ExecutionObserver> executionObservers, final Execution commandExecution) {
         for (final ExecutionObserver observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -61,7 +61,7 @@ class ExecutionObserverSupport {
         }
     }
 
-    static void fireStarted(final List<ExecutionObserver> executionObservers, final CommandExecution commandExecution) {
+    static void fireStarted(final List<ExecutionObserver> executionObservers, final Execution commandExecution) {
         for (final ExecutionObserver observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -71,7 +71,7 @@ class ExecutionObserverSupport {
         }
     }
 
-    static void fireDone(final List<ExecutionObserver> executionObservers, final CommandExecution commandExecution) {
+    static void fireDone(final List<ExecutionObserver> executionObservers, final Execution commandExecution) {
         for (final ExecutionObserver observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -81,7 +81,7 @@ class ExecutionObserverSupport {
         }
     }
 
-    static void fireError(final List<ExecutionObserver> executionObservers, final CommandExecution commandExecution, final Throwable t) {
+    static void fireError(final List<ExecutionObserver> executionObservers, final Execution commandExecution, final Throwable t) {
         for (final ExecutionObserver observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -91,7 +91,7 @@ class ExecutionObserverSupport {
         }
     }
 
-    static void fireProgress(final List<ExecutionObserver> executionObservers, final CommandExecution commandExecution, final String description) {
+    static void fireProgress(final List<ExecutionObserver> executionObservers, final Execution commandExecution, final String description) {
         for (final ExecutionObserver observer : executionObservers) {
             executeOnEventThread(new Runnable(){
                 public void run() {
@@ -107,7 +107,7 @@ class ExecutionObserverSupport {
     }
 
 
-    static void fireSuccess(List<ExecutionObserver> executionObservers, final CommandExecution commandExecution) {
+    static void fireSuccess(List<ExecutionObserver> executionObservers, final Execution commandExecution) {
         for (final ExecutionObserver observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {

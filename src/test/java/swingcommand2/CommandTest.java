@@ -76,7 +76,7 @@ public abstract class CommandTest extends TestCase {
     }
 
 
-    class DummyExecution extends DefaultExecution {
+    class DummyExecution extends BackgroundExecution {
         public void doInBackground() throws Exception {}
 
         public void doInEventThread() throws Exception {}
@@ -88,9 +88,9 @@ public abstract class CommandTest extends TestCase {
 
 
     class DummyAsynchronousCommand extends SwingCommand {
-        private AsynchronousExecution asynchronousExecution;
+        private AsyncExecution asynchronousExecution;
 
-        public DummyAsynchronousCommand(AsynchronousExecution singleExecutionForTesting) {
+        public DummyAsynchronousCommand(AsyncExecution singleExecutionForTesting) {
             super(new DefaultTestExecutor());
             this.asynchronousExecution = singleExecutionForTesting;
         }
@@ -98,7 +98,7 @@ public abstract class CommandTest extends TestCase {
         //n.b. you should create a new swingcommand execution for each invocation of this method
         //the instance passed to the constructor is used just for testing here, since we need a handle to the
         //execution instance for the tests
-        public AsynchronousExecution createExecution() {
+        public AsyncExecution createExecution() {
             return asynchronousExecution;
         }
     }
@@ -106,27 +106,27 @@ public abstract class CommandTest extends TestCase {
 
     class DebuggingExecutionObserver implements ExecutionObserver {
 
-        public void pending(CommandExecution commandExecution) {
+        public void pending(Execution commandExecution) {
             System.out.println("pending " + commandExecution);
         }
 
-        public void started(CommandExecution commandExecution) {
+        public void started(Execution commandExecution) {
             System.out.println("started " + commandExecution);
         }
 
-        public void progress(CommandExecution commandExecution, String description) {
+        public void progress(Execution commandExecution, String description) {
             System.out.println("progress "  + commandExecution);
         }
 
-        public void done(CommandExecution commandExecution) {
+        public void done(Execution commandExecution) {
             System.out.println("done " + commandExecution);
         }
 
-        public void success(CommandExecution commandExecution) {
+        public void success(Execution commandExecution) {
             System.out.println("success " + commandExecution);
         }
 
-        public void error(CommandExecution commandExecution, Throwable error) {
+        public void error(Execution commandExecution, Throwable error) {
             System.out.println("error " + " " + commandExecution);
         }
     }
@@ -135,27 +135,27 @@ public abstract class CommandTest extends TestCase {
 
         private String message = "This execption is expected. It is to verify that exceptions if observers do not interrupt the command processing workflow";
 
-        public void pending(CommandExecution commandExecution) {
+        public void pending(Execution commandExecution) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void started(CommandExecution commandExecution) {
+        public void started(Execution commandExecution) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void progress(CommandExecution commandExecution, String description) {
+        public void progress(Execution commandExecution, String description) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void done(CommandExecution commandExecution) {
+        public void done(Execution commandExecution) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void success(CommandExecution commandExecution) {
+        public void success(Execution commandExecution) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void error(CommandExecution commandExecution, Throwable error) {
+        public void error(Execution commandExecution, Throwable error) {
             throw new TracelessRuntimeException(message);
         }
     }

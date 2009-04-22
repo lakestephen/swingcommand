@@ -10,8 +10,6 @@
 
 package swingcommand2;
 
-import java.util.List;
-
 
 /**
  * Created by IntelliJ IDEA.
@@ -19,7 +17,7 @@ import java.util.List;
  * Date: 27-Jun-2008
  * Time: 17:43:57
  */
-public interface AsynchronousExecution extends CommandExecution {
+public interface AsyncExecution extends Execution {
 
     /**
      * Called in a background thread during command execution, to do the asynchronous task processing

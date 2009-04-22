@@ -25,7 +25,7 @@ import java.util.List;
  * The CommandExecution contains the logic to run the command, and encapsulates the state/parameters used for the
  * command's execution.
  */
-public interface CommandExecution {
+public interface Execution {
 
      /**
      * Called in the Swing event thread to execute the command

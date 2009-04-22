@@ -36,7 +36,7 @@ public class TestAbstractAsynchronousCommandExecutions extends CommandTest {
 
     //test the correct threads receive the callbacks
     public void testExecutionCallbacksNormalProcessing() {
-        AsynchronousExecution dummyExecution = new NormalExecution();
+        AsyncExecution dummyExecution = new NormalExecution();
         assertEquals(ExecutionState.PENDING, dummyExecution.getState());
 
         final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
@@ -60,7 +60,7 @@ public class TestAbstractAsynchronousCommandExecutions extends CommandTest {
     }
 
     public void testDoneShouldNotBeCalledIfExceptionThrownInDoInBackground() {
-        AsynchronousExecution dummyExecution = new ErrorInDoInBackgroundExecution();
+        AsyncExecution dummyExecution = new ErrorInDoInBackgroundExecution();
         assertEquals(ExecutionState.PENDING, dummyExecution.getState());
 
         final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
@@ -82,7 +82,7 @@ public class TestAbstractAsynchronousCommandExecutions extends CommandTest {
         assertEquals(doInBackgroundRuntimeException, dummyExecution.getExecutionException());
     }
 
-    private class NormalExecution extends DefaultExecution {
+    private class NormalExecution extends BackgroundExecution {
 
         public void doInBackground() throws Exception {
             isdoInBackgroundCalledInSubThread = ! SwingUtilities.isEventDispatchThread();
@@ -96,7 +96,7 @@ public class TestAbstractAsynchronousCommandExecutions extends CommandTest {
         }
     }
 
-    private class ErrorInDoInBackgroundExecution extends DefaultExecution {
+    private class ErrorInDoInBackgroundExecution extends BackgroundExecution {
 
         public void doInBackground() throws Exception {
             assertEquals(ExecutionState.STARTED, getState());

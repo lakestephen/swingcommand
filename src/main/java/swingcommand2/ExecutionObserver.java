@@ -27,7 +27,7 @@ public interface ExecutionObserver {
      *
      * @param commandExecution, the execution which is starting
      */
-    void pending(CommandExecution commandExecution);
+    void pending(Execution commandExecution);
 
     /**
      * Called when execution starts.
@@ -39,7 +39,7 @@ public interface ExecutionObserver {
      *
      * @param commandExecution, the execution which has started
      */
-    void started(CommandExecution commandExecution);
+    void started(Execution commandExecution);
 
     /**
      * This callback may take place at any time during execution, to indicate progress
@@ -48,7 +48,7 @@ public interface ExecutionObserver {
      * @param commandExecution, the execution which has made progress
      * @param progressDescription, String describing the progress made
      */
-    void progress(CommandExecution commandExecution, String progressDescription);
+    void progress(Execution commandExecution, String progressDescription);
 
     /**
      * This callback takes place once a command has successfully completed.
@@ -56,7 +56,7 @@ public interface ExecutionObserver {
      *
      * @param commandExecution, the execution which has made progress
      */
-    void success(CommandExecution commandExecution);
+    void success(Execution commandExecution);
 
     /**
      * This callback takes place if an exeception is raised during command execution, which prevents
@@ -65,12 +65,12 @@ public interface ExecutionObserver {
      * @param commandExecution, the execution for which an error occurred
      * @param error error which occurred
      */
-    void error(CommandExecution commandExecution, Throwable error);
+    void error(Execution commandExecution, Throwable error);
 
     /**
      * This callback takes place once the execution has finished, wheher or not the command executed successfully or generated an error
      *
      * @param commandExecution, the execution which has stopped
      */
-    void done(CommandExecution commandExecution);
+    void done(Execution commandExecution);
 }

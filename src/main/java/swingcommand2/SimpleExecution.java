@@ -1,28 +1,17 @@
-/**
- *  This file is part of ObjectDefinitions SwingCommand
- *  Copyright (C) Nick Ebbutt September 2009
- *  Licensed under the Academic Free License version 3.0
- *  http://www.opensource.org/licenses/afl-3.0.php
- *
- *  nick@objectdefinitions.com
- *  http://www.objectdefinitions.com/swingcommand
- */
-
 package swingcommand2;
 
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Created by IntelliJ IDEA.
- * User: Nick Ebbutt
- * Date: 09-Sep-2008
- * Time: 14:52:16
- *
- * Default implementation for AsynchronousExecution
+ * User: nick
+ * Date: 22-Apr-2009
+ * Time: 20:58:09
+ * To change this template use File | Settings | File Templates.
  */
-public class DefaultExecution implements AsynchronousExecution {
+public abstract class SimpleExecution implements Execution {
 
     private volatile ExecutionState executionState = ExecutionState.PENDING;
     private volatile boolean cancelled;
@@ -30,11 +19,7 @@ public class DefaultExecution implements AsynchronousExecution {
     private volatile Throwable executionException;
     private final CopyOnWriteArrayList<ExecutionObserver> executionObservers = new CopyOnWriteArrayList<ExecutionObserver>();
 
-    public void doInBackground() throws Exception {
-    }
-
-    public void doInEventThread() throws Exception {
-    }
+    public abstract void doInEventThread();
 
     public final void cancel() {
         if ( !cancelled) {
