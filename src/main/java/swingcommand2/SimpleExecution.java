@@ -19,7 +19,7 @@ public abstract class SimpleExecution implements Execution {
     private volatile Throwable executionException;
     private final CopyOnWriteArrayList<ExecutionObserver> executionObservers = new CopyOnWriteArrayList<ExecutionObserver>();
 
-    public abstract void doInEventThread();
+    public abstract void doInEventThread() throws Exception;
 
     public final void cancel() {
         if ( !cancelled) {
