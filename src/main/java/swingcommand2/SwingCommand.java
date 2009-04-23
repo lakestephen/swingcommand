@@ -1,7 +1,9 @@
 package swingcommand2;
 
+import javax.swing.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.List;
 import java.util.Arrays;
 
@@ -14,11 +16,14 @@ import java.util.Arrays;
  */
 public abstract class SwingCommand {
 
+    private static ExecutorService DEFAULT_ASYNC_EXECUTOR = Executors.newCachedThreadPool();
+    private static Executor DEFAULT_SIMPLE_EXECUTOR = new IfSubthreadInvokeLaterExecutor();
+    private static ExecutorFactory DEFAULT_EXECUTOR_FACTORY = new DefaultExecutorFactory();
+
     private ExecutionObserverSupport executionObserverSupport = new ExecutionObserverSupport();
-    private Executor executor;
+    private volatile Executor executor;
 
     public SwingCommand() {
-        this(Executors.newSingleThreadExecutor());
     }
 
     /**
@@ -41,8 +46,22 @@ public abstract class SwingCommand {
 
     public Execution execute(Executor executor, ExecutionObserver... instanceExecutionObservers) {
         Execution execution = performCreateExecution();
-        executeCommand(executor, execution, instanceExecutionObservers); //this will be asynchronous unless we have a synchronous executor or are already in a worker thread
+        if (executor == null) {
+            executor = createExecutor(execution);
+        }
+        executeCommand(executor, execution, instanceExecutionObservers);
         return execution;
+    }
+
+    public Execution execute(ExecutorFactory executorFactory, ExecutionObserver... instanceExecutionObservers) {
+        Execution execution = performCreateExecution();
+        Executor executor = executorFactory.getExecutor(execution);
+        executeCommand(executor, execution, instanceExecutionObservers);
+        return execution;
+    }
+
+    protected Executor createExecutor(Execution execution) {
+        return DEFAULT_EXECUTOR_FACTORY.getExecutor(execution);
     }
 
     public void addExecutionObserver(ExecutionObserver... executionObservers) {
@@ -79,18 +98,19 @@ public abstract class SwingCommand {
         CreateExecutionRunnable r = new CreateExecutionRunnable();
         Throwable t = ExecutionObserverSupport.executeSynchronouslyOnEventThread(r, false);
         Execution execution = r.getExecution();  //for some reason some jdk need the cast to E to compile
-        if ( t != null ) {
+        if (t != null) {
             throw new SwingCommandRuntimeException("Cannot run swingcommand \" + getClass().getName() + \" createExecution() threw an exception");
-        } else if ( execution == null ) {
+        } else if (execution == null) {
             throw new SwingCommandRuntimeException("Cannot run swingcommand " + getClass().getName() + " createExecution() returned null");
         }
         return execution;
     }
 
-     /**
+    /**
      * @return an Execution for this asynchronous command
      */
     protected abstract Execution createExecution();
+
 
     private void executeCommand(Executor executor, Execution execution, ExecutionObserver... instanceExecutionObservers) {
 
@@ -105,15 +125,39 @@ public abstract class SwingCommand {
 
     //subclasses may override this to provide a custom ExecutionManager
     protected ExecutionManager createExecutionManager(Executor executor, Execution execution, List<ExecutionObserver> observersForExecution) {
-        ExecutionManager result = null; //TODO - support synchronous executions
-        if ( execution instanceof AsyncExecution) {
+        ExecutionManager result;
+        if (execution instanceof AsyncExecution) {
             result = new AsyncExecutionManager(
-                executor,
-                (AsyncExecution)execution,
-                observersForExecution
+                    executor,
+                    (AsyncExecution) execution,
+                    observersForExecution
             );
+        } else {
+            result = new SimpleExecutionManager(executor, execution, observersForExecution);
         }
         return result;
     }
 
+    static class DefaultExecutorFactory implements ExecutorFactory {
+        public Executor getExecutor(Execution e) {
+            return (e instanceof AsyncExecution) ? DEFAULT_ASYNC_EXECUTOR : DEFAULT_SIMPLE_EXECUTOR;
+        }
+    }
+
+    static class IfSubthreadInvokeLaterExecutor implements Executor {
+
+        public void execute(Runnable command) {
+            if (SwingUtilities.isEventDispatchThread()) {
+                command.run();
+            } else {
+                //if command kicked off on a subthread we don't want to block it on the event thread
+                //longer than necessary for performance reasons, so use invoke later rather than invokeAndWait
+                SwingUtilities.invokeLater(command);
+            }
+        }
+    }
+
+    public static interface ExecutorFactory {
+        Executor getExecutor(Execution e);
+    }
 }

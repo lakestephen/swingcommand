@@ -19,7 +19,7 @@ import org.jmock.Expectations;
  * Time: 14:41:41
  * To change this template use File | Settings | File Templates.
  */
-public class TestAbstractAsynchronousCommandObserverCallbacks extends CommandTest {
+public class TestBackgroundCommandObserverCallbacks extends CommandTest {
 
     public void testLifecycleStartAndStopAreCalledDuringNormalExecution() {
         final String name = "testLifecycleStartAndStopAreCalledDuringNormalExecution";

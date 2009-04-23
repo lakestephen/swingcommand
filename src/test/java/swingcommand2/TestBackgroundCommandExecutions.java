@@ -20,7 +20,7 @@ import javax.swing.*;
  * Time: 18:08:30
  * To change this template use File | Settings | File Templates.
  */
-public class TestAbstractAsynchronousCommandExecutions extends CommandTest {
+public class TestBackgroundCommandExecutions extends CommandTest {
 
     private RuntimeException doInBackgroundRuntimeException;
     private boolean isdoInBackgroundCalledInSubThread;
