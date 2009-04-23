@@ -180,4 +180,10 @@ public abstract class CommandTest extends TestCase {
             lastTestExecutorThread.start();
         }
     }
+
+    class SynchronousExecutor implements Executor {
+        public void execute(Runnable command) {
+            command.run();
+        }
+    }
 }

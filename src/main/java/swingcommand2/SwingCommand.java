@@ -17,7 +17,7 @@ import java.util.Arrays;
 public abstract class SwingCommand {
 
     private static ExecutorService DEFAULT_ASYNC_EXECUTOR = Executors.newCachedThreadPool();
-    private static Executor DEFAULT_SIMPLE_EXECUTOR = new IfSubthreadInvokeLaterExecutor();
+    private static Executor DEFAULT_SIMPLE_EXECUTOR = new IfSubThreadInvokeLaterExecutor();
     private static ExecutorFactory DEFAULT_EXECUTOR_FACTORY = new DefaultExecutorFactory();
 
     private ExecutionObserverSupport executionObserverSupport = new ExecutionObserverSupport();
@@ -144,7 +144,7 @@ public abstract class SwingCommand {
         }
     }
 
-    static class IfSubthreadInvokeLaterExecutor implements Executor {
+    static class IfSubThreadInvokeLaterExecutor implements Executor {
 
         public void execute(Runnable command) {
             if (SwingUtilities.isEventDispatchThread()) {

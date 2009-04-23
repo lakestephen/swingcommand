@@ -19,7 +19,7 @@ public class CompositeExecution extends BackgroundExecution {
         }
     };
 
-    private static final Executor INVOKE_AND_WAIT_EXECUTOR = new IfSubthreadInvokeAndWaitExecutor();
+    private static final Executor INVOKE_AND_WAIT_EXECUTOR = new IfSubThreadInvokeAndWaitExecutor();
     private static final SwingCommand.ExecutorFactory COMPOSITE_EXECUTOR_FACTORY = new CompositeExecutorFactory();
 
     private List<SwingCommand> executionCommands = new ArrayList<SwingCommand>();
@@ -177,7 +177,7 @@ public class CompositeExecution extends BackgroundExecution {
      * Date: 23-Apr-2009
      * Time: 11:43:44
      */
-    static class IfSubthreadInvokeAndWaitExecutor implements Executor {
+    static class IfSubThreadInvokeAndWaitExecutor implements Executor {
         public void execute(Runnable command) {
             if (SwingUtilities.isEventDispatchThread()) {
                 command.run();

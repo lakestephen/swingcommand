@@ -10,6 +10,9 @@
 
 package swingcommand2;
 
+import javax.swing.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
 
 /**
  * Created by IntelliJ IDEA.
@@ -20,33 +23,81 @@ package swingcommand2;
  */
 public class TestDefaultCompositeCommand extends CommandTest {
 
-   public void testSimpleComposite() {
+   public void testCompositeWithAsyncExecutions() {
 
-       final SwingCommand child1 = new SwingCommand() {
-           protected Execution createExecution() {
-               return new BackgroundExecution() {
+       final AtomicInteger counter = new AtomicInteger();
+       final StringBuffer failureText = new StringBuffer();
 
-                   public void setState(ExecutionState executionState) {
-                       System.out.println("Called " + executionState);
-                        super.setState(executionState);
-                   }
+       final CompositeExecution compositeExecution = new CompositeExecution();
 
-                   public void doInBackground() throws Exception {
-                       System.out.println("Called do in Background");
-                   }
-
-                   public void doInEventThread() throws Exception {
-                       System.out.println("Called do in Event Thread");
-                   }
-               };
-           }
-       };
+       //create and add 10 async child commands to the composite
+       int startCount = 1;
+       for ( int loop=1; loop<= 10; loop++) {
+           compositeExecution.addCommand(createBackgroundExecutionCommand(startCount, counter, failureText));
+           startCount += 4;
+       }
 
        SwingCommand compositeCommand = new SwingCommand() {
            protected Execution createExecution() {
-               return new CompositeExecution(child1);
+               return compositeExecution;
            }
        };
-       compositeCommand.execute();
+
+       //execute the composite synchronously on this junit subthread
+       compositeCommand.execute(new SynchronousExecutor());
+       assertOrder(41, counter, "execute returned", failureText);
+
+       if ( failureText.length() > 0) {
+           fail(failureText.toString());
+       }
    }
+
+    private SwingCommand createBackgroundExecutionCommand(final int startCount, final AtomicInteger counter, final StringBuffer failureText) {
+        return new SwingCommand() {
+            protected Execution createExecution() {
+                return new TestBackgroundExecution(startCount, counter, failureText);
+            }
+        };
+    }
+
+    private void assertOrder(int expectedValue, AtomicInteger counter, String testName, StringBuffer failureDescription) {
+        int value = counter.incrementAndGet();
+        if ( expectedValue != value) {
+            failureDescription.append("Called out of order: ").append(testName).append(" expected ").append(expectedValue).append(" was ").append(value).append("  ");
+        }
+    }
+
+    private class TestBackgroundExecution extends BackgroundExecution {
+        private int counterStart;
+        private final AtomicInteger counter;
+        private final StringBuffer failureText;
+
+        public TestBackgroundExecution(int counterStart, AtomicInteger counter, StringBuffer failureText) {
+            this.counterStart = counterStart;
+            this.counter = counter;
+            this.failureText = failureText;
+        }
+
+        public void setState(ExecutionState executionState) {
+            if ( executionState == ExecutionState.STARTED) {
+                assertOrder(counterStart, counter, "setState(STARTED)", failureText);
+            } else if ( executionState == ExecutionState.SUCCESS) {
+                assertOrder(counterStart + 3, counter, "setState(SUCCESS)", failureText);
+            }
+        }
+
+        public void doInBackground() throws Exception {
+            assertOrder(counterStart + 1, counter, "doInBackground", failureText);
+            if ( SwingUtilities.isEventDispatchThread()) {
+                failureText.append("doInBackground on event thread");
+            }
+        }
+
+        public void doInEventThread() throws Exception {
+            assertOrder(counterStart + 2, counter, "doInEventThread", failureText);
+            if ( ! SwingUtilities.isEventDispatchThread()) {
+                failureText.append("doInEventThread not on event thread");
+            }
+        }
+    }
 }
