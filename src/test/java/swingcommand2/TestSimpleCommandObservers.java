@@ -36,9 +36,9 @@ public class TestSimpleCommandObservers extends CommandTest {
         invokeAndWaitWithFail(
             new Runnable() {
                 public void run() {
-                    final ExecutionObserver observer =  mockery.mock(ExecutionObserver.class);
+                    final TaskListener observer =  mockery.mock(TaskListener.class);
 
-                    final Execution execution = new SimpleExecution() {
+                    final SwingTask execution = new SwingTask() {
                         public void doInEventThread() throws Exception {
                         }
                     };
@@ -52,7 +52,7 @@ public class TestSimpleCommandObservers extends CommandTest {
                     });
 
                     SwingCommand c = new SwingCommand() {
-                        protected Execution createExecution() {
+                        protected SwingTask createTask() {
                             return execution;
                         }
                     };
@@ -67,9 +67,9 @@ public class TestSimpleCommandObservers extends CommandTest {
         invokeAndWaitWithFail(
             new Runnable() {
                 public void run() {
-                    final ExecutionObserver observer = mockery.mock(ExecutionObserver.class);
+                    final TaskListener observer = mockery.mock(TaskListener.class);
 
-                    final Execution execution = new SimpleExecution() {
+                    final SwingTask execution = new SwingTask() {
                         public void doInEventThread() throws Exception {
                             runtimeException = new RuntimeException("testErrorExecutionObserverCallbacks");
                         }
@@ -84,7 +84,7 @@ public class TestSimpleCommandObservers extends CommandTest {
                     });
 
                     SwingCommand c = new SwingCommand() {
-                        protected Execution createExecution() {
+                        protected SwingTask createTask() {
                             return execution;
                         }
                     };
@@ -98,7 +98,7 @@ public class TestSimpleCommandObservers extends CommandTest {
 
         final CountDownLatch countDownLatch = new CountDownLatch(1);
 
-        final Execution execution = new SimpleExecution() {
+        final SwingTask execution = new SwingTask() {
             public void doInEventThread() throws Exception {
                 calledInEventThread = SwingUtilities.isEventDispatchThread();
                 countDownLatch.countDown();
@@ -106,10 +106,10 @@ public class TestSimpleCommandObservers extends CommandTest {
         };
 
          SwingCommand c = new SwingCommand() {
-            protected Execution createExecution() {
+            protected SwingTask createTask() {
                 return execution;
             }
-        };
+         };
         c.execute();
 
         try {

@@ -26,7 +26,7 @@ import java.util.concurrent.Executor;
 public abstract class CommandTest extends TestCase {
 
     Mockery mockery;
-    ExecutionObserver debuggingExecutionObserver = new DebuggingExecutionObserver();
+    TaskListener debuggingExecutionObserver = new DebuggingExecutionObserver();
     volatile Thread lastTestExecutorThread;
 
     public  final void setUp() {
@@ -76,21 +76,21 @@ public abstract class CommandTest extends TestCase {
     }
 
 
-    class DummyExecution extends BackgroundExecution {
+    class DummyExecution extends BackgroundTask {
         public void doInBackground() throws Exception {}
 
         public void doInEventThread() throws Exception {}
 
         public String toString() {
-            return "Dummy Execution";
+            return "Dummy SwingTask";
         }
     }
 
 
     class DummyAsynchronousCommand extends SwingCommand {
-        private AsyncExecution asynchronousExecution;
+        private BackgroundTask asynchronousExecution;
 
-        public DummyAsynchronousCommand(AsyncExecution singleExecutionForTesting) {
+        public DummyAsynchronousCommand(BackgroundTask singleExecutionForTesting) {
             super(new DefaultTestExecutor());
             this.asynchronousExecution = singleExecutionForTesting;
         }
@@ -98,64 +98,64 @@ public abstract class CommandTest extends TestCase {
         //n.b. you should create a new swingcommand execution for each invocation of this method
         //the instance passed to the constructor is used just for testing here, since we need a handle to the
         //execution instance for the tests
-        public AsyncExecution createExecution() {
+        public BackgroundTask createTask() {
             return asynchronousExecution;
         }
     }
 
 
-    class DebuggingExecutionObserver implements ExecutionObserver {
+    class DebuggingExecutionObserver implements TaskListener {
 
-        public void pending(Execution commandExecution) {
+        public void pending(SwingTask commandExecution) {
             System.out.println("pending " + commandExecution);
         }
 
-        public void started(Execution commandExecution) {
+        public void started(SwingTask commandExecution) {
             System.out.println("started " + commandExecution);
         }
 
-        public void progress(Execution commandExecution, String description) {
+        public void progress(SwingTask commandExecution, String description) {
             System.out.println("progress "  + commandExecution);
         }
 
-        public void done(Execution commandExecution) {
+        public void done(SwingTask commandExecution) {
             System.out.println("done " + commandExecution);
         }
 
-        public void success(Execution commandExecution) {
+        public void success(SwingTask commandExecution) {
             System.out.println("success " + commandExecution);
         }
 
-        public void error(Execution commandExecution, Throwable error) {
+        public void error(SwingTask commandExecution, Throwable error) {
             System.out.println("error " + " " + commandExecution);
         }
     }
 
-    class RuntimeExceptionThrowingExecutionObserver implements ExecutionObserver {
+    class RuntimeExceptionThrowingExecutionObserver implements TaskListener {
 
         private String message = "This execption is expected. It is to verify that exceptions if observers do not interrupt the command processing workflow";
 
-        public void pending(Execution commandExecution) {
+        public void pending(SwingTask commandExecution) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void started(Execution commandExecution) {
+        public void started(SwingTask commandExecution) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void progress(Execution commandExecution, String description) {
+        public void progress(SwingTask commandExecution, String description) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void done(Execution commandExecution) {
+        public void done(SwingTask commandExecution) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void success(Execution commandExecution) {
+        public void success(SwingTask commandExecution) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void error(Execution commandExecution, Throwable error) {
+        public void error(SwingTask commandExecution, Throwable error) {
             throw new TracelessRuntimeException(message);
         }
     }

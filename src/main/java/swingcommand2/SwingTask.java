@@ -11,13 +11,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Time: 20:58:09
  * To change this template use File | Settings | File Templates.
  */
-public abstract class SimpleExecution implements Execution {
+public abstract class SwingTask {
 
-    private volatile ExecutionState executionState = ExecutionState.PENDING;
+    private volatile ExecutionState executionState = ExecutionState.NOT_RUN;
     private volatile boolean cancelled;
     private volatile boolean cancellable;
     private volatile Throwable executionException;
-    private final CopyOnWriteArrayList<ExecutionObserver> executionObservers = new CopyOnWriteArrayList<ExecutionObserver>();
+    private final CopyOnWriteArrayList<TaskListener> taskListeners = new CopyOnWriteArrayList<TaskListener>();
 
     public abstract void doInEventThread() throws Exception;
 
@@ -70,29 +70,29 @@ public abstract class SimpleExecution implements Execution {
         this.executionException = executionException;
     }
 
-    public void addExecutionObserver(ExecutionObserver... o) {
-        synchronized (executionObservers) {
-            this.executionObservers.addAll(Arrays.asList(o));
+    protected void addTaskListener(TaskListener... o) {
+        synchronized (taskListeners) {
+            this.taskListeners.addAll(Arrays.asList(o));
         }
     }
 
-    public void removeExecutionObserver(ExecutionObserver... o) {
-        synchronized (executionObservers) {
-            this.executionObservers.addAll(Arrays.asList(o));
+    protected void removeTaskListener(TaskListener... o) {
+        synchronized (taskListeners) {
+            this.taskListeners.addAll(Arrays.asList(o));
         }
     }
 
-    public List<ExecutionObserver> getExecutionObservers() {
-        return this.executionObservers;
+    protected List<TaskListener> getTaskListeners() {
+        return this.taskListeners;
     }
 
     /**
-     * Fire progress event to ExecutionObserver instances
+     * Fire progress event to taskListener instances
      * Event will be received on the Swing event thread
      *
      * @param description, objects containing a description of the progress made
      */
     protected void fireProgress(String description) {
-        ExecutionObserverSupport.fireProgress(executionObservers, this, description);
+        TaskListenerSupport.fireProgress(taskListeners, this, description);
     }
 }

@@ -17,17 +17,17 @@ package swingcommand2;
  * which want to inherit a default implementation of the observer methods, overriding
  * only those which they are interested in
  */
-public class ExecutionObserverAdapter implements ExecutionObserver {
+public class TaskListenerAdapter implements TaskListener {
 
-    public void pending(Execution commandExecution) {}
+    public void pending(SwingTask commandExecution) {}
 
-    public void started(Execution commandExecution) {}
+    public void started(SwingTask commandExecution) {}
 
-    public void progress(Execution commandExecution, String progressDescription) {}
+    public void progress(SwingTask commandExecution, String progressDescription) {}
 
-    public void success(Execution commandExecution) {}
+    public void success(SwingTask commandExecution) {}
 
-    public void error(Execution commandExecution, Throwable error) {}
+    public void error(SwingTask commandExecution, Throwable error) {}
 
-    public void done(Execution commandExecution) {}
+    public void done(SwingTask commandExecution) {}
 }

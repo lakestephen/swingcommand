@@ -6,6 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.List;
 import java.util.Arrays;
+import java.util.ArrayList;
 
 /**
  * Created by IntelliJ IDEA.
@@ -20,7 +21,8 @@ public abstract class SwingCommand {
     private static Executor DEFAULT_SIMPLE_EXECUTOR = new IfSubThreadInvokeLaterExecutor();
     private static ExecutorFactory DEFAULT_EXECUTOR_FACTORY = new DefaultExecutorFactory();
 
-    private ExecutionObserverSupport executionObserverSupport = new ExecutionObserverSupport();
+    private final List<TaskListener> taskListeners = new ArrayList<TaskListener>();
+
     private volatile Executor executor;
 
     public SwingCommand() {
@@ -40,108 +42,71 @@ public abstract class SwingCommand {
         this.executor = executor;
     }
 
-    public Execution execute(ExecutionObserver... instanceExecutionObservers) {
-        return execute(executor, instanceExecutionObservers);
+    public SwingTask execute(TaskListener... taskListeners) {
+        return execute(executor, taskListeners);
     }
 
-    public Execution execute(Executor executor, ExecutionObserver... instanceExecutionObservers) {
-        Execution execution = performCreateExecution();
+    public SwingTask execute(Executor executor, TaskListener... taskListeners) {
+        SwingTask execution = doCreateTask();
         if (executor == null) {
             executor = createExecutor(execution);
         }
-        executeCommand(executor, execution, instanceExecutionObservers);
+        executeCommand(executor, execution, taskListeners);
         return execution;
     }
 
-    public Execution execute(ExecutorFactory executorFactory, ExecutionObserver... instanceExecutionObservers) {
-        Execution execution = performCreateExecution();
-        Executor executor = executorFactory.getExecutor(execution);
-        executeCommand(executor, execution, instanceExecutionObservers);
-        return execution;
+    public SwingTask execute(ExecutorFactory executorFactory, TaskListener... taskListeners) {
+        SwingTask task = doCreateTask();
+        Executor executor = executorFactory.getExecutor(task);
+        executeCommand(executor, task, taskListeners);
+        return task;
     }
 
-    protected Executor createExecutor(Execution execution) {
-        return DEFAULT_EXECUTOR_FACTORY.getExecutor(execution);
-    }
-
-    public void addExecutionObserver(ExecutionObserver... executionObservers) {
-        executionObserverSupport.addExecutionObservers(executionObservers);
-    }
-
-    public void removeExecutionObserver(ExecutionObserver... executionObservers) {
-        executionObserverSupport.removeExecutionObservers(executionObservers);
-    }
-
-    /**
-     * Create an execution.
-     * It is important this is done on the event thread because, while creating
-     * the execution, state from the ui models or components likely has to be copied/cloned to use as
-     * parameters for the async processing. For safety only the event thread should interact with ui
-     * components/models. Cloning state from the ui models ensures the background thread has its own
-     * copy during execution, and there are no potential race conditions
-     */
-    private Execution performCreateExecution() {
-
-        class CreateExecutionRunnable implements Runnable {
-
-            volatile Execution execution;
-
-            public Execution getExecution() {
-                return execution;
-            }
-
-            public void run() {
-                execution = createExecution();
-            }
+    private SwingTask doCreateTask() {
+        try {
+            return createTask();
+        } catch ( Throwable t) {
+            throw new SwingCommandRuntimeException("Failed to run SwingCommand, createTask() threw an exeception", t);
         }
+    }
 
-        CreateExecutionRunnable r = new CreateExecutionRunnable();
-        Throwable t = ExecutionObserverSupport.executeSynchronouslyOnEventThread(r, false);
-        Execution execution = r.getExecution();  //for some reason some jdk need the cast to E to compile
-        if (t != null) {
-            throw new SwingCommandRuntimeException("Cannot run swingcommand \" + getClass().getName() + \" createExecution() threw an exception");
-        } else if (execution == null) {
-            throw new SwingCommandRuntimeException("Cannot run swingcommand " + getClass().getName() + " createExecution() returned null");
+    protected Executor createExecutor(SwingTask task) {
+        return DEFAULT_EXECUTOR_FACTORY.getExecutor(task);
+    }
+
+    public final void addExecutionObserver(TaskListener... taskListeners) {
+        synchronized (this.taskListeners) {
+            this.taskListeners.addAll(Arrays.asList(taskListeners));
         }
-        return execution;
+    }
+
+    public final void removeExecutionObserver(TaskListener... taskListeners) {
+        synchronized (this.taskListeners) {
+            this.taskListeners.removeAll(Arrays.asList(taskListeners));
+        }
+    }
+
+    private List<TaskListener> getListenerSnapshot()  {
+        synchronized (taskListeners) {
+            return new ArrayList<TaskListener>(taskListeners);
+        }
     }
 
     /**
      * @return an Execution for this asynchronous command
      */
-    protected abstract Execution createExecution();
+    protected abstract SwingTask createTask();
 
 
-    private void executeCommand(Executor executor, Execution execution, ExecutionObserver... instanceExecutionObservers) {
+    private void executeCommand(Executor executor, SwingTask execution, TaskListener... taskListeners) {
 
         //get a snapshot list of the execution observers which will receive the events for this execution
-        final List<ExecutionObserver> observersForExecution = executionObserverSupport.getExecutionObserverSnapshot();
-        observersForExecution.addAll(Arrays.asList(instanceExecutionObservers));
+        final List<TaskListener> allListeners = getListenerSnapshot();
+        allListeners.addAll(Arrays.asList(taskListeners));
 
         //create a new execution controller for this execution
-        ExecutionManager executionManager = createExecutionManager(executor, execution, observersForExecution);
+        ExecutionManager executionManager = new ExecutionManager(executor, execution, allListeners);
         executionManager.executeCommand();
-    }
-
-    //subclasses may override this to provide a custom ExecutionManager
-    protected ExecutionManager createExecutionManager(Executor executor, Execution execution, List<ExecutionObserver> observersForExecution) {
-        ExecutionManager result;
-        if (execution instanceof AsyncExecution) {
-            result = new AsyncExecutionManager(
-                    executor,
-                    (AsyncExecution) execution,
-                    observersForExecution
-            );
-        } else {
-            result = new SimpleExecutionManager(executor, execution, observersForExecution);
-        }
-        return result;
-    }
-
-    static class DefaultExecutorFactory implements ExecutorFactory {
-        public Executor getExecutor(Execution e) {
-            return (e instanceof AsyncExecution) ? DEFAULT_ASYNC_EXECUTOR : DEFAULT_SIMPLE_EXECUTOR;
-        }
     }
 
     static class IfSubThreadInvokeLaterExecutor implements Executor {
@@ -157,7 +122,141 @@ public abstract class SwingCommand {
         }
     }
 
+    static class DefaultExecutorFactory implements ExecutorFactory {
+        public Executor getExecutor(SwingTask e) {
+            return (e instanceof BackgroundTask) ? DEFAULT_ASYNC_EXECUTOR : DEFAULT_SIMPLE_EXECUTOR;
+        }
+    }
+
     public static interface ExecutorFactory {
-        Executor getExecutor(Execution e);
+        Executor getExecutor(SwingTask e);
+    }
+
+
+    static class ExecutionManager {
+
+        private final Executor executor;
+        private final SwingTask task;
+        private final TaskListener[] taskListeners;
+
+        public ExecutionManager(Executor executor, SwingTask task, List<TaskListener> taskListeners) {
+            this.executor = executor;
+            this.task = task;
+            this.taskListeners = taskListeners.toArray(new TaskListener[taskListeners.size()]);
+        }
+
+        /**
+         * This object is used to synchronize memory for each stage of the command processing,
+         * This ensures that any state updated during each stage is flushed to shared heap memory before the next stage executes
+         * (Since the next stage will executed in a different thread such state changes would not otherwise be guaranteed to be visible)
+         */
+        private final Object memorySync = new Object();
+
+        public void executeCommand() {
+
+            task.addTaskListener(taskListeners);
+
+            //Call fire pending before spawning a new thread. Provided execute was called on the
+            //event thread, no more ui work can possibly get done before fireStarting is called
+            //If fireStarting is used, for example, to disable a button, this guarantees that the button will be
+            //disabled before the action listener triggering the swingcommand returns.
+            //otherwise the user might be able to click the button again before the fireStarting callback
+            task.setState(ExecutionState.PENDING);
+            TaskListenerSupport.firePending(task.getTaskListeners(), task);
+
+             executor.execute(new Runnable() {
+                public void run() {
+                    doExecuteTask();
+                }
+            });
+        }
+    
+        private void doExecuteTask() {
+            //this try block makes sure we always call end up calling fireDone
+            try {
+                setExecutionState(ExecutionState.STARTED);
+                TaskListenerSupport.fireStarted(task.getTaskListeners(), task);
+
+                if ( task instanceof BackgroundTask) {
+                    synchronized (memorySync) {
+                        //STAGE1  - in the current swingcommand processing thread
+                        ((BackgroundTask) task).doInBackground();
+                    }
+                }
+
+                //STAGE2 - this needs to be done on the event thread
+                runDoInEventThread(task);
+
+                setExecutionState(ExecutionState.SUCCESS);
+                TaskListenerSupport.fireSuccess(task.getTaskListeners(), task);
+            } catch (Throwable t ) {
+                setTaskException(t);
+                setExecutionState(ExecutionState.ERROR);
+                TaskListenerSupport.fireError(task.getTaskListeners(), task, t);
+            } finally {
+                TaskListenerSupport.fireDone(task.getTaskListeners(), task);
+                task.removeTaskListener(taskListeners);
+            }
+        }
+
+        private void setTaskException(Throwable t) {
+            if ( t instanceof SwingCommandException) {
+                task.setExecutionException(t.getCause());
+            } else {
+                task.setExecutionException(t);
+            }
+        }
+
+        private void setExecutionState(final ExecutionState newState) {
+            TaskListenerSupport.executeSynchronouslyOnEventThread(new Runnable(){
+                public void run() {
+                    task.setState(newState);
+                }
+            });
+        }
+
+        private void runDoInEventThread(final SwingTask task) throws Exception {
+            class DoAfterExecuteRunnable implements Runnable {
+                volatile Throwable throwable;
+
+                public void run() {
+                    synchronized (memorySync) {  //make sure the event thread sees the latest state
+                        try {
+                            task.doInEventThread();
+                        } catch (Throwable e) {
+                            throwable = e;
+                        }
+                    }
+                }
+            }
+            DoAfterExecuteRunnable doAfterExecuteRunnable = new DoAfterExecuteRunnable();
+            TaskListenerSupport.executeSynchronouslyOnEventThread(doAfterExecuteRunnable);
+            if (doAfterExecuteRunnable.throwable != null) {
+                throw new SwingCommandException("Failed while invoking runDone() on " + getClass().getName(), doAfterExecuteRunnable.throwable);
+            }
+        }
+
+    }
+
+    static class SwingCommandRuntimeException extends RuntimeException {
+
+        public SwingCommandRuntimeException(String message) {
+            super(message);
+        }
+
+        public SwingCommandRuntimeException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
+    static class SwingCommandException extends Exception {
+
+        public SwingCommandException(String message) {
+            super(message);
+        }
+
+        public SwingCommandException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

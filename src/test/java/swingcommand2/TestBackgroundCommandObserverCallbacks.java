@@ -84,7 +84,7 @@ public class TestBackgroundCommandObserverCallbacks extends CommandTest {
         );
     }
 
-    private void testNormalExecution(final String name, final ExecutionObserver... extraLifeCycleObserver) {
+    private void testNormalExecution(final String name, final TaskListener... extraLifeCycleObserver) {
         final DummyExecution dummyExecution = new DummyExecution();
         final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
@@ -96,7 +96,7 @@ public class TestBackgroundCommandObserverCallbacks extends CommandTest {
             new Runnable() {
                 public void run() {
                     @SuppressWarnings("unchecked")
-                    final ExecutionObserver observer = mockery.mock(ExecutionObserver.class);
+                    final TaskListener observer = mockery.mock(TaskListener.class);
 
                     if ( extraLifeCycleObserver != null ) {
                         dummyCommand.addExecutionObserver(extraLifeCycleObserver);
@@ -119,7 +119,7 @@ public class TestBackgroundCommandObserverCallbacks extends CommandTest {
         validateMockeryAssertions();
     }
 
-    private void testErrorExecution(final String name, final DummyExecution dummyExecution, final ExecutionObserver... extraLifeCycleObserver) {
+    private void testErrorExecution(final String name, final DummyExecution dummyExecution, final TaskListener... extraLifeCycleObserver) {
         final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
                 return name;
@@ -130,7 +130,7 @@ public class TestBackgroundCommandObserverCallbacks extends CommandTest {
             new Runnable() {
                 public void run() {
                     @SuppressWarnings("unchecked")
-                    final ExecutionObserver observer = mockery.mock(ExecutionObserver.class);
+                    final TaskListener observer = mockery.mock(TaskListener.class);
 
                     if ( extraLifeCycleObserver != null ) {
                         dummyCommand.addExecutionObserver(extraLifeCycleObserver);

@@ -36,8 +36,8 @@ public class TestBackgroundCommandExecutions extends CommandTest {
 
     //test the correct threads receive the callbacks
     public void testExecutionCallbacksNormalProcessing() {
-        AsyncExecution dummyExecution = new NormalExecution();
-        assertEquals(ExecutionState.PENDING, dummyExecution.getState());
+        BackgroundTask dummyExecution = new NormalExecution();
+        assertEquals(ExecutionState.NOT_RUN, dummyExecution.getState());
 
         final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
@@ -60,8 +60,8 @@ public class TestBackgroundCommandExecutions extends CommandTest {
     }
 
     public void testDoneShouldNotBeCalledIfExceptionThrownInDoInBackground() {
-        AsyncExecution dummyExecution = new ErrorInDoInBackgroundExecution();
-        assertEquals(ExecutionState.PENDING, dummyExecution.getState());
+        BackgroundTask dummyExecution = new ErrorInDoInBackgroundExecution();
+        assertEquals(ExecutionState.NOT_RUN, dummyExecution.getState());
 
         final DummyAsynchronousCommand dummyCommand = new DummyAsynchronousCommand(dummyExecution) {
             public String toString() {
@@ -82,7 +82,7 @@ public class TestBackgroundCommandExecutions extends CommandTest {
         assertEquals(doInBackgroundRuntimeException, dummyExecution.getExecutionException());
     }
 
-    private class NormalExecution extends BackgroundExecution {
+    private class NormalExecution extends BackgroundTask {
 
         public void doInBackground() throws Exception {
             isdoInBackgroundCalledInSubThread = ! SwingUtilities.isEventDispatchThread();
@@ -96,7 +96,7 @@ public class TestBackgroundCommandExecutions extends CommandTest {
         }
     }
 
-    private class ErrorInDoInBackgroundExecution extends BackgroundExecution {
+    private class ErrorInDoInBackgroundExecution extends BackgroundTask {
 
         public void doInBackground() throws Exception {
             assertEquals(ExecutionState.STARTED, getState());

@@ -31,7 +31,7 @@ public class TestSimpleCommandExecutions extends CommandTest {
         invokeAndWaitWithFail(
             new Runnable() {
                 public void run() {
-                    final Execution execution = new SimpleExecution() {
+                    final SwingTask execution = new SwingTask() {
                         public void doInEventThread() throws Exception {
                             doInEventThreadCalled = true;
                             assertEquals(ExecutionState.STARTED, getState());
@@ -39,12 +39,12 @@ public class TestSimpleCommandExecutions extends CommandTest {
                     };
 
                     SwingCommand c = new SwingCommand() {
-                        protected Execution createExecution() {
+                        protected SwingTask createTask() {
                             return execution;
                         }
                     };
 
-                    assertEquals(ExecutionState.PENDING, execution.getState());
+                    assertEquals(ExecutionState.NOT_RUN, execution.getState());
                     c.execute();
                     assertEquals(ExecutionState.SUCCESS, execution.getState());
                     assertTrue(doInEventThreadCalled);
@@ -58,7 +58,7 @@ public class TestSimpleCommandExecutions extends CommandTest {
         invokeAndWaitWithFail(
             new Runnable() {
                 public void run() {
-                    final Execution execution = new SimpleExecution() {
+                    final SwingTask execution = new SwingTask() {
                         public void doInEventThread() throws Exception {
                             doInEventThreadCalled = true;
                             assertEquals(ExecutionState.STARTED, getState());
@@ -68,12 +68,12 @@ public class TestSimpleCommandExecutions extends CommandTest {
                     };
 
                     SwingCommand c = new SwingCommand() {
-                        protected Execution createExecution() {
+                        protected SwingTask createTask() {
                             return execution;
                         }
                     };
 
-                    assertEquals(ExecutionState.PENDING, execution.getState());
+                    assertEquals(ExecutionState.NOT_RUN, execution.getState());
                     c.execute();
                     assertEquals(ExecutionState.ERROR, execution.getState());
                     assertTrue(doInEventThreadCalled);

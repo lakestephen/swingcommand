@@ -20,14 +20,14 @@ package swingcommand2;
  * These callbacks provide an easy and safe way to update the UI to show the progress of a task.
  *
  */
-public interface ExecutionObserver {
+public interface TaskListener {
 
     /**
      * Called when an execution is created in response to Command.execute()
      *
      * @param commandExecution, the execution which is starting
      */
-    void pending(Execution commandExecution);
+    void pending(SwingTask commandExecution);
 
     /**
      * Called when execution starts.
@@ -39,7 +39,7 @@ public interface ExecutionObserver {
      *
      * @param commandExecution, the execution which has started
      */
-    void started(Execution commandExecution);
+    void started(SwingTask commandExecution);
 
     /**
      * This callback may take place at any time during execution, to indicate progress
@@ -48,7 +48,7 @@ public interface ExecutionObserver {
      * @param commandExecution, the execution which has made progress
      * @param progressDescription, String describing the progress made
      */
-    void progress(Execution commandExecution, String progressDescription);
+    void progress(SwingTask commandExecution, String progressDescription);
 
     /**
      * This callback takes place once a command has successfully completed.
@@ -56,7 +56,7 @@ public interface ExecutionObserver {
      *
      * @param commandExecution, the execution which has made progress
      */
-    void success(Execution commandExecution);
+    void success(SwingTask commandExecution);
 
     /**
      * This callback takes place if an exeception is raised during command execution, which prevents
@@ -65,12 +65,12 @@ public interface ExecutionObserver {
      * @param commandExecution, the execution for which an error occurred
      * @param error error which occurred
      */
-    void error(Execution commandExecution, Throwable error);
+    void error(SwingTask commandExecution, Throwable error);
 
     /**
      * This callback takes place once the execution has finished, wheher or not the command executed successfully or generated an error
      *
      * @param commandExecution, the execution which has stopped
      */
-    void done(Execution commandExecution);
+    void done(SwingTask commandExecution);
 }

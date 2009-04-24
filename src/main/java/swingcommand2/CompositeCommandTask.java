@@ -11,7 +11,7 @@ import java.lang.reflect.InvocationTargetException;
  * Date: 23-Apr-2009
  * Time: 10:55:25
  */
-public class CompositeExecution extends BackgroundExecution {
+public class CompositeCommandTask extends BackgroundTask {
 
     private static final Executor SYNCHRONOUS_EXECUTOR = new Executor() {
         public void execute(Runnable command) {
@@ -27,16 +27,16 @@ public class CompositeExecution extends BackgroundExecution {
     private int currentCommandId;
     private ExecutionObserverProxy executionObserverProxy = new ExecutionObserverProxy();
 
-    public CompositeExecution() {
+    public CompositeCommandTask() {
         setCancellable(true);
     }
 
-    public CompositeExecution(SwingCommand... commands) {
+    public CompositeCommandTask(SwingCommand... commands) {
         setCancellable(true);
         executionCommands.addAll(Arrays.asList(commands));
     }
 
-    public CompositeExecution(Collection<SwingCommand> commands) {
+    public CompositeCommandTask(Collection<SwingCommand> commands) {
         setCancellable(true);
         executionCommands.addAll(commands);
     }
@@ -85,7 +85,7 @@ public class CompositeExecution extends BackgroundExecution {
         executionCommands.addAll(commands);
     }
 
-    public Execution getCurrentExecution() {
+    public SwingTask getCurrentExecution() {
         return executionObserverProxy.getCurrentChildExecution();
     }
 
@@ -102,36 +102,32 @@ public class CompositeExecution extends BackgroundExecution {
     }
 
     public void doCancel() {
-        Execution c = executionObserverProxy.getCurrentChildExecution();
-        if (c instanceof Cancellable && ((Cancellable) c).isCancellable()) {
-            ((Cancellable) c).cancel();
-        }
+        executionObserverProxy.getCurrentChildExecution().cancel();
     }
 
     /**
      * Receives execution observer events from child commands and fires step reached events to
      * this composites observers
      */
-    private class ExecutionObserverProxy extends ExecutionObserverAdapter {
+    private class ExecutionObserverProxy extends TaskListenerAdapter {
         private volatile boolean errorOccurred;
-        private volatile Execution currentChildExecution;
+        private volatile SwingTask currentChildExecution;
         private volatile boolean lastCommandCancelled;
         private volatile Throwable lastCommandError;
 
         public ExecutionObserverProxy() {
         }
 
-        public void started(Execution commandExecution) {
+        public void started(SwingTask commandExecution) {
             this.currentChildExecution = commandExecution;
             fireProgress(currentChildExecution.toString());
         }
 
-        public void done(Execution commandExecution) {
-            lastCommandCancelled = commandExecution instanceof Cancellable &&
-                    ((Cancellable) commandExecution).isCancelled();
+        public void done(SwingTask commandExecution) {
+            lastCommandCancelled = commandExecution.isCancelled();
         }
 
-        public void error(Execution commandExecution, Throwable e) {
+        public void error(SwingTask commandExecution, Throwable e) {
             errorOccurred = true;
             lastCommandError = e;
         }
@@ -140,7 +136,7 @@ public class CompositeExecution extends BackgroundExecution {
             return errorOccurred;
         }
 
-        public Execution getCurrentChildExecution() {
+        public SwingTask getCurrentChildExecution() {
             return currentChildExecution;
         }
 
@@ -162,8 +158,8 @@ public class CompositeExecution extends BackgroundExecution {
 
     private static class CompositeExecutorFactory implements SwingCommand.ExecutorFactory {
 
-        public Executor getExecutor(Execution e) {
-            if (e instanceof AsyncExecution) {
+        public Executor getExecutor(SwingTask e) {
+            if (e instanceof BackgroundTask) {
                 return SYNCHRONOUS_EXECUTOR;
             } else {
                 return INVOKE_AND_WAIT_EXECUTOR;

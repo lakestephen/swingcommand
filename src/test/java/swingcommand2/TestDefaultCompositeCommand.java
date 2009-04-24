@@ -28,7 +28,7 @@ public class TestDefaultCompositeCommand extends CommandTest {
        final AtomicInteger counter = new AtomicInteger();
        final StringBuffer failureText = new StringBuffer();
 
-       final CompositeExecution compositeExecution = new CompositeExecution();
+       final CompositeCommandTask compositeExecution = new CompositeCommandTask();
 
        //create and add 10 async child commands to the composite
        int startCount = 1;
@@ -38,7 +38,7 @@ public class TestDefaultCompositeCommand extends CommandTest {
        }
 
        SwingCommand compositeCommand = new SwingCommand() {
-           protected Execution createExecution() {
+           protected SwingTask createTask() {
                return compositeExecution;
            }
        };
@@ -54,7 +54,7 @@ public class TestDefaultCompositeCommand extends CommandTest {
 
     private SwingCommand createBackgroundExecutionCommand(final int startCount, final AtomicInteger counter, final StringBuffer failureText) {
         return new SwingCommand() {
-            protected Execution createExecution() {
+            protected SwingTask createTask() {
                 return new TestBackgroundExecution(startCount, counter, failureText);
             }
         };
@@ -67,7 +67,7 @@ public class TestDefaultCompositeCommand extends CommandTest {
         }
     }
 
-    private class TestBackgroundExecution extends BackgroundExecution {
+    private class TestBackgroundExecution extends BackgroundTask {
         private int counterStart;
         private final AtomicInteger counter;
         private final StringBuffer failureText;

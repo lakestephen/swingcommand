@@ -19,6 +19,7 @@ package swingcommand2;
  */
 public enum ExecutionState {
 
+    NOT_RUN,
     PENDING,
     STARTED,
     SUCCESS,
