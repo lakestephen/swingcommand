@@ -1,7 +1,6 @@
-package swingcommand2;
+package swingcommand;
 
 import java.util.List;
-import java.util.Arrays;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**

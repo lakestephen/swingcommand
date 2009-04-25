@@ -1,4 +1,4 @@
-package swingcommand2;
+package swingcommand;
 
 /**
  * Created by IntelliJ IDEA.

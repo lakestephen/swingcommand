@@ -1,4 +1,4 @@
-package swingcommand2;
+package swingcommand;
 
 import javax.swing.*;
 import java.util.concurrent.Executor;

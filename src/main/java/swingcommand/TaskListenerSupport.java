@@ -8,7 +8,7 @@
  *  http://www.objectdefinitions.com/swingcommand
  */
 
-package swingcommand2;
+package swingcommand;
 
 import javax.swing.*;
 import java.util.List;

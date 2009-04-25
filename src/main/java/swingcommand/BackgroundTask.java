@@ -8,24 +8,16 @@
  *  http://www.objectdefinitions.com/swingcommand
  */
 
-package swingcommand2;
+package swingcommand;
 
 /**
  * Created by IntelliJ IDEA.
- * User: nick
- * Date: 14-Sep-2008
- * Time: 18:07:43
- * To change this template use File | Settings | File Templates.
+ * User: Nick Ebbutt
+ * Date: 09-Sep-2008
+ * Time: 14:52:16
  */
-public enum ExecutionState {
+public abstract class BackgroundTask<P> extends Task<P> {
 
-    NOT_RUN,
-    PENDING,
-    STARTED,
-    SUCCESS,
-    ERROR;
+    public abstract void doInBackground() throws Exception;
 
-    public boolean isFinalState() {
-        return this == SUCCESS || this == ERROR;
-    }
 }

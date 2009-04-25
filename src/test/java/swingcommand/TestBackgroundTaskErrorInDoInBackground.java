@@ -1,4 +1,4 @@
-package swingcommand2;
+package swingcommand;
 
 import junit.framework.Assert;
 

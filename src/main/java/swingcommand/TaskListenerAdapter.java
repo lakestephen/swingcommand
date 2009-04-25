@@ -8,7 +8,7 @@
  *  http://www.objectdefinitions.com/swingcommand
  */
 
-package swingcommand2;
+package swingcommand;
 
 /**
  * @author Nick Ebbutt, Object Definitions Ltd. http://www.objectdefinitions.com
