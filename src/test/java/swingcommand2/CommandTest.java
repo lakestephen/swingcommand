@@ -11,7 +11,6 @@
 package swingcommand2;
 
 import junit.framework.TestCase;
-import org.jmock.Mockery;
 
 import javax.swing.*;
 import java.util.concurrent.CountDownLatch;
