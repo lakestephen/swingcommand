@@ -14,7 +14,9 @@ import junit.framework.TestCase;
 import org.jmock.Mockery;
 
 import javax.swing.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -26,25 +28,22 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class CommandTest extends TestCase {
 
-    Mockery mockery;
-    TaskListener dummyTaskListener = new DebuggingTaskListener();
-    volatile Thread lastTestExecutorThread;
     final StringBuffer failureText = new StringBuffer();
     final AtomicInteger counter = new AtomicInteger();
+    protected boolean isBadListenerMethodCalled;
+    protected String DO_IN_BACKGROUND_PROGRESS_TEXT = "doInBackground progress";
+    protected final String DO_IN_EVENT_THREAD_PROGRESS_TEXT = "doInEventThread progress";
+    protected CountDownLatch latch;
+    protected RuntimeException testException;
+    protected boolean isDoInEventThreadCalled;
 
-    public  final void setUp() {
+    public final void setUp() {
+        isDoInEventThreadCalled = false;
+        testException = null;
+        isBadListenerMethodCalled = false;
         failureText.setLength(0);
         counter.set(0);
-
-        //mockery and JMock are not thread safe.
-        //the intention is to only ever touch the JMock classes from the event thread
-        invokeAndWaitWithFail(
-                new Runnable() {
-                    public void run() {
-                        mockery = new Mockery();
-                    }
-                }
-        );
+        latch = new CountDownLatch(1);
         doSetUp();
     }
 
@@ -52,6 +51,15 @@ public abstract class CommandTest extends TestCase {
      * Subclasses override to perform extra setup
      */
     protected void doSetUp() {
+    }
+
+    protected void waitForLatch() {
+        try {
+            latch.await(10000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            fail();
+            e.printStackTrace();
+        }
     }
 
     protected void invokeAndWaitWithFail(Runnable r) {
@@ -62,32 +70,38 @@ public abstract class CommandTest extends TestCase {
         }
     }
 
-    protected void validateMockeryAssertions() {
-        invokeAndWaitWithFail(
-                new Runnable() {
-                    public void run() {
-                        mockery.assertIsSatisfied();
-                    }
-                }
-        );
-    }
-
-    protected void joinTestThread() {
-        try {
-            lastTestExecutorThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    protected void assertOrdering(int expectedValue, String testName) {
+    protected synchronized void assertOrdering(int expectedValue, String testName) {
         int value = counter.incrementAndGet();
         if ( expectedValue != value) {
             failureText.append("Called out of order: ").append(testName).append(" expected ").append(expectedValue).append(" was ").append(value).append("  ");
         }
     }
 
-    protected void checkOrderingFailureText() {
+    protected synchronized void assertInEventThread(String testName) {
+        if ( ! SwingUtilities.isEventDispatchThread()) {
+            failureText.append("Should be in event thread ").append(testName);
+        }
+    }
+
+    protected synchronized void assertNotInEventThread(String testName) {
+        if ( SwingUtilities.isEventDispatchThread()) {
+            failureText.append("Should not be in event thread ").append(testName);
+        }
+    }
+
+    protected synchronized void assertNotInThread(Thread t, String testName) {
+        if ( Thread.currentThread() == t) {
+            failureText.append("Should not be in thread ").append(testName);
+        }
+    }
+
+    protected synchronized void assertInThread(Thread t, String testName) {
+        if ( Thread.currentThread() != t) {
+            failureText.append("Should be in thread ").append(testName);
+        }
+    }
+
+    protected synchronized void checkOrderingFailureText() {
         if ( failureText.length() > 0) {
             fail(failureText.toString());
         }
@@ -105,75 +119,31 @@ public abstract class CommandTest extends TestCase {
     }
 
 
-    class TestThreadExecutorCommand extends SwingCommand {
-        private BackgroundTask asynchronousExecution;
-
-        public TestThreadExecutorCommand(BackgroundTask singleExecutionForTesting) {
-            super(new DefaultTestExecutor());
-            this.asynchronousExecution = singleExecutionForTesting;
-        }
-
-        //n.b. you should create a new swingcommand execution for each invocation of this method
-        //the instance passed to the constructor is used just for testing here, since we need a handle to the
-        //execution instance for the tests
-        public BackgroundTask createTask() {
-            return asynchronousExecution;
-        }
-    }
-
-
-    class DebuggingTaskListener implements TaskListener {
-
-        public void pending(SwingTask task) {
-            System.out.println("pending " + task);
-        }
-
-        public void started(SwingTask task) {
-            System.out.println("started " + task);
-        }
-
-        public void progress(SwingTask task, String description) {
-            System.out.println("progress "  + task);
-        }
-
-        public void finished(SwingTask task) {
-            System.out.println("finished " + task);
-        }
-
-        public void success(SwingTask task) {
-            System.out.println("success " + task);
-        }
-
-        public void error(SwingTask task, Throwable error) {
-            System.out.println("error " + " " + task);
-        }
-    }
-
     class RuntimeExceptionThrowingTaskListener implements TaskListener {
 
         private String message = "This exception is expected. It is to verify that exceptions if observers do not interrupt the command processing workflow";
 
-        public void pending(SwingTask task) {
+        public void pending(SimpleTask task) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void started(SwingTask task) {
+        public void started(SimpleTask task) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void progress(SwingTask task, String description) {
+        public void progress(SimpleTask task, String description) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void finished(SwingTask task) {
+        public void finished(SimpleTask task) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void success(SwingTask task) {
+        public void success(SimpleTask task) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void error(SwingTask task, Throwable error) {
+        public void error(SimpleTask task, Throwable error) {
             throw new TracelessRuntimeException(message);
         }
     }
@@ -188,20 +158,69 @@ public abstract class CommandTest extends TestCase {
         }
     }
 
-    class DefaultTestExecutor implements Executor {
-
-        public DefaultTestExecutor() {
-        }
-
-        public void execute(Runnable command) {
-            lastTestExecutorThread = new Thread(command);
-            lastTestExecutorThread.start();
-        }
-    }
-
     class SynchronousExecutor implements Executor {
         public void execute(Runnable command) {
             command.run();
         }
+    }
+
+    class DelayedExecutor implements Executor {
+        public void execute(Runnable command) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            new Thread(command).start();
+        }
+    }
+
+    abstract class ThreadCheckingTaskListener implements TaskListener {
+
+        public final void pending(SimpleTask commandExecution) {
+            assertInEventThread("pending");
+            doPending(commandExecution);
+        }
+
+        public abstract void doPending(SimpleTask commandExecution);
+
+        public final void started(SimpleTask commandExecution) {
+            assertInEventThread("started");
+            doStarted(commandExecution);
+        }
+
+        public abstract void doStarted(SimpleTask commandExecution);
+
+        public final void progress(SimpleTask commandExecution, String progressDescription) {
+            assertInEventThread("progress");
+            doProgress(commandExecution, progressDescription);
+        }
+
+        public abstract void doProgress(SimpleTask commandExecution, String progressDescription);
+
+
+        public final void success(SimpleTask commandExecution) {
+            assertInEventThread("success");
+            doSuccess(commandExecution);
+        }
+
+        public abstract void doSuccess(SimpleTask commandExecution);
+
+
+        public final void error(SimpleTask commandExecution, Throwable error) {
+            assertInEventThread("error");
+            doError(commandExecution, error);
+        }
+
+        public abstract void doError(SimpleTask commandExecution, Throwable error);
+
+
+        public final void finished(SimpleTask commandExecution) {
+            assertInEventThread("finished");
+            doFinished(commandExecution);
+        }
+
+        public abstract void doFinished(SimpleTask commandExecution);
+
     }
 }

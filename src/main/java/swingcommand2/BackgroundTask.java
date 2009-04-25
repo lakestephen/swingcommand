@@ -18,7 +18,7 @@ package swingcommand2;
  *
  * Default implementation for AsynchronousExecution
  */
-public abstract class BackgroundTask extends SwingTask {
+public abstract class BackgroundTask extends SimpleTask {
 
     public abstract void doInBackground() throws Exception;
 

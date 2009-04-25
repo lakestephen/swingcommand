@@ -42,12 +42,12 @@ public abstract class SwingCommand {
         this.executor = executor;
     }
 
-    public SwingTask execute(TaskListener... taskListeners) {
+    public SimpleTask execute(TaskListener... taskListeners) {
         return execute(executor, taskListeners);
     }
 
-    public SwingTask execute(Executor executor, TaskListener... taskListeners) {
-        SwingTask execution = doCreateTask();
+    public SimpleTask execute(Executor executor, TaskListener... taskListeners) {
+        SimpleTask execution = doCreateTask();
         if (executor == null) {
             executor = createExecutor(execution);
         }
@@ -55,14 +55,14 @@ public abstract class SwingCommand {
         return execution;
     }
 
-    public SwingTask execute(ExecutorFactory executorFactory, TaskListener... taskListeners) {
-        SwingTask task = doCreateTask();
+    public SimpleTask execute(ExecutorFactory executorFactory, TaskListener... taskListeners) {
+        SimpleTask task = doCreateTask();
         Executor executor = executorFactory.getExecutor(task);
         executeCommand(executor, task, taskListeners);
         return task;
     }
 
-    private SwingTask doCreateTask() {
+    private SimpleTask doCreateTask() {
         try {
             return createTask();
         } catch ( Throwable t) {
@@ -70,7 +70,7 @@ public abstract class SwingCommand {
         }
     }
 
-    protected Executor createExecutor(SwingTask task) {
+    protected Executor createExecutor(SimpleTask task) {
         return DEFAULT_EXECUTOR_FACTORY.getExecutor(task);
     }
 
@@ -95,10 +95,10 @@ public abstract class SwingCommand {
     /**
      * @return an Execution for this asynchronous command
      */
-    protected abstract SwingTask createTask();
+    protected abstract SimpleTask createTask();
 
 
-    private void executeCommand(Executor executor, SwingTask execution, TaskListener... taskListeners) {
+    private void executeCommand(Executor executor, SimpleTask execution, TaskListener... taskListeners) {
 
         //get a snapshot list of the execution observers which will receive the events for this execution
         final List<TaskListener> allListeners = getListenerSnapshot();
@@ -123,23 +123,23 @@ public abstract class SwingCommand {
     }
 
     static class DefaultExecutorFactory implements ExecutorFactory {
-        public Executor getExecutor(SwingTask e) {
+        public Executor getExecutor(SimpleTask e) {
             return (e instanceof BackgroundTask) ? DEFAULT_ASYNC_EXECUTOR : DEFAULT_SIMPLE_EXECUTOR;
         }
     }
 
     public static interface ExecutorFactory {
-        Executor getExecutor(SwingTask e);
+        Executor getExecutor(SimpleTask e);
     }
 
 
     static class ExecutionManager {
 
         private final Executor executor;
-        private final SwingTask task;
+        private final SimpleTask task;
         private final TaskListener[] taskListeners;
 
-        public ExecutionManager(Executor executor, SwingTask task, List<TaskListener> taskListeners) {
+        public ExecutionManager(Executor executor, SimpleTask task, List<TaskListener> taskListeners) {
             this.executor = executor;
             this.task = task;
             this.taskListeners = taskListeners.toArray(new TaskListener[taskListeners.size()]);
@@ -215,7 +215,7 @@ public abstract class SwingCommand {
             });
         }
 
-        private void runDoInEventThread(final SwingTask task) throws Exception {
+        private void runDoInEventThread(final SimpleTask task) throws Exception {
             class DoAfterExecuteRunnable implements Runnable {
                 volatile Throwable throwable;
 

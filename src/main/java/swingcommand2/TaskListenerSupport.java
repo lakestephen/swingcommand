@@ -28,7 +28,7 @@ class TaskListenerSupport {
 
 
 
-    static void firePending(final List<TaskListener> executionObservers, final SwingTask commandExecution) {
+    static void firePending(final List<TaskListener> executionObservers, final SimpleTask commandExecution) {
         for (final TaskListener observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -38,7 +38,7 @@ class TaskListenerSupport {
         }
     }
 
-    static void fireStarted(final List<TaskListener> executionObservers, final SwingTask commandExecution) {
+    static void fireStarted(final List<TaskListener> executionObservers, final SimpleTask commandExecution) {
         for (final TaskListener observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -48,7 +48,7 @@ class TaskListenerSupport {
         }
     }
 
-    static void fireDone(final List<TaskListener> executionObservers, final SwingTask commandExecution) {
+    static void fireDone(final List<TaskListener> executionObservers, final SimpleTask commandExecution) {
         for (final TaskListener observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -58,7 +58,7 @@ class TaskListenerSupport {
         }
     }
 
-    static void fireError(final List<TaskListener> executionObservers, final SwingTask commandExecution, final Throwable t) {
+    static void fireError(final List<TaskListener> executionObservers, final SimpleTask commandExecution, final Throwable t) {
         for (final TaskListener observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -68,7 +68,7 @@ class TaskListenerSupport {
         }
     }
 
-    static void fireProgress(final List<TaskListener> executionObservers, final SwingTask commandExecution, final String description) {
+    static void fireProgress(final List<TaskListener> executionObservers, final SimpleTask commandExecution, final String description) {
         for (final TaskListener observer : executionObservers) {
             executeOnEventThread(new Runnable(){
                 public void run() {
@@ -84,7 +84,7 @@ class TaskListenerSupport {
     }
 
 
-    static void fireSuccess(List<TaskListener> executionObservers, final SwingTask commandExecution) {
+    static void fireSuccess(List<TaskListener> executionObservers, final SimpleTask commandExecution) {
         for (final TaskListener observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {

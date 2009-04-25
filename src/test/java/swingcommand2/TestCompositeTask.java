@@ -34,7 +34,7 @@ public class TestCompositeTask extends CommandTest {
        }
 
        SwingCommand compositeCommand = new SwingCommand() {
-           protected SwingTask createTask() {
+           protected SimpleTask createTask() {
                return compositeExecution;
            }
        };
@@ -47,7 +47,7 @@ public class TestCompositeTask extends CommandTest {
 
     private SwingCommand createBackgroundExecutionCommand(final int startCount) {
         return new SwingCommand() {
-            protected SwingTask createTask() {
+            protected SimpleTask createTask() {
                 return new TestBackgroundExecution(startCount);
             }
         };

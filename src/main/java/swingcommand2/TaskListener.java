@@ -27,7 +27,7 @@ public interface TaskListener {
      *
      * @param commandExecution, the execution which is starting
      */
-    void pending(SwingTask commandExecution);
+    void pending(SimpleTask commandExecution);
 
     /**
      * Called when execution starts.
@@ -39,7 +39,7 @@ public interface TaskListener {
      *
      * @param commandExecution, the execution which has started
      */
-    void started(SwingTask commandExecution);
+    void started(SimpleTask commandExecution);
 
     /**
      * This callback may take place at any time during execution, to indicate progress
@@ -48,7 +48,7 @@ public interface TaskListener {
      * @param commandExecution, the execution which has made progress
      * @param progressDescription, String describing the progress made
      */
-    void progress(SwingTask commandExecution, String progressDescription);
+    void progress(SimpleTask commandExecution, String progressDescription);
 
     /**
      * This callback takes place once a command has successfully completed.
@@ -56,7 +56,7 @@ public interface TaskListener {
      *
      * @param commandExecution, the execution which has made progress
      */
-    void success(SwingTask commandExecution);
+    void success(SimpleTask commandExecution);
 
     /**
      * This callback takes place if an exeception is raised during command execution, which prevents
@@ -65,12 +65,12 @@ public interface TaskListener {
      * @param commandExecution, the execution for which an error occurred
      * @param error error which occurred
      */
-    void error(SwingTask commandExecution, Throwable error);
+    void error(SimpleTask commandExecution, Throwable error);
 
     /**
      * This callback takes place once the execution has finished, wheher or not the command executed successfully or generated an error
      *
      * @param commandExecution, the execution which has stopped
      */
-    void finished(SwingTask commandExecution);
+    void finished(SimpleTask commandExecution);
 }

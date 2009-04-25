@@ -19,15 +19,15 @@ package swingcommand2;
  */
 public class TaskListenerAdapter implements TaskListener {
 
-    public void pending(SwingTask commandExecution) {}
+    public void pending(SimpleTask commandExecution) {}
 
-    public void started(SwingTask commandExecution) {}
+    public void started(SimpleTask commandExecution) {}
 
-    public void progress(SwingTask commandExecution, String progressDescription) {}
+    public void progress(SimpleTask commandExecution, String progressDescription) {}
 
-    public void success(SwingTask commandExecution) {}
+    public void success(SimpleTask commandExecution) {}
 
-    public void error(SwingTask commandExecution, Throwable error) {}
+    public void error(SimpleTask commandExecution, Throwable error) {}
 
-    public void finished(SwingTask commandExecution) {}
+    public void finished(SimpleTask commandExecution) {}
 }

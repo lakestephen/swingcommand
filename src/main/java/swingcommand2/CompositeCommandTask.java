@@ -85,7 +85,7 @@ public class CompositeCommandTask extends BackgroundTask {
         executionCommands.addAll(commands);
     }
 
-    public SwingTask getCurrentExecution() {
+    public SimpleTask getCurrentExecution() {
         return executionObserverProxy.getCurrentChildExecution();
     }
 
@@ -111,23 +111,23 @@ public class CompositeCommandTask extends BackgroundTask {
      */
     private class ExecutionObserverProxy extends TaskListenerAdapter {
         private volatile boolean errorOccurred;
-        private volatile SwingTask currentChildExecution;
+        private volatile SimpleTask currentChildExecution;
         private volatile boolean lastCommandCancelled;
         private volatile Throwable lastCommandError;
 
         public ExecutionObserverProxy() {
         }
 
-        public void started(SwingTask commandExecution) {
+        public void started(SimpleTask commandExecution) {
             this.currentChildExecution = commandExecution;
             fireProgress(currentChildExecution.toString());
         }
 
-        public void finished(SwingTask commandExecution) {
+        public void finished(SimpleTask commandExecution) {
             lastCommandCancelled = commandExecution.isCancelled();
         }
 
-        public void error(SwingTask commandExecution, Throwable e) {
+        public void error(SimpleTask commandExecution, Throwable e) {
             errorOccurred = true;
             lastCommandError = e;
         }
@@ -136,7 +136,7 @@ public class CompositeCommandTask extends BackgroundTask {
             return errorOccurred;
         }
 
-        public SwingTask getCurrentChildExecution() {
+        public SimpleTask getCurrentChildExecution() {
             return currentChildExecution;
         }
 
@@ -158,7 +158,7 @@ public class CompositeCommandTask extends BackgroundTask {
 
     private static class CompositeExecutorFactory implements SwingCommand.ExecutorFactory {
 
-        public Executor getExecutor(SwingTask e) {
+        public Executor getExecutor(SimpleTask e) {
             if (e instanceof BackgroundTask) {
                 return SYNCHRONOUS_EXECUTOR;
             } else {

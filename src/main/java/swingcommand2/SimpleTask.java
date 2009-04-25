@@ -11,7 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Time: 20:58:09
  * To change this template use File | Settings | File Templates.
  */
-public abstract class SwingTask {
+public abstract class SimpleTask {
 
     private volatile ExecutionState executionState = ExecutionState.NOT_RUN;
     private volatile boolean cancelled;
