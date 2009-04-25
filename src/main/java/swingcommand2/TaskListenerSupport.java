@@ -17,64 +17,62 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * @author Nick Ebbutt, Object Definitions Ltd. http://www.objectdefinitions.com
  *
- * Support for firing events to LifeCycleObserver listeners
- *
- * Listeners are always notified on the AWT event thread -
- * even if the fire method is called on a non-swing thread.
- *
- * This provides an easy mechanism to update the UI to represent the progress of a command
+ * Support for firing events to TaskListeners
+ * Listeners are always notified on the AWT event thread - even if the fire method is called on a non-swing thread.
  */
 class TaskListenerSupport {
 
-    static void firePending(final List<TaskListener> executionObservers, final SimpleTask commandExecution) {
-        for (final TaskListener observer : executionObservers) {
-            executeSynchronouslyOnEventThread(new Runnable(){
+    //pending is fired on the event thread using invoke later to avoid blocking a background thread which calls execute()
+    //on the swing event queue (this can have very bad performance effects on busy background threads)
+    static <E> void firePending(final List<TaskListener<? super E>> executionObservers, final Task<E> commandExecution) {
+        for (final TaskListener<? super E> listener : executionObservers) {
+            executeAsynchronouslyIfBackgroundThread(new Runnable(){
                 public void run() {
-                    observer.pending(commandExecution);
+                    listener.pending(commandExecution);
                 }
             });
         }
     }
 
-    static void fireStarted(final List<TaskListener> executionObservers, final SimpleTask commandExecution) {
-        for (final TaskListener observer : executionObservers) {
+    static <E> void fireStarted(final List<TaskListener<? super E>> executionObservers, final Task<E> commandExecution) {
+        for (final TaskListener<? super E> listener : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
-                    observer.started(commandExecution);
+                    listener.started(commandExecution);
                 }
             });
         }
     }
 
-    static void fireDone(final List<TaskListener> executionObservers, final SimpleTask commandExecution) {
-        for (final TaskListener observer : executionObservers) {
+    static <E> void fireDone(final List<TaskListener<? super E>> executionObservers, final Task<E> commandExecution) {
+        for (final TaskListener<? super E> listener : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
-                    observer.finished(commandExecution);
+                    listener.finished(commandExecution);
                 }
             });
         }
     }
 
-    static void fireError(final List<TaskListener> executionObservers, final SimpleTask commandExecution, final Throwable t) {
-        for (final TaskListener observer : executionObservers) {
+    static <E> void fireError(final List<TaskListener<? super E>> executionObservers, final Task<E> commandExecution, final Throwable t) {
+        for (final TaskListener<? super E> listener : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
-                    observer.error(commandExecution, t);
+                    listener.error(commandExecution, t);
                 }
             });
         }
     }
 
-    static void fireProgress(final List<TaskListener> executionObservers, final SimpleTask commandExecution, final String description) {
-        for (final TaskListener observer : executionObservers) {
+    static <E> void fireProgress(final List<TaskListener<? super E>> executionObservers, final Task<E> commandExecution, final E progress) {
+        for (final TaskListener<? super E> listener : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
                     //this synchronized block is to handle the case where the event thread might not otherwise
                     //see state changes to fields in the execution carried out in the background thread
                     //which is calling progress, due to the memory model
                     synchronized(this) {
-                        observer.progress(commandExecution, description);
+                        listener.progress(commandExecution, progress);
                     }
                 }
             });
@@ -82,11 +80,11 @@ class TaskListenerSupport {
     }
 
 
-    static void fireSuccess(List<TaskListener> executionObservers, final SimpleTask commandExecution) {
-        for (final TaskListener observer : executionObservers) {
+    static <E> void fireSuccess(List<TaskListener<? super E>> executionObservers, final Task<E> commandExecution) {
+        for (final TaskListener<? super E> listener : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
-                    observer.success(commandExecution);
+                    listener.success(commandExecution);
                 }
             });
         }
@@ -101,6 +99,19 @@ class TaskListenerSupport {
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
             }
+        } else {
+            try {
+                task.run();
+            } catch ( Throwable t) {
+               t.printStackTrace();
+            }
+        }
+
+    }
+
+    static void executeAsynchronouslyIfBackgroundThread(Runnable task) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(task);
         } else {
             try {
                 task.run();

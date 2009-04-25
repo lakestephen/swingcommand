@@ -13,64 +13,63 @@ package swingcommand2;
 /**
  * @author Nick Ebbutt, Object Definitions Ltd. http://www.objectdefinitions.com
  *
- * Implement this interface to listen to the progress of a command execution
+ * Implement this interface to listen to the progress of a task
  * Callbacks on this interface are guaranteed to be received on the AWT event thread,
  * even if fired by an AsynchronousCommand
  *
  * These callbacks provide an easy and safe way to update the UI to show the progress of a task.
  *
  */
-public interface TaskListener {
+public interface TaskListener<P> {
 
     /**
-     * Called when an execution is created in response to Command.execute()
+     * The callback to pending is triggered by the thread which calls command.execute()
+     * If the Executor associated with the task queues the task or blocks waiting for a thread, it may be some time
+     * before started() is invoked.
      *
-     * @param commandExecution, the execution which is starting
+     * @param task, the task which is pending
      */
-    void pending(SimpleTask commandExecution);
+    void pending(Task task);
 
     /**
-     * Called when execution starts.
-     * For asynchronous commands this callback takes place when the asynchronous part of the execution has started, just before doInBackground is called.
+     * Called when the task starts processing.For BackgroundTask this callback takes place just before
+     * doInBackground is called. For SimpleTask just before doInEventThread
      *
-     * There may be some delay between pending() and started(), depending upon the Executor in use.
-     * For example, if the Executor blocks, while waiting to obtain a thread from a fixed size thread pool, then
-     * there will be a delay until a new thread becomes available
-     *
-     * @param commandExecution, the execution which has started
+     * @param task, the task which has started
      */
-    void started(SimpleTask commandExecution);
+    void started(Task task);
 
     /**
-     * This callback may take place at any time during execution, to indicate progress
-     * The execution may provide methods or implement an interface to make available more details of the progress
+     * This callback may take place at any time during task execution, to indicate progress
      *
-     * @param commandExecution, the execution which has made progress
-     * @param progressDescription, String describing the progress made
+     * @param task, the task which has made progress
+     * @param progress, an object describing the progress made
      */
-    void progress(SimpleTask commandExecution, String progressDescription);
+    void progress(Task task, P progress);
 
     /**
      * This callback takes place once a command has successfully completed.
-     * If an exception is generated during processing, a callback to error will occur instead
+     * If an exception is generated during the doInBackground or doInEventThread methods, this callback will not occur.
+     * In this case, a callback to error() will occur instead
      *
-     * @param commandExecution, the execution which has made progress
+     * @param task, the task which has been successful
      */
-    void success(SimpleTask commandExecution);
+    void success(Task task);
 
     /**
-     * This callback takes place if an exeception is raised during command execution, which prevents
+     * This callback takes place if an exception is raised during task execution, which prevents
      * successful completion. If this callback occurs, the callback to success will not occur.
      *
-     * @param commandExecution, the execution for which an error occurred
-     * @param error error which occurred
+     * @param task, the task for which an error occurred
+     * @param error, the error which occurred
      */
-    void error(SimpleTask commandExecution, Throwable error);
+    void error(Task task, Throwable error);
 
     /**
-     * This callback takes place once the execution has finished, wheher or not the command executed successfully or generated an error
+     * This callback always takes place once the task has finished, whether or not the task executed successfully or
+     * generated errors during doInBackground or doInEventThread methods
      *
-     * @param commandExecution, the execution which has stopped
+     * @param task, the task which has stopped
      */
-    void finished(SimpleTask commandExecution);
+    void finished(Task task);
 }

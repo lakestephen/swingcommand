@@ -20,7 +20,7 @@ import javax.swing.*;
  * Time: 00:16:27
  * To change this template use File | Settings | File Templates.
  */
-public class TestCompositeTask extends CommandTest {
+public class TestCompositeTask extends AbstractCommandTest {
 
     public void testCompositeWithAsyncExecutions() {
 
@@ -33,8 +33,8 @@ public class TestCompositeTask extends CommandTest {
            startCount += 4;
        }
 
-       SwingCommand compositeCommand = new SwingCommand() {
-           protected SimpleTask createTask() {
+       SwingCommand<String> compositeCommand = new SwingCommand<String>() {
+           protected Task<String> createTask() {
                return compositeExecution;
            }
        };
@@ -47,7 +47,7 @@ public class TestCompositeTask extends CommandTest {
 
     private SwingCommand createBackgroundExecutionCommand(final int startCount) {
         return new SwingCommand() {
-            protected SimpleTask createTask() {
+            protected Task createTask() {
                 return new TestBackgroundExecution(startCount);
             }
         };

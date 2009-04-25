@@ -11,7 +11,7 @@ import java.lang.reflect.InvocationTargetException;
  * Date: 23-Apr-2009
  * Time: 10:55:25
  */
-public class CompositeCommandTask extends BackgroundTask {
+public class CompositeCommandTask extends BackgroundTask<String> {
 
     private static final Executor SYNCHRONOUS_EXECUTOR = new Executor() {
         public void execute(Runnable command) {
@@ -28,16 +28,13 @@ public class CompositeCommandTask extends BackgroundTask {
     private ExecutionObserverProxy executionObserverProxy = new ExecutionObserverProxy();
 
     public CompositeCommandTask() {
-        setCancellable(true);
     }
 
     public CompositeCommandTask(SwingCommand... commands) {
-        setCancellable(true);
         executionCommands.addAll(Arrays.asList(commands));
     }
 
     public CompositeCommandTask(Collection<SwingCommand> commands) {
-        setCancellable(true);
         executionCommands.addAll(commands);
     }
 
@@ -53,6 +50,7 @@ public class CompositeCommandTask extends BackgroundTask {
             currentCommandId++;
 
             //we are not in event thread here, so this call should be synchronous
+            //noinspection unchecked
             command.execute(COMPOSITE_EXECUTOR_FACTORY, executionObserverProxy);
 
             if (executionObserverProxy.isErrorOccurred()) {
@@ -63,7 +61,6 @@ public class CompositeCommandTask extends BackgroundTask {
                 cancel();
             }
 
-            //abort processing if a swingcommand has generated an error via the TaskServicesProxy
             if (isCancelled()) {
                 break;
             }
@@ -85,7 +82,7 @@ public class CompositeCommandTask extends BackgroundTask {
         executionCommands.addAll(commands);
     }
 
-    public SimpleTask getCurrentExecution() {
+    public Task getCurrentExecution() {
         return executionObserverProxy.getCurrentChildExecution();
     }
 
@@ -111,23 +108,23 @@ public class CompositeCommandTask extends BackgroundTask {
      */
     private class ExecutionObserverProxy extends TaskListenerAdapter {
         private volatile boolean errorOccurred;
-        private volatile SimpleTask currentChildExecution;
+        private volatile Task currentChildExecution;
         private volatile boolean lastCommandCancelled;
         private volatile Throwable lastCommandError;
 
         public ExecutionObserverProxy() {
         }
 
-        public void started(SimpleTask commandExecution) {
+        public void started(Task commandExecution) {
             this.currentChildExecution = commandExecution;
             fireProgress(currentChildExecution.toString());
         }
 
-        public void finished(SimpleTask commandExecution) {
+        public void finished(Task commandExecution) {
             lastCommandCancelled = commandExecution.isCancelled();
         }
 
-        public void error(SimpleTask commandExecution, Throwable e) {
+        public void error(Task commandExecution, Throwable e) {
             errorOccurred = true;
             lastCommandError = e;
         }
@@ -136,7 +133,7 @@ public class CompositeCommandTask extends BackgroundTask {
             return errorOccurred;
         }
 
-        public SimpleTask getCurrentChildExecution() {
+        public Task getCurrentChildExecution() {
             return currentChildExecution;
         }
 
@@ -158,7 +155,7 @@ public class CompositeCommandTask extends BackgroundTask {
 
     private static class CompositeExecutorFactory implements SwingCommand.ExecutorFactory {
 
-        public Executor getExecutor(SimpleTask e) {
+        public Executor getExecutor(Task e) {
             if (e instanceof BackgroundTask) {
                 return SYNCHRONOUS_EXECUTOR;
             } else {

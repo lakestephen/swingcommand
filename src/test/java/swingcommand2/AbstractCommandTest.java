@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Time: 15:20:04
  * To change this template use File | Settings | File Templates.
  */
-public abstract class CommandTest extends TestCase {
+public abstract class AbstractCommandTest extends TestCase {
 
     final StringBuffer failureText = new StringBuffer();
     final AtomicInteger counter = new AtomicInteger();
@@ -107,7 +107,7 @@ public abstract class CommandTest extends TestCase {
     }
 
 
-    class DummyBackgroundTask extends BackgroundTask {
+    class DummyBackgroundTask extends BackgroundTask<String> {
         public void doInBackground() throws Exception {}
 
         public void doInEventThread() throws Exception {}
@@ -144,60 +144,61 @@ public abstract class CommandTest extends TestCase {
         }
     }
 
-    abstract class ThreadCheckingTaskListener implements TaskListener {
+    abstract class ThreadCheckingTaskListener implements TaskListener<String> {
 
-        private String message = "This exception is expected. It is to verify that exceptions if observers do not interrupt the command processing workflow";
+        private String message = "This exception is expected. " +
+                "It is to verify that exceptions raised in listener callbacks do not interrupt the command processing workflow";
 
-        public final void pending(SimpleTask commandExecution) {
+        public final void pending(Task commandExecution) {
             assertInEventThread("pending");
             doPending(commandExecution);
             throw new TracelessRuntimeException(message);
         }
 
-        public abstract void doPending(SimpleTask commandExecution);
+        public abstract void doPending(Task commandExecution);
 
-        public final void started(SimpleTask commandExecution) {
+        public final void started(Task commandExecution) {
             assertInEventThread("started");
             doStarted(commandExecution);
             throw new TracelessRuntimeException(message);
         }
 
-        public abstract void doStarted(SimpleTask commandExecution);
+        public abstract void doStarted(Task commandExecution);
 
-        public final void progress(SimpleTask commandExecution, String progressDescription) {
+        public final void progress(Task commandExecution, String progressDescription) {
             assertInEventThread("progress");
             doProgress(commandExecution, progressDescription);
             throw new TracelessRuntimeException(message);
         }
 
-        public abstract void doProgress(SimpleTask commandExecution, String progressDescription);
+        public abstract void doProgress(Task commandExecution, String progressDescription);
 
 
-        public final void success(SimpleTask commandExecution) {
+        public final void success(Task commandExecution) {
             assertInEventThread("success");
             doSuccess(commandExecution);
             throw new TracelessRuntimeException(message);
         }
 
-        public abstract void doSuccess(SimpleTask commandExecution);
+        public abstract void doSuccess(Task commandExecution);
 
 
-        public final void error(SimpleTask commandExecution, Throwable error) {
+        public final void error(Task commandExecution, Throwable error) {
             assertInEventThread("error");
             doError(commandExecution, error);
             throw new TracelessRuntimeException(message);
         }
 
-        public abstract void doError(SimpleTask commandExecution, Throwable error);
+        public abstract void doError(Task commandExecution, Throwable error);
 
 
-        public final void finished(SimpleTask commandExecution) {
+        public final void finished(Task commandExecution) {
             assertInEventThread("finished");
             doFinished(commandExecution);
             throw new TracelessRuntimeException(message);
         }
 
-        public abstract void doFinished(SimpleTask commandExecution);
+        public abstract void doFinished(Task commandExecution);
 
     }
 }

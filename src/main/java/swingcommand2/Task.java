@@ -1,7 +1,7 @@
 package swingcommand2;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.Arrays;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -9,22 +9,21 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * User: nick
  * Date: 22-Apr-2009
  * Time: 20:58:09
- * To change this template use File | Settings | File Templates.
+ *
+ * The superclass for all Tasks which are created when a command is executed
  */
-public abstract class SimpleTask {
+public abstract class Task<P> {
 
     private volatile ExecutionState executionState = ExecutionState.NOT_RUN;
     private volatile boolean cancelled;
-    private volatile boolean cancellable;
     private volatile Throwable executionException;
-    private final CopyOnWriteArrayList<TaskListener> taskListeners = new CopyOnWriteArrayList<TaskListener>();
+    private final CopyOnWriteArrayList<TaskListener<? super P>> taskListeners = new CopyOnWriteArrayList<TaskListener<? super P>>();
 
     public abstract void doInEventThread() throws Exception;
 
     public final void cancel() {
         if ( !cancelled) {
             cancelled = true;
-            cancellable = false;
             doCancel();
         }
     }
@@ -36,14 +35,6 @@ public abstract class SimpleTask {
 
     public boolean isCancelled() {
         return cancelled;
-    }
-
-    public boolean isCancellable() {
-        return cancellable;
-    }
-
-    public void setCancellable(boolean cancellable) {
-        this.cancellable = cancellable;
     }
 
     public void setExecutionState(ExecutionState executionState) {
@@ -62,19 +53,22 @@ public abstract class SimpleTask {
         this.executionException = executionException;
     }
 
-    protected void addTaskListener(TaskListener... o) {
+    //generally it is better to add listeners to the Command instance (they will be invoked for every task)
+    //or by passing them as parameters to execute(), to listen to  a one off task.
+    //I'll leave default visibility here for now, for that reason
+    void addTaskListener(List<TaskListener<? super P>> listeners) {
         synchronized (taskListeners) {
-            this.taskListeners.addAll(Arrays.asList(o));
+            this.taskListeners.addAll(listeners);
         }
     }
 
-    protected void removeTaskListener(TaskListener... o) {
+    void removeTaskListener(List<TaskListener<? super P>> listeners) {
         synchronized (taskListeners) {
-            this.taskListeners.addAll(Arrays.asList(o));
+            this.taskListeners.removeAll(listeners);
         }
     }
 
-    protected List<TaskListener> getTaskListeners() {
+    List<TaskListener<? super P>> getTaskListeners() {
         return this.taskListeners;
     }
 
@@ -82,9 +76,9 @@ public abstract class SimpleTask {
      * Fire progress event to taskListener instances
      * Event will be received on the Swing event thread
      *
-     * @param description, objects containing a description of the progress made
+     * @param progress, objects containing a description of the progress made
      */
-    protected void fireProgress(String description) {
-        TaskListenerSupport.fireProgress(taskListeners, this, description);
+    protected void fireProgress(P progress) {
+        TaskListenerSupport.fireProgress(taskListeners, this, progress);
     }
 }

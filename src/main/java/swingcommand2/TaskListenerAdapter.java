@@ -13,21 +13,21 @@ package swingcommand2;
 /**
  * @author Nick Ebbutt, Object Definitions Ltd. http://www.objectdefinitions.com
  *
- * An adapter in the sense of Swing listener adapters - can be exteded by classes
+ * An adapter, in the sense of Swing listener adapters, which can be exteded by classes
  * which want to inherit a default implementation of the observer methods, overriding
  * only those which they are interested in
  */
-public class TaskListenerAdapter implements TaskListener {
+public class TaskListenerAdapter<P> implements TaskListener<P> {
 
-    public void pending(SimpleTask commandExecution) {}
+    public void pending(Task commandExecution) {}
 
-    public void started(SimpleTask commandExecution) {}
+    public void started(Task commandExecution) {}
 
-    public void progress(SimpleTask commandExecution, String progressDescription) {}
+    public void progress(Task commandExecution, P progressDescription) {}
 
-    public void success(SimpleTask commandExecution) {}
+    public void success(Task commandExecution) {}
 
-    public void error(SimpleTask commandExecution, Throwable error) {}
+    public void error(Task commandExecution, Throwable error) {}
 
-    public void finished(SimpleTask commandExecution) {}
+    public void finished(Task commandExecution) {}
 }

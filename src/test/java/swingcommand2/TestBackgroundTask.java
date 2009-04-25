@@ -11,7 +11,7 @@ import javax.swing.*;
  * Time: 12:02:40
  * To change this template use File | Settings | File Templates.
  */
-public class TestBackgroundTask extends CommandTest {
+public class TestBackgroundTask extends AbstractCommandTest {
 
     private BackgroundTask task;
 
@@ -60,7 +60,7 @@ public class TestBackgroundTask extends CommandTest {
         };
 
         final SwingCommand dummyCommand = new SwingCommand() {
-            protected SimpleTask createTask() {
+            protected Task createTask() {
                 assertOrdering(1, "createTask");
                 return task;
             }
@@ -72,17 +72,17 @@ public class TestBackgroundTask extends CommandTest {
 
         dummyCommand.addTaskListener(new ThreadCheckingTaskListener() {
 
-            public void doPending(SimpleTask commandExecution) {
+            public void doPending(Task commandExecution) {
                 Assert.assertEquals(ExecutionState.PENDING, task.getExecutionState());
                 assertOrdering(2, "pending");
             }
 
-            public void doStarted(SimpleTask commandExecution) {
+            public void doStarted(Task commandExecution) {
                 Assert.assertEquals(ExecutionState.STARTED, task.getExecutionState());
                 assertOrdering(3, "started");
             }
 
-            public void doProgress(SimpleTask commandExecution, String progressDescription) {
+            public void doProgress(Task commandExecution, String progressDescription) {
                 if ( progressDescription.equals(DO_IN_BACKGROUND_PROGRESS_TEXT)) {
                     assertOrdering(5, DO_IN_BACKGROUND_PROGRESS_TEXT);
                 } else {
@@ -90,16 +90,16 @@ public class TestBackgroundTask extends CommandTest {
                 }
             }
 
-            public void doSuccess(SimpleTask commandExecution) {
+            public void doSuccess(Task commandExecution) {
                 assertEquals(ExecutionState.SUCCESS, task.getExecutionState());
                 assertOrdering(8, "success");
             }
 
-            public void doError(SimpleTask commandExecution, Throwable error) {
+            public void doError(Task commandExecution, Throwable error) {
                 isBadListenerMethodCalled = true;
             }
 
-            public void doFinished(SimpleTask commandExecution) {
+            public void doFinished(Task commandExecution) {
                 assertEquals(ExecutionState.SUCCESS, task.getExecutionState());
                 assertOrdering(9, "finished");
                 latch.countDown();
