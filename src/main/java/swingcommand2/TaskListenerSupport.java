@@ -26,8 +26,6 @@ import java.lang.reflect.InvocationTargetException;
  */
 class TaskListenerSupport {
 
-
-
     static void firePending(final List<TaskListener> executionObservers, final SimpleTask commandExecution) {
         for (final TaskListener observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
@@ -70,7 +68,7 @@ class TaskListenerSupport {
 
     static void fireProgress(final List<TaskListener> executionObservers, final SimpleTask commandExecution, final String description) {
         for (final TaskListener observer : executionObservers) {
-            executeOnEventThread(new Runnable(){
+            executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
                     //this synchronized block is to handle the case where the event thread might not otherwise
                     //see state changes to fields in the execution carried out in the background thread
@@ -79,7 +77,7 @@ class TaskListenerSupport {
                         observer.progress(commandExecution, description);
                     }
                 }
-            }, true);
+            });
         }
     }
 
@@ -94,23 +92,14 @@ class TaskListenerSupport {
         }
     }
 
-
     static void executeSynchronouslyOnEventThread(Runnable task) {
-        executeOnEventThread(task, false);
-    }
-
-    private static void executeOnEventThread(Runnable task, boolean isAsynchronous) {
         if (!SwingUtilities.isEventDispatchThread()) {
-            if ( isAsynchronous ) {
-                SwingUtilities.invokeLater(task);
-            } else {
-                try {
-                    SwingUtilities.invokeAndWait(task);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                }
+            try {
+                SwingUtilities.invokeAndWait(task);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
             }
         } else {
             try {

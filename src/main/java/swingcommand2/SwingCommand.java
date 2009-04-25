@@ -161,7 +161,7 @@ public abstract class SwingCommand {
             //If fireStarting is used, for example, to disable a button, this guarantees that the button will be
             //disabled before the action listener triggering the swingcommand returns.
             //otherwise the user might be able to click the button again before the fireStarting callback
-            task.setState(ExecutionState.PENDING);
+            task.setExecutionState(ExecutionState.PENDING);
             TaskListenerSupport.firePending(task.getTaskListeners(), task);
 
              executor.execute(new Runnable() {
@@ -210,7 +210,7 @@ public abstract class SwingCommand {
         private void setExecutionState(final ExecutionState newState) {
             TaskListenerSupport.executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
-                    task.setState(newState);
+                    task.setExecutionState(newState);
                 }
             });
         }

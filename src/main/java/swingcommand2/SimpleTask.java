@@ -46,20 +46,12 @@ public abstract class SimpleTask {
         this.cancellable = cancellable;
     }
 
-    public void setState(ExecutionState executionState) {
+    public void setExecutionState(ExecutionState executionState) {
         this.executionState = executionState;
-    }
-
-    public ExecutionState getState() {
-        return executionState;
     }
 
     public ExecutionState getExecutionState() {
         return executionState;
-    }
-
-    public void setExecutionState(ExecutionState executionState) {
-        this.executionState = executionState;
     }
 
     public Throwable getExecutionException() {
