@@ -60,11 +60,11 @@ public class TestCompositeTask extends CommandTest {
             this.currentCount = counterStart;
         }
 
-        public void setState(ExecutionState executionState) {
+        public void setExecutionState(ExecutionState executionState) {
             if ( executionState == ExecutionState.STARTED) {
-                assertOrdering(currentCount, "setState(STARTED)");
+                assertOrdering(currentCount, "setExecutionState(STARTED)");
             } else if ( executionState == ExecutionState.SUCCESS) {
-                assertOrdering(currentCount + 3, "setState(SUCCESS)");
+                assertOrdering(currentCount + 3, "setExecutionState(SUCCESS)");
             }
         }
 

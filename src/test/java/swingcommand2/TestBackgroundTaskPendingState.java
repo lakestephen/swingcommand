@@ -34,7 +34,7 @@ public class TestBackgroundTaskPendingState extends CommandTest {
         //just delay the start of the execution, simulate an executor with a queue delay, so we can test the pending state
         //before the command starts
         SimpleTask t = dummyCommand.execute(new DelayedExecutor(), l);
-        assertEquals(ExecutionState.PENDING, t.getState());
+        assertEquals(ExecutionState.PENDING, t.getExecutionState());
         assertOrdering(2, "pending");
         assertTrue(t == task);
         waitForLatch();

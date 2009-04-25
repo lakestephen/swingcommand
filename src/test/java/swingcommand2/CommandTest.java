@@ -117,36 +117,6 @@ public abstract class CommandTest extends TestCase {
         }
     }
 
-
-    class RuntimeExceptionThrowingTaskListener implements TaskListener {
-
-        private String message = "This exception is expected. It is to verify that exceptions if observers do not interrupt the command processing workflow";
-
-        public void pending(SimpleTask task) {
-            throw new TracelessRuntimeException(message);
-        }
-
-        public void started(SimpleTask task) {
-            throw new TracelessRuntimeException(message);
-        }
-
-        public void progress(SimpleTask task, String description) {
-            throw new TracelessRuntimeException(message);
-        }
-
-        public void finished(SimpleTask task) {
-            throw new TracelessRuntimeException(message);
-        }
-
-        public void success(SimpleTask task) {
-            throw new TracelessRuntimeException(message);
-        }
-
-        public void error(SimpleTask task, Throwable error) {
-            throw new TracelessRuntimeException(message);
-        }
-    }
-
     private static class TracelessRuntimeException extends RuntimeException {
         private TracelessRuntimeException(String message) {
             super(message);
@@ -176,9 +146,12 @@ public abstract class CommandTest extends TestCase {
 
     abstract class ThreadCheckingTaskListener implements TaskListener {
 
+        private String message = "This exception is expected. It is to verify that exceptions if observers do not interrupt the command processing workflow";
+
         public final void pending(SimpleTask commandExecution) {
             assertInEventThread("pending");
             doPending(commandExecution);
+            throw new TracelessRuntimeException(message);
         }
 
         public abstract void doPending(SimpleTask commandExecution);
@@ -186,6 +159,7 @@ public abstract class CommandTest extends TestCase {
         public final void started(SimpleTask commandExecution) {
             assertInEventThread("started");
             doStarted(commandExecution);
+            throw new TracelessRuntimeException(message);
         }
 
         public abstract void doStarted(SimpleTask commandExecution);
@@ -193,6 +167,7 @@ public abstract class CommandTest extends TestCase {
         public final void progress(SimpleTask commandExecution, String progressDescription) {
             assertInEventThread("progress");
             doProgress(commandExecution, progressDescription);
+            throw new TracelessRuntimeException(message);
         }
 
         public abstract void doProgress(SimpleTask commandExecution, String progressDescription);
@@ -201,6 +176,7 @@ public abstract class CommandTest extends TestCase {
         public final void success(SimpleTask commandExecution) {
             assertInEventThread("success");
             doSuccess(commandExecution);
+            throw new TracelessRuntimeException(message);
         }
 
         public abstract void doSuccess(SimpleTask commandExecution);
@@ -209,6 +185,7 @@ public abstract class CommandTest extends TestCase {
         public final void error(SimpleTask commandExecution, Throwable error) {
             assertInEventThread("error");
             doError(commandExecution, error);
+            throw new TracelessRuntimeException(message);
         }
 
         public abstract void doError(SimpleTask commandExecution, Throwable error);
@@ -217,6 +194,7 @@ public abstract class CommandTest extends TestCase {
         public final void finished(SimpleTask commandExecution) {
             assertInEventThread("finished");
             doFinished(commandExecution);
+            throw new TracelessRuntimeException(message);
         }
 
         public abstract void doFinished(SimpleTask commandExecution);

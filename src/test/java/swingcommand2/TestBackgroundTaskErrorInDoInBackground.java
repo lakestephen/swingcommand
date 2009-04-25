@@ -33,7 +33,7 @@ public class TestBackgroundTaskErrorInDoInBackground extends CommandTest {
         waitForLatch();
         assertOrdering(8, "end");
 
-        assertEquals(ExecutionState.ERROR, task.getState());
+        assertEquals(ExecutionState.ERROR, task.getExecutionState());
         assertFalse(isDoInEventThreadCalled);
         assertFalse(isBadListenerMethodCalled);
         assertEquals(testException, task.getExecutionException());
@@ -47,7 +47,7 @@ public class TestBackgroundTaskErrorInDoInBackground extends CommandTest {
             public void doInBackground() throws Exception {
                 assertNotInThread(startThread, "doInBackgroundNotInStartThread");
                 assertNotInEventThread("doInBackground");
-                Assert.assertEquals(ExecutionState.STARTED, getState());
+                Assert.assertEquals(ExecutionState.STARTED, getExecutionState());
                 assertOrdering(4, "doInBackground");
                 fireProgress(DO_IN_BACKGROUND_PROGRESS_TEXT);
                 testException = new RuntimeException("ErrorInDoInBackgroundExecution");
@@ -74,12 +74,12 @@ public class TestBackgroundTaskErrorInDoInBackground extends CommandTest {
         dummyCommand.addTaskListener(new ThreadCheckingTaskListener() {
 
             public void doPending(SimpleTask commandExecution) {
-                Assert.assertEquals(ExecutionState.PENDING, task.getState());
+                Assert.assertEquals(ExecutionState.PENDING, task.getExecutionState());
                 assertOrdering(2, "pending");
             }
 
             public void doStarted(SimpleTask commandExecution) {
-                Assert.assertEquals(ExecutionState.STARTED, task.getState());
+                Assert.assertEquals(ExecutionState.STARTED, task.getExecutionState());
                 assertOrdering(3, "started");
             }
 
@@ -92,18 +92,18 @@ public class TestBackgroundTaskErrorInDoInBackground extends CommandTest {
             }
 
             public void doError(SimpleTask commandExecution, Throwable error) {
-                assertEquals(ExecutionState.ERROR, task.getState());
+                assertEquals(ExecutionState.ERROR, task.getExecutionState());
                 assertOrdering(6, "error");
             }
 
             public void doFinished(SimpleTask commandExecution) {
-                assertEquals(ExecutionState.ERROR, task.getState());
+                assertEquals(ExecutionState.ERROR, task.getExecutionState());
                 assertOrdering(7, "finished");
                 latch.countDown();
             }
         });
 
-        assertEquals(ExecutionState.NOT_RUN, task.getState());
+        assertEquals(ExecutionState.NOT_RUN, task.getExecutionState());
         dummyCommand.execute();
     }
 }

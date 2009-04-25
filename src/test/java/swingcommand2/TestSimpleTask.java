@@ -34,7 +34,8 @@ public class TestSimpleTask extends CommandTest {
     private void checkPostConditions() {
         waitForLatch();
         assertOrdering(8, "after execute");
-        assertEquals(ExecutionState.SUCCESS, task.getState());
+        assertEquals(ExecutionState.SUCCESS, task.getExecutionState());
+        assertFalse(isBadListenerMethodCalled);
         checkOrderingFailureText();
     }
 
@@ -45,7 +46,7 @@ public class TestSimpleTask extends CommandTest {
             public void doInEventThread() throws Exception {
                 assertOrdering(4, "doInEventThread");
                 assertInEventThread("doInEventThread");
-                assertEquals(ExecutionState.STARTED, getState());
+                assertEquals(ExecutionState.STARTED, getExecutionState());
                 fireProgress(DO_IN_EVENT_THREAD_PROGRESS_TEXT);
             }
         };
@@ -61,22 +62,22 @@ public class TestSimpleTask extends CommandTest {
         c.addTaskListener(new ThreadCheckingTaskListener() {
 
             public void doPending(SimpleTask commandExecution) {
-                Assert.assertEquals(ExecutionState.PENDING, task.getState());
+                Assert.assertEquals(ExecutionState.PENDING, task.getExecutionState());
                 assertOrdering(2, "pending");
             }
 
             public void doStarted(SimpleTask commandExecution) {
-                Assert.assertEquals(ExecutionState.STARTED, task.getState());
+                Assert.assertEquals(ExecutionState.STARTED, task.getExecutionState());
                 assertOrdering(3, "started");
             }
 
             public void doProgress(SimpleTask commandExecution, String progressDescription) {
-                Assert.assertEquals(ExecutionState.STARTED, task.getState());
+                Assert.assertEquals(ExecutionState.STARTED, task.getExecutionState());
                 assertOrdering(5, DO_IN_EVENT_THREAD_PROGRESS_TEXT);
             }
 
             public void doSuccess(SimpleTask commandExecution) {
-                assertEquals(ExecutionState.SUCCESS, task.getState());
+                assertEquals(ExecutionState.SUCCESS, task.getExecutionState());
                 assertOrdering(6, "success");
             }
 
@@ -85,13 +86,13 @@ public class TestSimpleTask extends CommandTest {
             }
 
             public void doFinished(SimpleTask commandExecution) {
-                assertEquals(ExecutionState.SUCCESS, task.getState());
+                assertEquals(ExecutionState.SUCCESS, task.getExecutionState());
                 assertOrdering(7, "finished");
                 latch.countDown();
             }
         });
 
-        assertEquals(ExecutionState.NOT_RUN, task.getState());
+        assertEquals(ExecutionState.NOT_RUN, task.getExecutionState());
         c.execute();
         return task;
     }
