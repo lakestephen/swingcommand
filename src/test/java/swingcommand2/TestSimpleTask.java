@@ -8,46 +8,57 @@ import javax.swing.*;
  * Created by IntelliJ IDEA.
  * User: nick
  * Date: 25-Apr-2009
- * Time: 12:02:40
+ * Time: 12:17:54
  * To change this template use File | Settings | File Templates.
  */
-public class TestBackgroundTaskFromBackgroundThread extends CommandTest {
+public class TestSimpleTask extends CommandTest {
 
-    //test the correct threads receive the callbacks
-    public void testBackgroundTaskFromBackgroundThread() {
+    private SimpleTask task;
 
+    public void testSwingTaskFromBackgroundThread() {
+        doTask();
+        checkPostConditions();
+    }
+
+    public void testSwingTaskFromEventThread() {
+        SwingUtilities.invokeLater(
+            new Runnable() {
+                public void run() {
+                    doTask();
+                }
+            }
+        );
+        checkPostConditions();
+    }
+
+    private void checkPostConditions() {
+        waitForLatch();
+        assertOrdering(8, "after execute");
+        assertEquals(ExecutionState.SUCCESS, task.getState());
+        checkOrderingFailureText();
+    }
+
+    private SimpleTask doTask() {
         final Thread startThread = Thread.currentThread();
 
-        final BackgroundTask task = new BackgroundTask() {
-
-            public void doInBackground() throws Exception {
-                assertNotInThread(startThread, "doInBackground");
-                assertNotInEventThread("doInBackground");
-                assertOrdering(4, "doInBackground");
-                Assert.assertEquals(ExecutionState.STARTED, getState());
-                fireProgress(DO_IN_BACKGROUND_PROGRESS_TEXT);
-            }
-
+        task = new SimpleTask() {
             public void doInEventThread() throws Exception {
+                assertOrdering(4, "doInEventThread");
                 assertInEventThread("doInEventThread");
-                assertOrdering(6, "doInEventThread");
-                Assert.assertEquals(ExecutionState.STARTED, getState());
+                assertEquals(ExecutionState.STARTED, getState());
                 fireProgress(DO_IN_EVENT_THREAD_PROGRESS_TEXT);
             }
         };
 
-        final SwingCommand dummyCommand = new SwingCommand() {
+        SwingCommand c = new SwingCommand() {
             protected SimpleTask createTask() {
+                assertInThread(startThread, "createTask");
                 assertOrdering(1, "createTask");
                 return task;
             }
-
-            public String toString() {
-                return "testExecutionCallbacksNormalProcessing";
-            }
         };
 
-        dummyCommand.addTaskListener(new ThreadCheckingTaskListener() {
+        c.addTaskListener(new ThreadCheckingTaskListener() {
 
             public void doPending(SimpleTask commandExecution) {
                 Assert.assertEquals(ExecutionState.PENDING, task.getState());
@@ -60,16 +71,13 @@ public class TestBackgroundTaskFromBackgroundThread extends CommandTest {
             }
 
             public void doProgress(SimpleTask commandExecution, String progressDescription) {
-                if ( progressDescription.equals(DO_IN_BACKGROUND_PROGRESS_TEXT)) {
-                    assertOrdering(5, DO_IN_BACKGROUND_PROGRESS_TEXT);
-                } else {
-                    assertOrdering(7, DO_IN_EVENT_THREAD_PROGRESS_TEXT);
-                }
+                Assert.assertEquals(ExecutionState.STARTED, task.getState());
+                assertOrdering(5, DO_IN_EVENT_THREAD_PROGRESS_TEXT);
             }
 
             public void doSuccess(SimpleTask commandExecution) {
                 assertEquals(ExecutionState.SUCCESS, task.getState());
-                assertOrdering(8, "success");
+                assertOrdering(6, "success");
             }
 
             public void doError(SimpleTask commandExecution, Throwable error) {
@@ -78,18 +86,13 @@ public class TestBackgroundTaskFromBackgroundThread extends CommandTest {
 
             public void doFinished(SimpleTask commandExecution) {
                 assertEquals(ExecutionState.SUCCESS, task.getState());
-                assertOrdering(9, "finished");
+                assertOrdering(7, "finished");
                 latch.countDown();
             }
         });
 
         assertEquals(ExecutionState.NOT_RUN, task.getState());
-        dummyCommand.execute();
-        waitForLatch();
-        assertOrdering(10, "end");
-
-        assertEquals(ExecutionState.SUCCESS, task.getState());
-        assertFalse(isBadListenerMethodCalled);
-        checkOrderingFailureText();
+        c.execute();
+        return task;
     }
 }

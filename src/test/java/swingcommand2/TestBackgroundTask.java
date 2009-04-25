@@ -8,16 +8,41 @@ import javax.swing.*;
  * Created by IntelliJ IDEA.
  * User: nick
  * Date: 25-Apr-2009
- * Time: 12:06:08
+ * Time: 12:02:40
  * To change this template use File | Settings | File Templates.
  */
-public class TestBackgroundTaskErrorInDoInEventThreadFromBackgroundThread extends CommandTest {
+public class TestBackgroundTask extends CommandTest {
 
-    public void testErrorInDoInEventThread() {
+    private BackgroundTask task;
 
+    public void testBackgroundTaskFromBackgroundThread() {
+        doTest();
+        checkEndStates();
+    }
+
+    public void testBackgroundTaskFromEventThread() {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                doTest();
+            }
+        });
+        checkEndStates();
+    }
+
+    private void checkEndStates() {
+        waitForLatch();
+        assertOrdering(10, "end");
+
+        assertEquals(ExecutionState.SUCCESS, task.getState());
+        assertFalse(isBadListenerMethodCalled);
+        checkOrderingFailureText();
+    }
+
+    private void doTest() {
         final Thread startThread = Thread.currentThread();
 
-        final BackgroundTask task = new BackgroundTask() {
+        task = new BackgroundTask() {
+
             public void doInBackground() throws Exception {
                 assertNotInThread(startThread, "doInBackground");
                 assertNotInEventThread("doInBackground");
@@ -31,20 +56,17 @@ public class TestBackgroundTaskErrorInDoInEventThreadFromBackgroundThread extend
                 assertOrdering(6, "doInEventThread");
                 Assert.assertEquals(ExecutionState.STARTED, getState());
                 fireProgress(DO_IN_EVENT_THREAD_PROGRESS_TEXT);
-                testException = new RuntimeException("ErrorInDoInEventThread");
-                throw testException;
             }
         };
 
         final SwingCommand dummyCommand = new SwingCommand() {
             protected SimpleTask createTask() {
-                assertInThread(startThread, "createTask in start thread");                
                 assertOrdering(1, "createTask");
                 return task;
             }
 
             public String toString() {
-                return "testErrorInDoInEventThread";
+                return "testExecutionCallbacksNormalProcessing";
             }
         };
 
@@ -69,16 +91,16 @@ public class TestBackgroundTaskErrorInDoInEventThreadFromBackgroundThread extend
             }
 
             public void doSuccess(SimpleTask commandExecution) {
-                isBadListenerMethodCalled = true;
+                assertEquals(ExecutionState.SUCCESS, task.getState());
+                assertOrdering(8, "success");
             }
 
             public void doError(SimpleTask commandExecution, Throwable error) {
-                assertEquals(ExecutionState.ERROR, task.getState());
-                assertOrdering(8, "error");
+                isBadListenerMethodCalled = true;
             }
 
             public void doFinished(SimpleTask commandExecution) {
-                assertEquals(ExecutionState.ERROR, task.getState());
+                assertEquals(ExecutionState.SUCCESS, task.getState());
                 assertOrdering(9, "finished");
                 latch.countDown();
             }
@@ -86,12 +108,5 @@ public class TestBackgroundTaskErrorInDoInEventThreadFromBackgroundThread extend
 
         assertEquals(ExecutionState.NOT_RUN, task.getState());
         dummyCommand.execute();
-        waitForLatch();
-        assertOrdering(10, "end");
-
-        assertEquals(ExecutionState.ERROR, task.getState());
-        assertFalse(isBadListenerMethodCalled);
-        assertEquals(testException, task.getExecutionException());
-        checkOrderingFailureText();
     }
 }
