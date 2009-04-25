@@ -17,7 +17,7 @@ package swingcommand2;
  * Time: 22:54:18
  * To change this template use File | Settings | File Templates.
  */
-public class TestSimpleCommandExecutions extends CommandTest {
+public class TestSwingTask extends CommandTest {
 
     private boolean doInEventThreadCalled;
     private RuntimeException executionException;

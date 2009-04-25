@@ -47,7 +47,7 @@ public class TestAbstractAsynchronousCommandObserverCallbacks extends CommandTes
      * but you should still get a call to executionObserver.stopped()
      */
     public void testLifecycleStartErrorAndStopAreCalledIfExceptionThrownDuringDone() {
-        String name = "testLifecycleStartErrorAndStopAreCalledIfExceptionThrownDuringDone";
+        String name = "testLifecycleStartErrorAndStopAreCalledIfExceptionThrownDuringDoInEventThread";
         testErrorExecution(
             name,
             new DummyExecution() {

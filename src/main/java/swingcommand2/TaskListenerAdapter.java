@@ -29,5 +29,5 @@ public class TaskListenerAdapter implements TaskListener {
 
     public void error(SwingTask commandExecution, Throwable error) {}
 
-    public void done(SwingTask commandExecution) {}
+    public void finished(SwingTask commandExecution) {}
 }

@@ -123,7 +123,7 @@ public class CompositeCommandTask extends BackgroundTask {
             fireProgress(currentChildExecution.toString());
         }
 
-        public void done(SwingTask commandExecution) {
+        public void finished(SwingTask commandExecution) {
             lastCommandCancelled = commandExecution.isCancelled();
         }
 

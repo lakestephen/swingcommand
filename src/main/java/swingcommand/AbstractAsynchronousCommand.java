@@ -143,7 +143,7 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
             executionToExecutorMap.put(commandExecution, DefaultExecutionManager.this);
 
             //Call fire pending before spawning a new thread. Provided execute was called on the
-            //event thread, no more ui work can possibly get done before fireStarting is called
+            //event thread, no more ui work can possibly get finished before fireStarting is called
             //If fireStarting is used, for example, to disable a button, this guarantees that the button will be
             //disabled before the action listener triggering the swingcommand returns.
             //otherwise the user might be able to click the button again before the fireStarting callback
@@ -173,7 +173,7 @@ public abstract class AbstractAsynchronousCommand<E extends AsynchronousExecutio
                     commandExecution.doInBackground();
                 }
 
-                //STAGE2 - this needs to be done on the event thread
+                //STAGE2 - this needs to be finished on the event thread
                 runDone(commandExecution);
 
                 setExecutionState(ExecutionState.SUCCESS);

@@ -15,6 +15,7 @@ import org.jmock.Mockery;
 
 import javax.swing.*;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by IntelliJ IDEA.
@@ -26,10 +27,14 @@ import java.util.concurrent.Executor;
 public abstract class CommandTest extends TestCase {
 
     Mockery mockery;
-    TaskListener debuggingExecutionObserver = new DebuggingExecutionObserver();
+    TaskListener dummyTaskListener = new DebuggingTaskListener();
     volatile Thread lastTestExecutorThread;
+    final StringBuffer failureText = new StringBuffer();
+    final AtomicInteger counter = new AtomicInteger();
 
     public  final void setUp() {
+        failureText.setLength(0);
+        counter.set(0);
 
         //mockery and JMock are not thread safe.
         //the intention is to only ever touch the JMock classes from the event thread
@@ -67,7 +72,7 @@ public abstract class CommandTest extends TestCase {
         );
     }
 
-    protected void joinLastExecutorThread() {
+    protected void joinTestThread() {
         try {
             lastTestExecutorThread.join();
         } catch (InterruptedException e) {
@@ -75,22 +80,35 @@ public abstract class CommandTest extends TestCase {
         }
     }
 
+    protected void assertOrdering(int expectedValue, String testName) {
+        int value = counter.incrementAndGet();
+        if ( expectedValue != value) {
+            failureText.append("Called out of order: ").append(testName).append(" expected ").append(expectedValue).append(" was ").append(value).append("  ");
+        }
+    }
 
-    class DummyExecution extends BackgroundTask {
+    protected void checkOrderingFailureText() {
+        if ( failureText.length() > 0) {
+            fail(failureText.toString());
+        }
+    }
+
+
+    class DummyBackgroundTask extends BackgroundTask {
         public void doInBackground() throws Exception {}
 
         public void doInEventThread() throws Exception {}
 
         public String toString() {
-            return "Dummy SwingTask";
+            return "Dummy BackgroundTask";
         }
     }
 
 
-    class DummyAsynchronousCommand extends SwingCommand {
+    class TestThreadExecutorCommand extends SwingCommand {
         private BackgroundTask asynchronousExecution;
 
-        public DummyAsynchronousCommand(BackgroundTask singleExecutionForTesting) {
+        public TestThreadExecutorCommand(BackgroundTask singleExecutionForTesting) {
             super(new DefaultTestExecutor());
             this.asynchronousExecution = singleExecutionForTesting;
         }
@@ -104,58 +122,58 @@ public abstract class CommandTest extends TestCase {
     }
 
 
-    class DebuggingExecutionObserver implements TaskListener {
+    class DebuggingTaskListener implements TaskListener {
 
-        public void pending(SwingTask commandExecution) {
-            System.out.println("pending " + commandExecution);
+        public void pending(SwingTask task) {
+            System.out.println("pending " + task);
         }
 
-        public void started(SwingTask commandExecution) {
-            System.out.println("started " + commandExecution);
+        public void started(SwingTask task) {
+            System.out.println("started " + task);
         }
 
-        public void progress(SwingTask commandExecution, String description) {
-            System.out.println("progress "  + commandExecution);
+        public void progress(SwingTask task, String description) {
+            System.out.println("progress "  + task);
         }
 
-        public void done(SwingTask commandExecution) {
-            System.out.println("done " + commandExecution);
+        public void finished(SwingTask task) {
+            System.out.println("finished " + task);
         }
 
-        public void success(SwingTask commandExecution) {
-            System.out.println("success " + commandExecution);
+        public void success(SwingTask task) {
+            System.out.println("success " + task);
         }
 
-        public void error(SwingTask commandExecution, Throwable error) {
-            System.out.println("error " + " " + commandExecution);
+        public void error(SwingTask task, Throwable error) {
+            System.out.println("error " + " " + task);
         }
     }
 
-    class RuntimeExceptionThrowingExecutionObserver implements TaskListener {
+    class RuntimeExceptionThrowingTaskListener implements TaskListener {
 
-        private String message = "This execption is expected. It is to verify that exceptions if observers do not interrupt the command processing workflow";
+        private String message = "This exception is expected. It is to verify that exceptions if observers do not interrupt the command processing workflow";
 
-        public void pending(SwingTask commandExecution) {
+        public void pending(SwingTask task) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void started(SwingTask commandExecution) {
+        public void started(SwingTask task) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void progress(SwingTask commandExecution, String description) {
+        public void progress(SwingTask task, String description) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void done(SwingTask commandExecution) {
+        public void finished(SwingTask task) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void success(SwingTask commandExecution) {
+        public void success(SwingTask task) {
             throw new TracelessRuntimeException(message);
         }
 
-        public void error(SwingTask commandExecution, Throwable error) {
+        public void error(SwingTask task, Throwable error) {
             throw new TracelessRuntimeException(message);
         }
     }

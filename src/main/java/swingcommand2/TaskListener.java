@@ -72,5 +72,5 @@ public interface TaskListener {
      *
      * @param commandExecution, the execution which has stopped
      */
-    void done(SwingTask commandExecution);
+    void finished(SwingTask commandExecution);
 }

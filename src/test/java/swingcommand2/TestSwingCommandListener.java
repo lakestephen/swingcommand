@@ -21,7 +21,7 @@ import java.util.concurrent.CountDownLatch;
  * Date: 25-Sep-2008
  * Time: 09:15:34
  */
-public class TestSimpleCommandObservers extends CommandTest {
+public class TestSwingCommandListener extends CommandTest {
 
     private Throwable runtimeException;
     private boolean calledInEventThread;
@@ -47,7 +47,7 @@ public class TestSimpleCommandObservers extends CommandTest {
                             one(observer).pending(execution);
                             one(observer).started(execution);
                             one(observer).success(execution);
-                            one(observer).done(execution);
+                            one(observer).finished(execution);
                         }
                     });
 
@@ -79,7 +79,7 @@ public class TestSimpleCommandObservers extends CommandTest {
                             one(observer).pending(execution);
                             one(observer).started(execution);
                             one(observer).error(execution, runtimeException);
-                            one(observer).done(execution);
+                            one(observer).finished(execution);
                         }
                     });
 

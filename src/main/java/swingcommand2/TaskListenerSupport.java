@@ -11,9 +11,7 @@
 package swingcommand2;
 
 import javax.swing.*;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Arrays;
 import java.lang.reflect.InvocationTargetException;
 
 /**
@@ -54,7 +52,7 @@ class TaskListenerSupport {
         for (final TaskListener observer : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
-                    observer.done(commandExecution);
+                    observer.finished(commandExecution);
                 }
             });
         }

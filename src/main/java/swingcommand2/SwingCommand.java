@@ -74,13 +74,13 @@ public abstract class SwingCommand {
         return DEFAULT_EXECUTOR_FACTORY.getExecutor(task);
     }
 
-    public final void addExecutionObserver(TaskListener... taskListeners) {
+    public final void addTaskListener(TaskListener... taskListeners) {
         synchronized (this.taskListeners) {
             this.taskListeners.addAll(Arrays.asList(taskListeners));
         }
     }
 
-    public final void removeExecutionObserver(TaskListener... taskListeners) {
+    public final void removeTaskListener(TaskListener... taskListeners) {
         synchronized (this.taskListeners) {
             this.taskListeners.removeAll(Arrays.asList(taskListeners));
         }
@@ -157,7 +157,7 @@ public abstract class SwingCommand {
             task.addTaskListener(taskListeners);
 
             //Call fire pending before spawning a new thread. Provided execute was called on the
-            //event thread, no more ui work can possibly get done before fireStarting is called
+            //event thread, no more ui work can possibly get finished before fireStarting is called
             //If fireStarting is used, for example, to disable a button, this guarantees that the button will be
             //disabled before the action listener triggering the swingcommand returns.
             //otherwise the user might be able to click the button again before the fireStarting callback
@@ -184,7 +184,7 @@ public abstract class SwingCommand {
                     }
                 }
 
-                //STAGE2 - this needs to be done on the event thread
+                //STAGE2 - this needs to be finished on the event thread
                 runDoInEventThread(task);
 
                 setExecutionState(ExecutionState.SUCCESS);

@@ -119,7 +119,7 @@ public abstract class CommandTest extends TestCase {
         }
 
         public void done(CommandExecution commandExecution) {
-            System.out.println("done " + commandExecution);
+            System.out.println("finished " + commandExecution);
         }
 
         public void success(CommandExecution commandExecution) {
