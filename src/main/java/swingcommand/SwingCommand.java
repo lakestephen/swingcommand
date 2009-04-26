@@ -1,3 +1,19 @@
+/*
+ * Copyright 2009 Object Definitions Ltd.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package swingcommand;
 
 import javax.swing.*;
@@ -13,7 +29,7 @@ import java.util.ArrayList;
  * User: nick
  * Date: 22-Apr-2009
  * Time: 19:50:53
- * To change this template use File | Settings | File Templates.
+ * 
  */
 public abstract class SwingCommand<P> {
 
@@ -154,7 +170,7 @@ public abstract class SwingCommand<P> {
 
         public void executeCommand() {
 
-            task.addTaskListener(taskListeners);
+            task.addTaskListeners(taskListeners);
 
             //Call fire pending before spawning a new thread. Provided execute was called on the
             //event thread, no more ui work can possibly get finished before fireStarting is called
@@ -195,7 +211,7 @@ public abstract class SwingCommand<P> {
                 TaskListenerSupport.fireError(task.getTaskListeners(), task, t);
             } finally {
                 TaskListenerSupport.fireDone(task.getTaskListeners(), task);
-                task.removeTaskListener(taskListeners);
+                task.removeTaskListeners(taskListeners);
             }
         }
 

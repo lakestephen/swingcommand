@@ -1,6 +1,23 @@
+/*
+ * Copyright 2009 Object Definitions Ltd.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package swingcommand;
 
 import java.util.List;
+import java.util.Arrays;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -9,7 +26,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Date: 22-Apr-2009
  * Time: 20:58:09
  *
- * The superclass for all Tasks which are created when a command is executed
+ * The superclass for Tasks which are created when a command is executed
+ *
+ * Tasks which do not need to run in the background should extend this class directly.
+ * Tasks which have some background processing to perform in a subthread should extend BackgroundTask instead
  */
 public abstract class Task<P> {
 
@@ -25,6 +45,8 @@ public abstract class Task<P> {
             cancelled = true;
             doCancel();
         }
+
+        TaskListener<P> t = new TaskListenerAdapter<P>();
     }
 
     /**
@@ -52,16 +74,25 @@ public abstract class Task<P> {
         this.executionException = executionException;
     }
 
-    //generally it is better to add listeners to the Command instance (they will be invoked for every task)
-    //or by passing them as parameters to execute(), to listen to  a one off task.
-    //I'll leave default visibility here for now, for that reason
-    void addTaskListener(List<TaskListener<? super P>> listeners) {
+    public void addTaskListener(TaskListener<? super P> t) {
+        synchronized (taskListeners) {
+            this.taskListeners.add(t);
+        }
+    }
+
+    public void addTaskListeners(List<TaskListener<? super P>> listeners) {
         synchronized (taskListeners) {
             this.taskListeners.addAll(listeners);
         }
     }
 
-    void removeTaskListener(List<TaskListener<? super P>> listeners) {
+    public void removeTaskListener(TaskListener<? super P> t) {
+        synchronized (taskListeners) {
+            this.taskListeners.remove(t);
+        }
+    }
+
+    public void removeTaskListeners(List<TaskListener<? super P>> listeners) {
         synchronized (taskListeners) {
             this.taskListeners.removeAll(listeners);
         }

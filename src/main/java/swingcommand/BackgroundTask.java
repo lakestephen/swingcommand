@@ -1,11 +1,18 @@
-/**
- *  This file is part of ObjectDefinitions SwingCommand
- *  Copyright (C) Nick Ebbutt September 2009
- *  Licensed under the Academic Free License version 3.0
- *  http://www.opensource.org/licenses/afl-3.0.php
+
+/*
+ * Copyright 2009 Object Definitions Ltd.
  *
- *  nick@objectdefinitions.com
- *  http://www.objectdefinitions.com/swingcommand
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 
 package swingcommand;
@@ -15,6 +22,8 @@ package swingcommand;
  * User: Nick Ebbutt
  * Date: 09-Sep-2008
  * Time: 14:52:16
+ *
+ * A Task which runs partly in a background thread
  */
 public abstract class BackgroundTask<P> extends Task<P> {
 
