@@ -230,15 +230,17 @@ public abstract class SwingCommand<P> {
         }
     
         private void doExecuteTask() {
-            //this try block makes sure we always call end up calling fireDone
+            //this try block makes sure we always call end up calling fireFinished
             try {
+                Thread.interrupted(); // clear any interrupted state before starting
+
                 setExecutionState(Task.ExecutionState.STARTED);
                 TaskListenerSupport.fireStarted(task.getTaskListeners(), task);
 
                 if ( task instanceof BackgroundTask) {
                     synchronized (memorySync) {
                         //STAGE1  - in the current swingcommand processing thread
-                        ((BackgroundTask) task).doInBackground();
+                        ((BackgroundTask) task).doBackgroundProcessing();
                     }
                 }
 
@@ -252,7 +254,7 @@ public abstract class SwingCommand<P> {
                 setExecutionState(Task.ExecutionState.ERROR);
                 TaskListenerSupport.fireError(task.getTaskListeners(), task, t);
             } finally {
-                TaskListenerSupport.fireDone(task.getTaskListeners(), task);
+                TaskListenerSupport.fireFinished(task.getTaskListeners(), task);
             }
         }
 
@@ -289,7 +291,7 @@ public abstract class SwingCommand<P> {
             DoAfterExecuteRunnable doAfterExecuteRunnable = new DoAfterExecuteRunnable();
             TaskListenerSupport.executeSynchronouslyOnEventThread(doAfterExecuteRunnable);
             if (doAfterExecuteRunnable.throwable != null) {
-                throw new SwingCommandException("Failed while invoking runDone() on " + getClass().getName(), doAfterExecuteRunnable.throwable);
+                throw new SwingCommandException("Failed while invoking doInEventThread() on " + getClass().getName(), doAfterExecuteRunnable.throwable);
             }
         }
 

@@ -37,7 +37,7 @@ public abstract class Task<P> {
     private volatile Throwable executionException;
     private final CopyOnWriteArrayList<TaskListener<? super P>> taskListeners = new CopyOnWriteArrayList<TaskListener<? super P>>();
 
-    public abstract void doInEventThread() throws Exception;
+    protected abstract void doInEventThread() throws Exception;
 
     public final void cancel() {
         if ( ! isCancelled()) {

@@ -16,8 +16,6 @@
 
 package swingcommand;
 
-import junit.framework.Assert;
-
 import javax.swing.*;
 
 /**
@@ -53,7 +51,7 @@ public class TestBackgroundTaskErrorInDoInBackground extends AbstractCommandTest
         assertFalse(isDoInEventThreadCalled);
         assertFalse(isBadListenerMethodCalled);
         assertEquals(testException, task.getExecutionException());
-        checkOrderingFailureText();
+        checkFailureText();
     }
 
     private void doTest() {
@@ -63,7 +61,7 @@ public class TestBackgroundTaskErrorInDoInBackground extends AbstractCommandTest
             public void doInBackground() throws Exception {
                 assertNotInThread(startThread, "doInBackgroundNotInStartThread");
                 assertNotInEventThread("doInBackground");
-                Assert.assertEquals(ExecutionState.STARTED, getExecutionState());
+                assertExpectedState(ExecutionState.STARTED, getExecutionState());
                 assertOrdering(4, "doInBackground");
                 fireProgress(DO_IN_BACKGROUND_PROGRESS_TEXT);
                 testException = new RuntimeException("ErrorInDoInBackgroundExecution");
@@ -90,12 +88,12 @@ public class TestBackgroundTaskErrorInDoInBackground extends AbstractCommandTest
         dummyCommand.addTaskListener(new ThreadCheckingTaskListener() {
 
             public void doPending(Task task) {
-                Assert.assertEquals(Task.ExecutionState.PENDING, task.getExecutionState());
+                assertExpectedState(Task.ExecutionState.PENDING, task.getExecutionState());
                 assertOrdering(2, "pending");
             }
 
             public void doStarted(Task task) {
-                Assert.assertEquals(Task.ExecutionState.STARTED, task.getExecutionState());
+                assertExpectedState(Task.ExecutionState.STARTED, task.getExecutionState());
                 assertOrdering(3, "started");
             }
 

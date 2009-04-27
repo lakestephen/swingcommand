@@ -16,8 +16,6 @@
 
 package swingcommand;
 
-import junit.framework.Assert;
-
 import javax.swing.*;
 
 /**
@@ -52,7 +50,7 @@ public class TestSimpleTask extends AbstractCommandTest {
         assertOrdering(8, "after execute");
         assertEquals(Task.ExecutionState.SUCCESS, task.getExecutionState());
         assertFalse(isBadListenerMethodCalled);
-        checkOrderingFailureText();
+        checkFailureText();
     }
 
     private Task doTask() {
@@ -78,17 +76,17 @@ public class TestSimpleTask extends AbstractCommandTest {
         c.addTaskListener(new ThreadCheckingTaskListener() {
 
             public void doPending(Task task) {
-                Assert.assertEquals(Task.ExecutionState.PENDING, task.getExecutionState());
+                assertExpectedState(Task.ExecutionState.PENDING, task.getExecutionState());
                 assertOrdering(2, "pending");
             }
 
             public void doStarted(Task task) {
-                Assert.assertEquals(Task.ExecutionState.STARTED, task.getExecutionState());
+                assertExpectedState(Task.ExecutionState.STARTED, task.getExecutionState());
                 assertOrdering(3, "started");
             }
 
             public void doProgress(Task task, String progressDescription) {
-                Assert.assertEquals(Task.ExecutionState.STARTED, task.getExecutionState());
+                assertExpectedState(Task.ExecutionState.STARTED, task.getExecutionState());
                 assertOrdering(5, DO_IN_EVENT_THREAD_PROGRESS_TEXT);
             }
 

@@ -50,7 +50,7 @@ class TaskListenerSupport {
         }
     }
 
-    static <E> void fireDone(final List<TaskListener<? super E>> executionObservers, final Task<E> task) {
+    static <E> void fireFinished(final List<TaskListener<? super E>> executionObservers, final Task<E> task) {
         for (final TaskListener<? super E> listener : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {

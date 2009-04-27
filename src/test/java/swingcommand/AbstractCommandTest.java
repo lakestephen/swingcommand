@@ -106,7 +106,19 @@ public abstract class AbstractCommandTest extends TestCase {
         }
     }
 
-    protected synchronized void checkOrderingFailureText() {
+    protected void assertExpectedState(Task.ExecutionState state, Task.ExecutionState expectedState) {
+        if ( state != expectedState) {
+            failureText.append("Expected state ").append(expectedState).append(" but was ").append(state);
+        }
+    }
+
+    protected void assertIsTrue(boolean val, String description) {
+        if ( ! val) {
+            failureText.append(description);
+        }
+    }
+
+    protected synchronized void checkFailureText() {
         if ( failureText.length() > 0) {
             fail(failureText.toString());
         }
@@ -150,6 +162,7 @@ public abstract class AbstractCommandTest extends TestCase {
         }
     }
 
+    //all the tests should still pass if you uncomment throw new TracelessRuntimeException, but the stack traces get annoying!
     abstract class ThreadCheckingTaskListener implements TaskListener<String> {
 
         private String message = "This exception is expected. " +
@@ -158,7 +171,7 @@ public abstract class AbstractCommandTest extends TestCase {
         public final void pending(Task task) {
             assertInEventThread("pending");
             doPending(task);
-            throw new TracelessRuntimeException(message);
+            //throw new TracelessRuntimeException(message);
         }
 
         public abstract void doPending(Task task);
@@ -166,7 +179,7 @@ public abstract class AbstractCommandTest extends TestCase {
         public final void started(Task task) {
             assertInEventThread("started");
             doStarted(task);
-            throw new TracelessRuntimeException(message);
+            //throw new TracelessRuntimeException(message);
         }
 
         public abstract void doStarted(Task task);
@@ -174,7 +187,7 @@ public abstract class AbstractCommandTest extends TestCase {
         public final void progress(Task task, String progressDescription) {
             assertInEventThread("progress");
             doProgress(task, progressDescription);
-            throw new TracelessRuntimeException(message);
+            //throw new TracelessRuntimeException(message);
         }
 
         public abstract void doProgress(Task task, String progressDescription);
@@ -183,7 +196,7 @@ public abstract class AbstractCommandTest extends TestCase {
         public final void success(Task task) {
             assertInEventThread("success");
             doSuccess(task);
-            throw new TracelessRuntimeException(message);
+            //throw new TracelessRuntimeException(message);
         }
 
         public abstract void doSuccess(Task task);
@@ -192,7 +205,7 @@ public abstract class AbstractCommandTest extends TestCase {
         public final void error(Task task, Throwable error) {
             assertInEventThread("error");
             doError(task, error);
-            throw new TracelessRuntimeException(message);
+            //throw new TracelessRuntimeException(message);
         }
 
         public abstract void doError(Task task, Throwable error);
@@ -201,7 +214,7 @@ public abstract class AbstractCommandTest extends TestCase {
         public final void finished(Task task) {
             assertInEventThread("finished");
             doFinished(task);
-            throw new TracelessRuntimeException(message);
+            //throw new TracelessRuntimeException(message);
         }
 
         public abstract void doFinished(Task task);

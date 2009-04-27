@@ -27,6 +27,13 @@ package swingcommand;
  */
 public abstract class BackgroundTask<P> extends Task<P> {
 
-    public abstract void doInBackground() throws Exception;
+    protected void doBackgroundProcessing() throws Exception {
+        doInBackground();
+    }
 
+    /**
+    * The Subclass should implement this method to perform the background processing
+    * This method is called in a background thread
+    */
+    protected abstract void doInBackground() throws Exception;
 }

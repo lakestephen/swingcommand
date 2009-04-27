@@ -48,7 +48,7 @@ public class TestCompositeTask extends AbstractCommandTest {
        //execute the composite synchronously on this junit subthread
        compositeCommand.execute(new SynchronousExecutor());
        assertOrdering(41, "execute returned");
-       checkOrderingFailureText();
+       checkFailureText();
     }
 
     private SwingCommand createBackgroundExecutionCommand(final int startCount) {

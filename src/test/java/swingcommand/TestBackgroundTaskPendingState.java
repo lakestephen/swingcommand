@@ -55,6 +55,6 @@ public class TestBackgroundTaskPendingState extends AbstractCommandTest {
         assertTrue(t == task);
         waitForLatch();
         assertOrdering(4, "end");
-        checkOrderingFailureText();
+        checkFailureText();
     }
 }
