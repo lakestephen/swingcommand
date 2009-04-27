@@ -89,30 +89,30 @@ public class TestBackgroundTaskErrorInDoInBackground extends AbstractCommandTest
 
         dummyCommand.addTaskListener(new ThreadCheckingTaskListener() {
 
-            public void doPending(Task commandExecution) {
+            public void doPending(Task task) {
                 Assert.assertEquals(ExecutionState.PENDING, task.getExecutionState());
                 assertOrdering(2, "pending");
             }
 
-            public void doStarted(Task commandExecution) {
+            public void doStarted(Task task) {
                 Assert.assertEquals(ExecutionState.STARTED, task.getExecutionState());
                 assertOrdering(3, "started");
             }
 
-            public void doProgress(Task commandExecution, String progressDescription) {
+            public void doProgress(Task task, String progressDescription) {
                 assertOrdering(5, DO_IN_BACKGROUND_PROGRESS_TEXT);
             }
 
-            public void doSuccess(Task commandExecution) {
+            public void doSuccess(Task task) {
                 isBadListenerMethodCalled = true;
             }
 
-            public void doError(Task commandExecution, Throwable error) {
+            public void doError(Task task, Throwable error) {
                 assertEquals(ExecutionState.ERROR, task.getExecutionState());
                 assertOrdering(6, "error");
             }
 
-            public void doFinished(Task commandExecution) {
+            public void doFinished(Task task) {
                 assertEquals(ExecutionState.ERROR, task.getExecutionState());
                 assertOrdering(7, "finished");
                 latch.countDown();

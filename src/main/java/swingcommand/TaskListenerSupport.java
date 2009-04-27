@@ -30,47 +30,47 @@ class TaskListenerSupport {
 
     //pending is fired on the event thread using invoke later to avoid blocking a background thread which calls execute()
     //on the swing event queue (this can have very bad performance effects on busy background threads)
-    static <E> void firePending(final List<TaskListener<? super E>> executionObservers, final Task<E> commandExecution) {
+    static <E> void firePending(final List<TaskListener<? super E>> executionObservers, final Task<E> task) {
         for (final TaskListener<? super E> listener : executionObservers) {
             executeAsynchronouslyIfBackgroundThread(new Runnable(){
                 public void run() {
-                    listener.pending(commandExecution);
+                    listener.pending(task);
                 }
             });
         }
     }
 
-    static <E> void fireStarted(final List<TaskListener<? super E>> executionObservers, final Task<E> commandExecution) {
+    static <E> void fireStarted(final List<TaskListener<? super E>> executionObservers, final Task<E> task) {
         for (final TaskListener<? super E> listener : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
-                    listener.started(commandExecution);
+                    listener.started(task);
                 }
             });
         }
     }
 
-    static <E> void fireDone(final List<TaskListener<? super E>> executionObservers, final Task<E> commandExecution) {
+    static <E> void fireDone(final List<TaskListener<? super E>> executionObservers, final Task<E> task) {
         for (final TaskListener<? super E> listener : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
-                    listener.finished(commandExecution);
+                    listener.finished(task);
                 }
             });
         }
     }
 
-    static <E> void fireError(final List<TaskListener<? super E>> executionObservers, final Task<E> commandExecution, final Throwable t) {
+    static <E> void fireError(final List<TaskListener<? super E>> executionObservers, final Task<E> task, final Throwable t) {
         for (final TaskListener<? super E> listener : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
-                    listener.error(commandExecution, t);
+                    listener.error(task, t);
                 }
             });
         }
     }
 
-    static <E> void fireProgress(final List<TaskListener<? super E>> executionObservers, final Task<E> commandExecution, final E progress) {
+    static <E> void fireProgress(final List<TaskListener<? super E>> executionObservers, final Task<E> task, final E progress) {
         for (final TaskListener<? super E> listener : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -78,7 +78,7 @@ class TaskListenerSupport {
                     //see state changes to fields in the execution carried out in the background thread
                     //which is calling progress, due to the memory model
                     synchronized(this) {
-                        listener.progress(commandExecution, progress);
+                        listener.progress(task, progress);
                     }
                 }
             });
@@ -86,11 +86,11 @@ class TaskListenerSupport {
     }
 
 
-    static <E> void fireSuccess(List<TaskListener<? super E>> executionObservers, final Task<E> commandExecution) {
+    static <E> void fireSuccess(List<TaskListener<? super E>> executionObservers, final Task<E> task) {
         for (final TaskListener<? super E> listener : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
-                    listener.success(commandExecution);
+                    listener.success(task);
                 }
             });
         }

@@ -28,20 +28,20 @@ import javax.swing.*;
  */
 public class TestCompositeTask extends AbstractCommandTest {
 
-    public void testCompositeWithAsyncExecutions() {
+    public void testComposite() {
 
-       final CompositeCommandTask compositeExecution = new CompositeCommandTask();
+       final DefaultCompositeCommandTask compositeTask = new DefaultCompositeCommandTask();
 
        //create and add 10 async child commands to the composite
        int startCount = 1;
        for ( int loop=1; loop<= 10; loop++) {
-           compositeExecution.addCommand(createBackgroundExecutionCommand(startCount));
+           compositeTask.addCommand(createBackgroundExecutionCommand(startCount));
            startCount += 4;
        }
 
        SwingCommand<String> compositeCommand = new SwingCommand<String>() {
            protected Task<String> createTask() {
-               return compositeExecution;
+               return compositeTask;
            }
        };
 

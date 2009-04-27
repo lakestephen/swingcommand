@@ -27,7 +27,7 @@ import java.lang.reflect.InvocationTargetException;
  * Date: 23-Apr-2009
  * Time: 10:55:25
  */
-public class CompositeCommandTask extends BackgroundTask<String> {
+public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
 
     private static final Executor SYNCHRONOUS_EXECUTOR = new Executor() {
         public void execute(Runnable command) {
@@ -38,20 +38,20 @@ public class CompositeCommandTask extends BackgroundTask<String> {
     private static final Executor INVOKE_AND_WAIT_EXECUTOR = new IfSubThreadInvokeAndWaitExecutor();
     private static final SwingCommand.ExecutorFactory COMPOSITE_EXECUTOR_FACTORY = new CompositeExecutorFactory();
 
-    private List<SwingCommand> executionCommands = new ArrayList<SwingCommand>();
-    private int totalChildCommands = executionCommands.size();
+    private List<SwingCommand> childCommands = new ArrayList<SwingCommand>();
+    private int totalChildCommands = childCommands.size();
     private int currentCommandId;
-    private ExecutionObserverProxy executionObserverProxy = new ExecutionObserverProxy();
+    private TaskListenerProxy taskListenerProxy = new TaskListenerProxy();
 
     public CompositeCommandTask() {
     }
 
     public CompositeCommandTask(SwingCommand... commands) {
-        executionCommands.addAll(Arrays.asList(commands));
+        childCommands.addAll(Arrays.asList(commands));
     }
 
     public CompositeCommandTask(Collection<SwingCommand> commands) {
-        executionCommands.addAll(commands);
+        childCommands.addAll(commands);
     }
 
     /**
@@ -62,18 +62,18 @@ public class CompositeCommandTask extends BackgroundTask<String> {
      */
     public void doInBackground() throws Exception {
         currentCommandId = 0;
-        for (final SwingCommand command : executionCommands) {
+        for (final SwingCommand command : childCommands) {
             currentCommandId++;
 
             //we are not in event thread here, so this call should be synchronous
             //noinspection unchecked
-            command.execute(COMPOSITE_EXECUTOR_FACTORY, executionObserverProxy);
+            command.execute(COMPOSITE_EXECUTOR_FACTORY, taskListenerProxy);
 
-            if (executionObserverProxy.isErrorOccurred()) {
-                throw new CompositeCommandException(executionObserverProxy.getLastCommandError());
+            if (taskListenerProxy.isErrorOccurred()) {
+                throw new CompositeCommandException(taskListenerProxy.getLastCommandError());
             }
 
-            if (executionObserverProxy.isLastCommandCancelled()) {
+            if (taskListenerProxy.isLastCommandCancelled()) {
                 cancel();
             }
 
@@ -87,19 +87,19 @@ public class CompositeCommandTask extends BackgroundTask<String> {
     }
 
     public void addCommand(SwingCommand command) {
-        executionCommands.add(command);
+        childCommands.add(command);
     }
 
     public void addCommands(SwingCommand... commands) {
-        executionCommands.addAll(Arrays.asList(commands));
+        childCommands.addAll(Arrays.asList(commands));
     }
 
     public void addCommands(Collection<SwingCommand> commands) {
-        executionCommands.addAll(commands);
+        childCommands.addAll(commands);
     }
 
-    public Task getCurrentExecution() {
-        return executionObserverProxy.getCurrentChildExecution();
+    public Task getCurrentChildTask() {
+        return taskListenerProxy.getCurrentChildTask();
     }
 
     public int getCompletedCommandCount() {
@@ -111,36 +111,41 @@ public class CompositeCommandTask extends BackgroundTask<String> {
     }
 
     public List<SwingCommand> getChildCommands() {
-        return Collections.unmodifiableList(executionCommands);
+        return Collections.unmodifiableList(childCommands);
     }
 
     public void doCancel() {
-        executionObserverProxy.getCurrentChildExecution().cancel();
+        taskListenerProxy.getCurrentChildTask().cancel();
     }
+
+    protected abstract P getProgress(int currentCommandId, int totalCommands, Task currentChildCommand);
 
     /**
      * Receives execution observer events from child commands and fires step reached events to
      * this composites observers
      */
-    private class ExecutionObserverProxy extends TaskListenerAdapter {
+    private class TaskListenerProxy extends TaskListenerAdapter {
         private volatile boolean errorOccurred;
-        private volatile Task currentChildExecution;
+        private volatile Task currentChildTask;
         private volatile boolean lastCommandCancelled;
         private volatile Throwable lastCommandError;
 
-        public ExecutionObserverProxy() {
+        public TaskListenerProxy() {
         }
 
-        public void started(Task commandExecution) {
-            this.currentChildExecution = commandExecution;
-            fireProgress(currentChildExecution.toString());
+        @Override
+        public void started(Task task) {
+            this.currentChildTask = task;
+            fireProgress(getProgress(currentCommandId, totalChildCommands, task));
         }
 
-        public void finished(Task commandExecution) {
-            lastCommandCancelled = commandExecution.isCancelled();
+        @Override
+        public void finished(Task task) {
+            lastCommandCancelled = task.isCancelled();
         }
 
-        public void error(Task commandExecution, Throwable e) {
+        @Override
+        public void error(Task task, Throwable e) {
             errorOccurred = true;
             lastCommandError = e;
         }
@@ -149,8 +154,8 @@ public class CompositeCommandTask extends BackgroundTask<String> {
             return errorOccurred;
         }
 
-        public Task getCurrentChildExecution() {
-            return currentChildExecution;
+        public Task getCurrentChildTask() {
+            return currentChildTask;
         }
 
         public boolean isLastCommandCancelled() {

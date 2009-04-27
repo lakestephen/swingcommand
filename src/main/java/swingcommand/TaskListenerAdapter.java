@@ -25,15 +25,15 @@ package swingcommand;
  */
 public class TaskListenerAdapter<P> implements TaskListener<P> {
 
-    public void pending(Task commandExecution) {}
+    public void pending(Task task) {}
 
-    public void started(Task commandExecution) {}
+    public void started(Task task) {}
 
-    public void progress(Task commandExecution, P progressDescription) {}
+    public void progress(Task task, P progressDescription) {}
 
-    public void success(Task commandExecution) {}
+    public void success(Task task) {}
 
-    public void error(Task commandExecution, Throwable error) {}
+    public void error(Task task, Throwable error) {}
 
-    public void finished(Task commandExecution) {}
+    public void finished(Task task) {}
 }

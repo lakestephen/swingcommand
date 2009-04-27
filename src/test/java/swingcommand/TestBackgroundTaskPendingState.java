@@ -41,7 +41,7 @@ public class TestBackgroundTaskPendingState extends AbstractCommandTest {
         };
 
         TaskListener l = new TaskListenerAdapter() {
-            public void started(Task commandExecution) {
+            public void started(Task task) {
                 assertOrdering(3, "started");
                 latch.countDown();
             }

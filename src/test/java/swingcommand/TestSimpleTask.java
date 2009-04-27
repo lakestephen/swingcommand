@@ -77,31 +77,31 @@ public class TestSimpleTask extends AbstractCommandTest {
 
         c.addTaskListener(new ThreadCheckingTaskListener() {
 
-            public void doPending(Task commandExecution) {
+            public void doPending(Task task) {
                 Assert.assertEquals(ExecutionState.PENDING, task.getExecutionState());
                 assertOrdering(2, "pending");
             }
 
-            public void doStarted(Task commandExecution) {
+            public void doStarted(Task task) {
                 Assert.assertEquals(ExecutionState.STARTED, task.getExecutionState());
                 assertOrdering(3, "started");
             }
 
-            public void doProgress(Task commandExecution, String progressDescription) {
+            public void doProgress(Task task, String progressDescription) {
                 Assert.assertEquals(ExecutionState.STARTED, task.getExecutionState());
                 assertOrdering(5, DO_IN_EVENT_THREAD_PROGRESS_TEXT);
             }
 
-            public void doSuccess(Task commandExecution) {
+            public void doSuccess(Task task) {
                 assertEquals(ExecutionState.SUCCESS, task.getExecutionState());
                 assertOrdering(6, "success");
             }
 
-            public void doError(Task commandExecution, Throwable error) {
+            public void doError(Task task, Throwable error) {
                 isBadListenerMethodCalled = true;
             }
 
-            public void doFinished(Task commandExecution) {
+            public void doFinished(Task task) {
                 assertEquals(ExecutionState.SUCCESS, task.getExecutionState());
                 assertOrdering(7, "finished");
                 latch.countDown();

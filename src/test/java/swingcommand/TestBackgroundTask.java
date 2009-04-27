@@ -82,23 +82,23 @@ public class TestBackgroundTask extends AbstractCommandTest {
             }
 
             public String toString() {
-                return "testExecutionCallbacksNormalProcessing";
+                return "TestBackgroundTask";
             }
         };
 
         dummyCommand.addTaskListener(new ThreadCheckingTaskListener() {
 
-            public void doPending(Task commandExecution) {
+            public void doPending(Task task) {
                 Assert.assertEquals(ExecutionState.PENDING, task.getExecutionState());
                 assertOrdering(2, "pending");
             }
 
-            public void doStarted(Task commandExecution) {
+            public void doStarted(Task task) {
                 Assert.assertEquals(ExecutionState.STARTED, task.getExecutionState());
                 assertOrdering(3, "started");
             }
 
-            public void doProgress(Task commandExecution, String progressDescription) {
+            public void doProgress(Task task, String progressDescription) {
                 if ( progressDescription.equals(DO_IN_BACKGROUND_PROGRESS_TEXT)) {
                     assertOrdering(5, DO_IN_BACKGROUND_PROGRESS_TEXT);
                 } else {
@@ -106,16 +106,16 @@ public class TestBackgroundTask extends AbstractCommandTest {
                 }
             }
 
-            public void doSuccess(Task commandExecution) {
+            public void doSuccess(Task task) {
                 assertEquals(ExecutionState.SUCCESS, task.getExecutionState());
                 assertOrdering(8, "success");
             }
 
-            public void doError(Task commandExecution, Throwable error) {
+            public void doError(Task task, Throwable error) {
                 isBadListenerMethodCalled = true;
             }
 
-            public void doFinished(Task commandExecution) {
+            public void doFinished(Task task) {
                 assertEquals(ExecutionState.SUCCESS, task.getExecutionState());
                 assertOrdering(9, "finished");
                 latch.countDown();

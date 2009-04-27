@@ -155,56 +155,63 @@ public abstract class AbstractCommandTest extends TestCase {
         private String message = "This exception is expected. " +
                 "It is to verify that exceptions raised in listener callbacks do not interrupt the command processing workflow";
 
-        public final void pending(Task commandExecution) {
+        public final void pending(Task task) {
             assertInEventThread("pending");
-            doPending(commandExecution);
+            doPending(task);
             throw new TracelessRuntimeException(message);
         }
 
-        public abstract void doPending(Task commandExecution);
+        public abstract void doPending(Task task);
 
-        public final void started(Task commandExecution) {
+        public final void started(Task task) {
             assertInEventThread("started");
-            doStarted(commandExecution);
+            doStarted(task);
             throw new TracelessRuntimeException(message);
         }
 
-        public abstract void doStarted(Task commandExecution);
+        public abstract void doStarted(Task task);
 
-        public final void progress(Task commandExecution, String progressDescription) {
+        public final void progress(Task task, String progressDescription) {
             assertInEventThread("progress");
-            doProgress(commandExecution, progressDescription);
+            doProgress(task, progressDescription);
             throw new TracelessRuntimeException(message);
         }
 
-        public abstract void doProgress(Task commandExecution, String progressDescription);
+        public abstract void doProgress(Task task, String progressDescription);
 
 
-        public final void success(Task commandExecution) {
+        public final void success(Task task) {
             assertInEventThread("success");
-            doSuccess(commandExecution);
+            doSuccess(task);
             throw new TracelessRuntimeException(message);
         }
 
-        public abstract void doSuccess(Task commandExecution);
+        public abstract void doSuccess(Task task);
 
 
-        public final void error(Task commandExecution, Throwable error) {
+        public final void error(Task task, Throwable error) {
             assertInEventThread("error");
-            doError(commandExecution, error);
+            doError(task, error);
             throw new TracelessRuntimeException(message);
         }
 
-        public abstract void doError(Task commandExecution, Throwable error);
+        public abstract void doError(Task task, Throwable error);
 
 
-        public final void finished(Task commandExecution) {
+        public final void finished(Task task) {
             assertInEventThread("finished");
-            doFinished(commandExecution);
+            doFinished(task);
             throw new TracelessRuntimeException(message);
         }
 
-        public abstract void doFinished(Task commandExecution);
+        public abstract void doFinished(Task task);
 
+    }
+
+    public static class DefaultCompositeCommandTask extends CompositeCommandTask<String>{
+
+        protected String getProgress(int currentCommandId, int totalCommands, Task currentChildCommand) {
+            return currentChildCommand.toString();
+        }
     }
 }
