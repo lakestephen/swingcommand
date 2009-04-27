@@ -33,9 +33,9 @@ import java.util.Collections;
  */
 public abstract class SwingCommand<P> {
 
-    private static ExecutorService DEFAULT_ASYNC_EXECUTOR = Executors.newCachedThreadPool();
+    private static ExecutorService DEFAULT_BACKGROUND_EXECUTOR = Executors.newCachedThreadPool();
     private static Executor DEFAULT_SIMPLE_EXECUTOR = new IfSubThreadInvokeLaterExecutor();
-    private static ExecutorFactory DEFAULT_EXECUTOR_FACTORY = new DefaultExecutorFactory();
+    private ExecutorFactory DEFAULT_EXECUTOR_FACTORY = new DefaultExecutorFactory();
 
     private final List<TaskListener<? super P>> taskListeners = new ArrayList<TaskListener<? super P>>();
 
@@ -112,7 +112,7 @@ public abstract class SwingCommand<P> {
         }
     }
 
-    protected Executor getExecutor(Task task) {
+    private Executor getExecutor(Task task) {
         return DEFAULT_EXECUTOR_FACTORY.getExecutor(task);
     }
 
@@ -164,9 +164,25 @@ public abstract class SwingCommand<P> {
         }
     }
 
-    static class DefaultExecutorFactory implements ExecutorFactory {
+    /**
+     * Subclasses may override this method to return a different default executor for tasks which run
+     * in the event thread. This may, for example, change the behaviour so that the execute method become asynchronous
+     * if called from the event thread (with the call to doInEventThread runnable occuring later on the event queue)
+     */
+    protected Executor getDefaultTaskExecutor() {
+        return DEFAULT_SIMPLE_EXECUTOR;
+    }
+
+    /**
+     * Subclasses may override this method to return a different default executor for background tasks
+     */
+    protected Executor getDefaultBackgroundTaskExecutor() {
+        return DEFAULT_BACKGROUND_EXECUTOR;
+    }
+
+    class DefaultExecutorFactory implements ExecutorFactory {
         public Executor getExecutor(Task e) {
-            return (e instanceof BackgroundTask) ? DEFAULT_ASYNC_EXECUTOR : DEFAULT_SIMPLE_EXECUTOR;
+            return (e instanceof BackgroundTask) ? getDefaultBackgroundTaskExecutor() : getDefaultTaskExecutor();
         }
     }
 

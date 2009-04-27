@@ -29,7 +29,7 @@ public class TaskListenerAdapter<P> implements TaskListener<P> {
 
     public void started(Task task) {}
 
-    public void progress(Task task, P progressDescription) {}
+    public void progress(Task task, P progress) {}
 
     public void success(Task task) {}
 
