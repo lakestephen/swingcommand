@@ -40,16 +40,17 @@ public abstract class Task<P> {
     public abstract void doInEventThread() throws Exception;
 
     public final void cancel() {
-        if ( !cancelled) {
-            cancelled = true;
+        if ( ! isCancelled()) {
             doCancel();
+            cancelled = true;
         }
     }
 
     /**
      * Subclasses which wish to support cancel should override this method
      */
-    protected void doCancel() {}
+    protected void doCancel() {
+    }
 
     public boolean isCancelled() {
         return cancelled;
