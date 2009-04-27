@@ -33,27 +33,22 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public abstract class Task<P> {
 
     private volatile ExecutionState executionState = ExecutionState.NOT_RUN;
-    private volatile boolean cancelled;
     private volatile Throwable executionException;
     private final CopyOnWriteArrayList<TaskListener<? super P>> taskListeners = new CopyOnWriteArrayList<TaskListener<? super P>>();
 
     protected abstract void doInEventThread() throws Exception;
 
-    public final void cancel() {
-        if ( ! isCancelled()) {
-            doCancel();
-            cancelled = true;
-        }
+    /**
+     * Tasks which support cancellation should override this method
+     */
+    public void cancel() {
     }
 
     /**
-     * Subclasses which wish to support cancel should override this method
+     * Tasks which support cancellation should override this method
      */
-    protected void doCancel() {
-    }
-
     public boolean isCancelled() {
-        return cancelled;
+        return false;
     }
 
     public void setExecutionState(ExecutionState executionState) {

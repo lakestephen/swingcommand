@@ -39,13 +39,13 @@ public abstract class CancellableTask extends BackgroundTask {
             if ( ! isCancelled() ) {
                 try {
                     doInBackground();
-                } catch ( InterruptedException ie ) {
+                } catch ( Exception e ) {
                     if ( cancelCalled) {
                         isCancelled = true;
                     } else {
                         //this was not caused by a cancellation therefore
                         //we re-throw the error
-                        throw ie;
+                        throw e;
                     }
                 }
             }
@@ -80,15 +80,29 @@ public abstract class CancellableTask extends BackgroundTask {
         return isCancelled;
     }
 
-    protected void doCancel() {
+    public void cancel() {
+        boolean cancelledThisTime = false;
         synchronized(localLock) {
             cancelCalled = true;
             if ( ! isStarted) {
                 isCancelled = true;
             } else if ( ! isFinished ) {
                 backgroundThread.interrupt();
+                cancelledThisTime = true;
             }
         }
+
+        //give the subclass a chance to do some extra interrupting
+        if ( cancelledThisTime) {
+            doInterrupt();
+        }
+    }
+
+    /**
+     * If calling Thread.interrupt() is not sufficient to interrupt the operation
+     * subclasses may override this method to perform extra actions (e.g Cancel an executing Statement)
+     */
+    protected void doInterrupt() {
     }
 
     protected boolean isInterrupted() {
