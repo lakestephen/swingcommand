@@ -44,8 +44,6 @@ public abstract class Task<P> {
             cancelled = true;
             doCancel();
         }
-
-        TaskListener<P> t = new TaskListenerAdapter<P>();
     }
 
     /**
