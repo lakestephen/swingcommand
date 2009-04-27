@@ -203,7 +203,7 @@ public abstract class SwingCommand<P> {
             //If fireStarting is used, for example, to disable a button, this guarantees that the button will be
             //disabled before the action listener triggering the swingcommand returns.
             //otherwise the user might be able to click the button again before the fireStarting callback
-            task.setExecutionState(ExecutionState.PENDING);
+            task.setExecutionState(Task.ExecutionState.PENDING);
             TaskListenerSupport.firePending(task.getTaskListeners(), task);
 
              executor.execute(new Runnable() {
@@ -216,7 +216,7 @@ public abstract class SwingCommand<P> {
         private void doExecuteTask() {
             //this try block makes sure we always call end up calling fireDone
             try {
-                setExecutionState(ExecutionState.STARTED);
+                setExecutionState(Task.ExecutionState.STARTED);
                 TaskListenerSupport.fireStarted(task.getTaskListeners(), task);
 
                 if ( task instanceof BackgroundTask) {
@@ -229,11 +229,11 @@ public abstract class SwingCommand<P> {
                 //STAGE2 - this needs to be finished on the event thread
                 runDoInEventThread(task);
 
-                setExecutionState(ExecutionState.SUCCESS);
+                setExecutionState(Task.ExecutionState.SUCCESS);
                 TaskListenerSupport.fireSuccess(task.getTaskListeners(), task);
             } catch (Throwable t ) {
                 setTaskException(t);
-                setExecutionState(ExecutionState.ERROR);
+                setExecutionState(Task.ExecutionState.ERROR);
                 TaskListenerSupport.fireError(task.getTaskListeners(), task, t);
             } finally {
                 TaskListenerSupport.fireDone(task.getTaskListeners(), task);
@@ -248,7 +248,7 @@ public abstract class SwingCommand<P> {
             }
         }
 
-        private void setExecutionState(final ExecutionState newState) {
+        private void setExecutionState(final Task.ExecutionState newState) {
             TaskListenerSupport.executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
                     task.setExecutionState(newState);

@@ -17,7 +17,6 @@
 package swingcommand;
 
 import java.util.List;
-import java.util.Arrays;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -110,5 +109,18 @@ public abstract class Task<P> {
      */
     protected void fireProgress(P progress) {
         TaskListenerSupport.fireProgress(taskListeners, this, progress);
+    }
+
+    public static enum ExecutionState {
+
+        NOT_RUN,
+        PENDING,
+        STARTED,
+        SUCCESS,
+        ERROR;
+
+        public boolean isFinalState() {
+            return this == SUCCESS || this == ERROR;
+        }
     }
 }

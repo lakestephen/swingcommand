@@ -49,7 +49,7 @@ public class TestBackgroundTaskErrorInDoInBackground extends AbstractCommandTest
         waitForLatch();
         assertOrdering(8, "end");
 
-        assertEquals(ExecutionState.ERROR, task.getExecutionState());
+        assertEquals(Task.ExecutionState.ERROR, task.getExecutionState());
         assertFalse(isDoInEventThreadCalled);
         assertFalse(isBadListenerMethodCalled);
         assertEquals(testException, task.getExecutionException());
@@ -90,12 +90,12 @@ public class TestBackgroundTaskErrorInDoInBackground extends AbstractCommandTest
         dummyCommand.addTaskListener(new ThreadCheckingTaskListener() {
 
             public void doPending(Task task) {
-                Assert.assertEquals(ExecutionState.PENDING, task.getExecutionState());
+                Assert.assertEquals(Task.ExecutionState.PENDING, task.getExecutionState());
                 assertOrdering(2, "pending");
             }
 
             public void doStarted(Task task) {
-                Assert.assertEquals(ExecutionState.STARTED, task.getExecutionState());
+                Assert.assertEquals(Task.ExecutionState.STARTED, task.getExecutionState());
                 assertOrdering(3, "started");
             }
 
@@ -108,18 +108,18 @@ public class TestBackgroundTaskErrorInDoInBackground extends AbstractCommandTest
             }
 
             public void doError(Task task, Throwable error) {
-                assertEquals(ExecutionState.ERROR, task.getExecutionState());
+                assertEquals(Task.ExecutionState.ERROR, task.getExecutionState());
                 assertOrdering(6, "error");
             }
 
             public void doFinished(Task task) {
-                assertEquals(ExecutionState.ERROR, task.getExecutionState());
+                assertEquals(Task.ExecutionState.ERROR, task.getExecutionState());
                 assertOrdering(7, "finished");
                 latch.countDown();
             }
         });
 
-        assertEquals(ExecutionState.NOT_RUN, task.getExecutionState());
+        assertEquals(Task.ExecutionState.NOT_RUN, task.getExecutionState());
         dummyCommand.execute();
     }
 }

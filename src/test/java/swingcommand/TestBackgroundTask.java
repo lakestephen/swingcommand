@@ -49,7 +49,7 @@ public class TestBackgroundTask extends AbstractCommandTest {
         waitForLatch();
         assertOrdering(10, "end");
 
-        assertEquals(ExecutionState.SUCCESS, task.getExecutionState());
+        assertEquals(Task.ExecutionState.SUCCESS, task.getExecutionState());
         assertFalse(isBadListenerMethodCalled);
         checkOrderingFailureText();
     }
@@ -89,12 +89,12 @@ public class TestBackgroundTask extends AbstractCommandTest {
         dummyCommand.addTaskListener(new ThreadCheckingTaskListener() {
 
             public void doPending(Task task) {
-                Assert.assertEquals(ExecutionState.PENDING, task.getExecutionState());
+                Assert.assertEquals(Task.ExecutionState.PENDING, task.getExecutionState());
                 assertOrdering(2, "pending");
             }
 
             public void doStarted(Task task) {
-                Assert.assertEquals(ExecutionState.STARTED, task.getExecutionState());
+                Assert.assertEquals(Task.ExecutionState.STARTED, task.getExecutionState());
                 assertOrdering(3, "started");
             }
 
@@ -107,7 +107,7 @@ public class TestBackgroundTask extends AbstractCommandTest {
             }
 
             public void doSuccess(Task task) {
-                assertEquals(ExecutionState.SUCCESS, task.getExecutionState());
+                assertEquals(Task.ExecutionState.SUCCESS, task.getExecutionState());
                 assertOrdering(8, "success");
             }
 
@@ -116,13 +116,13 @@ public class TestBackgroundTask extends AbstractCommandTest {
             }
 
             public void doFinished(Task task) {
-                assertEquals(ExecutionState.SUCCESS, task.getExecutionState());
+                assertEquals(Task.ExecutionState.SUCCESS, task.getExecutionState());
                 assertOrdering(9, "finished");
                 latch.countDown();
             }
         });
 
-        assertEquals(ExecutionState.NOT_RUN, task.getExecutionState());
+        assertEquals(Task.ExecutionState.NOT_RUN, task.getExecutionState());
         dummyCommand.execute();
     }
 }
