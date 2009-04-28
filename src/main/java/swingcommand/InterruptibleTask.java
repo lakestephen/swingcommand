@@ -94,15 +94,21 @@ public abstract class InterruptibleTask extends BackgroundTask {
 
         //give the subclass a chance to do some extra interrupting
         if ( cancelledThisTime) {
-            doInterrupt();
+            try {
+                doInterrupt();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
     /**
      * If calling Thread.interrupt() is not sufficient to interrupt the operation
      * subclasses may override this method to perform extra actions (e.g Cancel an executing Statement)
+     *
+     * If this method throws an Exception, a stack track will be printed to standard error
      */
-    protected void doInterrupt() {
+    protected void doInterrupt() throws Exception {
     }
 
     protected boolean isInterrupted() {

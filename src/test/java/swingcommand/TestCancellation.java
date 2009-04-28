@@ -101,6 +101,22 @@ public class TestCancellation extends AbstractCommandTest {
         checkEndStates(true);
     }
 
+    public void testCancelWithFailureFromBackgroundThread() {
+        cancelledTaskFailsIfCancelledNotCalledAndExceptionThrown();
+        checkEndStates(false);
+    }
+
+    public void testCancelWithFailureFromEventThread() {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                cancelledTaskFailsIfCancelledNotCalledAndExceptionThrown();
+            }
+        });
+        checkEndStates(false);
+    }
+
+
+
     private void checkEndStates(boolean expectCancel) {
         waitForLatch();
         if ( expectCancel) {
@@ -108,7 +124,6 @@ public class TestCancellation extends AbstractCommandTest {
         } else {
             assertFalse(" is cancelled", task.isCancelled());
         }
-        assertEquals(Task.ExecutionState.SUCCESS, task.getExecutionState());
         assertFalse(isBadListenerMethodCalled);
         checkFailureText();
     }
@@ -351,6 +366,81 @@ public class TestCancellation extends AbstractCommandTest {
         dummyCommand.execute();
     }
 
+    private void cancelledTaskFailsIfCancelledNotCalledAndExceptionThrown() {
+        final Thread startThread = Thread.currentThread();
+
+        task = new InterruptibleTask() {
+
+            public void doInBackground() throws Exception {
+                assertNotInThread(startThread, "doInBackground");
+                assertNotInEventThread("doInBackground");
+                assertOrdering(4, "doInBackground");
+                assertExpectedState(ExecutionState.STARTED, getExecutionState());
+                fireProgress(DO_IN_BACKGROUND_PROGRESS_TEXT);
+                throw new Exception("Failed without cancel");
+            }
+
+            @Override
+            public void doEvenIfCancelled() throws Exception {
+                assertIsTrue(false, "The task failed, doEvenIfCancelled() should not be called");
+            }
+
+            @Override
+            public void doInEventThreadIfNotCancelled() {
+                assertIsTrue(false, "The task failed, doInEventThreadIfNotCancelled() should not be called");
+            }
+
+        };
+
+        final SwingCommand dummyCommand = new SwingCommand() {
+            protected Task createTask() {
+                assertOrdering(1, "createTask");
+                return task;
+            }
+
+            public String toString() {
+                return "TestBackgroundTask";
+            }
+        };
+
+        dummyCommand.addTaskListener(new ThreadCheckingTaskListener() {
+
+            public void doPending(Task task) {
+                assertExpectedState(Task.ExecutionState.PENDING, task.getExecutionState());
+                assertOrdering(2, "pending");
+            }
+
+            public void doStarted(Task task) {
+                assertExpectedState(Task.ExecutionState.STARTED, task.getExecutionState());
+                assertOrdering(3, "started");
+            }
+
+            public void doProgress(Task task, String progressDescription) {
+                if ( progressDescription.equals(DO_IN_BACKGROUND_PROGRESS_TEXT)) {
+                    assertOrdering(5, DO_IN_BACKGROUND_PROGRESS_TEXT);
+                }
+            }
+
+            public void doSuccess(Task task) {
+                isBadListenerMethodCalled = true;
+            }
+
+            public void doError(Task task, Throwable error) {
+                assertEquals(Task.ExecutionState.ERROR, task.getExecutionState());
+                assertOrdering(6, "doError");
+            }
+
+            public void doFinished(Task task) {
+                assertEquals(Task.ExecutionState.ERROR, task.getExecutionState());
+                assertOrdering(7, "finished");
+                latch.countDown();
+            }
+        });
+
+        assertEquals(Task.ExecutionState.NOT_RUN, task.getExecutionState());
+        dummyCommand.execute();
+    }
+
     interface BlockingRunnable {
         public void run() throws InterruptedException;
     }
@@ -371,6 +461,7 @@ public class TestCancellation extends AbstractCommandTest {
             }
         }
     }
+
 
 
 }

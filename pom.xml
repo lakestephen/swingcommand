@@ -32,10 +32,10 @@
 	
 	<licenses>
 	  <license>
-	    <name>Academic Free License v 3.0</name>
-	    <url>http://www.opensource.org/licenses/academic.php</url>
+	    <name>Apache License Version 2</name>
+	    <url>http://www.apache.org/licenses/</url>
 	    <distribution>repo</distribution>
-	    <comments>A business-friendly free license</comments>
+	    <comments>Apache Open Source License Version 2</comments>
 	  </license>
   </licenses>
   

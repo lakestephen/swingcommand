@@ -17,10 +17,9 @@
 package swingcommand;
 
 import javax.swing.*;
-import java.util.concurrent.Executor;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.*;
 import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+import java.util.concurrent.Executor;
 
 /**
  * Created by IntelliJ IDEA.
@@ -83,7 +82,7 @@ public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
             command.execute(COMPOSITE_EXECUTOR_FACTORY, taskListenerProxy);
 
             if (taskListenerProxy.isErrorOccurred()) {
-                throw new CompositeCommandException(taskListenerProxy.getLastCommandError());
+                throw new CompositeCommandTaskException(taskListenerProxy.getLastCommandError());
             }
 
             if (taskListenerProxy.isLastCommandCancelled()) {
@@ -200,9 +199,9 @@ public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
         }
     }
 
-    private static class CompositeCommandException extends Exception {
+    private static class CompositeCommandTaskException extends Exception {
 
-        private CompositeCommandException(Throwable cause) {
+        private CompositeCommandTaskException(Throwable cause) {
             super("Error while executing composite command", cause);
         }
     }
