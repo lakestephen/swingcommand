@@ -92,6 +92,12 @@ public abstract class Task<P> {
         }
     }
 
+    public void clearTaskListeners() {
+        synchronized (taskListeners) {
+            this.taskListeners.clear();
+        }
+    }
+
     List<TaskListener<? super P>> getTaskListeners() {
         return this.taskListeners;
     }
