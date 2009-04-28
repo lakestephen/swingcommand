@@ -60,7 +60,7 @@ public abstract class AbstractCommandTest extends TestCase {
 
     protected void waitForLatch() {
         try {
-            latch.await(10000, TimeUnit.MILLISECONDS);
+            latch.await(100000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             fail();
             e.printStackTrace();

@@ -87,6 +87,20 @@ public class TestCancellation extends AbstractCommandTest {
         checkEndStates(false);
     }
 
+    public void testCompositeCancelFromBackgroundThread() {
+        testCompositeCancel();
+        checkEndStates(true);
+    }
+
+    public void testCompositeCancelFromEventThread() {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                testCompositeCancel();
+            }
+        });
+        checkEndStates(true);
+    }
+
     private void checkEndStates(boolean expectCancel) {
         waitForLatch();
         if ( expectCancel) {
@@ -99,10 +113,72 @@ public class TestCancellation extends AbstractCommandTest {
         checkFailureText();
     }
 
+    public void testCompositeCancel() {
+
+        final CompositeCommandTask<String> t = new CompositeCommandTask<String>() {
+            protected String getProgress(int currentCommandId, int totalCommands, Task currentChildCommand) {
+                return currentChildCommand.toString();
+            }
+        };
+
+        task = t;
+        t.addCommand(new SwingCommand() {
+            protected Task createTask() {
+                return new InterruptibleTask() {
+                    protected void doInBackground() throws Exception {
+                        new SleepBlockingRunnable().run();
+                    }
+
+                    protected void doInEventThreadIfNotCancelled() {
+                    }
+
+                };
+            }
+        });
+
+        t.addCommand(new SwingCommand() {
+            protected Task createTask() {
+                return new Task() {
+                    protected void doInEventThread() throws Exception {
+                        assertIsTrue(false, "If the composite is cancelled during the first child command execution" +
+                                "this should not be called.");
+                    }
+                };
+            }
+        });
+
+        assertIsTrue(2 == t.getTotalCommands(), "Should be 2 child commands");
+
+        final SwingCommand<String> compositeCommand = new SwingCommand<String>() {
+            protected Task<String> createTask() {
+                assertOrdering(1, "createTask");
+                return t;
+            }
+
+            public String toString() {
+                return "TestCancellableCompositeTask";
+            }
+        };
+
+        compositeCommand.addTaskListener(new TaskListenerAdapter<String>() {
+            public void finished(Task task) {
+                latch.countDown();
+            }
+        });
+        compositeCommand.execute();
+
+        ScheduledExecutorService s = Executors.newSingleThreadScheduledExecutor();
+        s.schedule(new Runnable() {
+            public void run() {
+                t.cancel();
+            }
+        }, 500, TimeUnit.MILLISECONDS);
+    }
+
     private void doCancellationTest(final BlockingRunnable blockingRunnable) {
         final Thread startThread = Thread.currentThread();
 
-        task = new CancellableTask() {
+        task = new InterruptibleTask() {
 
             public void doInBackground() throws Exception {
                 assertNotInThread(startThread, "doInBackground");
@@ -191,7 +267,7 @@ public class TestCancellation extends AbstractCommandTest {
     private void doNoCancellationTest(final BlockingRunnable blockingRunnable) {
         final Thread startThread = Thread.currentThread();
 
-        task = new CancellableTask() {
+        task = new InterruptibleTask() {
 
             public void doInBackground() throws Exception {
                 assertNotInThread(startThread, "doInBackground");
@@ -295,5 +371,6 @@ public class TestCancellation extends AbstractCommandTest {
             }
         }
     }
+
 
 }

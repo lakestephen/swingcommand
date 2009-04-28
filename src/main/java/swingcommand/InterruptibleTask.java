@@ -22,7 +22,7 @@ package swingcommand;
  * Time: 22:29:28
  * To change this template use File | Settings | File Templates.
  */
-public abstract class CancellableTask extends BackgroundTask {
+public abstract class InterruptibleTask extends BackgroundTask {
 
     private volatile boolean isCancelled;
     private boolean cancelCalled;

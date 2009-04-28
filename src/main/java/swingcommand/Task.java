@@ -39,6 +39,7 @@ public abstract class Task<P> {
     protected abstract void doInEventThread() throws Exception;
 
     /**
+     * By default it is not possible to cancel a Task - calling cancel will have no effect
      * Tasks which support cancellation should override this method
      */
     public void cancel() {

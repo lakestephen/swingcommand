@@ -18,6 +18,7 @@ package swingcommand;
 
 import javax.swing.*;
 import java.util.concurrent.Executor;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.*;
 import java.lang.reflect.InvocationTargetException;
 
@@ -38,10 +39,10 @@ public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
     private static final Executor INVOKE_AND_WAIT_EXECUTOR = new IfSubThreadInvokeAndWaitExecutor();
     private static final SwingCommand.ExecutorFactory COMPOSITE_EXECUTOR_FACTORY = new CompositeExecutorFactory();
 
-    private List<SwingCommand> childCommands = new ArrayList<SwingCommand>();
-    private int totalChildCommands = childCommands.size();
-    private int currentCommandId;
+    private final List<SwingCommand> childCommands = new ArrayList<SwingCommand>();
+    private volatile int currentCommandId, totalCommandsExecuting;
     private TaskListenerProxy taskListenerProxy = new TaskListenerProxy();
+    private volatile boolean cancelled;
 
     public CompositeCommandTask() {
     }
@@ -54,6 +55,15 @@ public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
         childCommands.addAll(commands);
     }
 
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    public void cancel() {
+        cancelled = true;
+        taskListenerProxy.cancelCurrentChild();
+    }
+
     /**
      * Execute the child commands here off the swing thread.
      * This will not start a new subthread - the child commands will run synchronously in the parent command's execution thread.
@@ -61,8 +71,11 @@ public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
      * @throws Exception
      */
     public void doInBackground() throws Exception {
+
+        List<SwingCommand> children = getChildCommands();
         currentCommandId = 0;
-        for (final SwingCommand command : childCommands) {
+        totalCommandsExecuting = children.size();
+        for (final SwingCommand command : children) {
             currentCommandId++;
 
             //we are not in event thread here, so this call should be synchronous
@@ -81,21 +94,46 @@ public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
                 break;
             }
         }
+        taskListenerProxy = null;
     }
 
     public void doInEventThread() throws Exception {
     }
 
     public void addCommand(SwingCommand command) {
-        childCommands.add(command);
+        synchronized (childCommands) {
+            childCommands.add(command);
+        }
     }
 
     public void addCommands(SwingCommand... commands) {
-        childCommands.addAll(Arrays.asList(commands));
+        synchronized (childCommands) {
+            childCommands.addAll(Arrays.asList(commands));
+        }
     }
 
     public void addCommands(Collection<SwingCommand> commands) {
-        childCommands.addAll(commands);
+        synchronized (childCommands) {
+            childCommands.addAll(commands);
+        }
+    }
+
+    public void clearChildCommands() {
+        synchronized (childCommands) {
+            childCommands.clear();
+        }
+    }
+
+    public int getTotalCommands() {
+        synchronized (childCommands) {
+            return childCommands.size();
+        }
+    }
+
+    public List<SwingCommand> getChildCommands() {
+        synchronized (childCommands) {
+            return Collections.unmodifiableList(childCommands);
+        }
     }
 
     public Task getCurrentChildTask() {
@@ -104,18 +142,6 @@ public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
 
     public int getCompletedCommandCount() {
         return currentCommandId;
-    }
-
-    public int getTotalCommands() {
-        return totalChildCommands;
-    }
-
-    public List<SwingCommand> getChildCommands() {
-        return Collections.unmodifiableList(childCommands);
-    }
-
-    public void doCancel() {
-        taskListenerProxy.getCurrentChildTask().cancel();
     }
 
     protected abstract P getProgress(int currentCommandId, int totalCommands, Task currentChildCommand);
@@ -136,7 +162,7 @@ public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
         @Override
         public void started(Task task) {
             this.currentChildTask = task;
-            fireProgress(getProgress(currentCommandId, totalChildCommands, task));
+            fireProgress(getProgress(currentCommandId, totalCommandsExecuting, task));
         }
 
         @Override
@@ -164,6 +190,13 @@ public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
 
         public Throwable getLastCommandError() {
             return lastCommandError;
+        }
+
+        public void cancelCurrentChild() {
+            Task currentTask = currentChildTask;
+            if ( currentTask != null) {
+                currentTask.cancel();
+            }
         }
     }
 
