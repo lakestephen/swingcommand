@@ -51,6 +51,57 @@ public class TestCompositeTask extends AbstractCommandTest {
        checkFailureText();
     }
 
+     public void testCompositeFailsOnChildFailure() {
+
+       final DefaultCompositeCommandTask compositeTask = new DefaultCompositeCommandTask();
+
+       compositeTask.addCommand(new SwingCommand() {
+           protected Task createTask() {
+               return new Task() {
+                   protected void doInEventThread() throws Exception {
+                       assertOrdering(1, "First child");
+                   }
+               };
+           }
+       });
+
+       compositeTask.addCommand(new SwingCommand() {
+           protected Task createTask() {
+               return new BackgroundTask() {
+                   protected void doInEventThread() throws Exception {
+                       assertOrdering(2, "Second child");
+                       throw new Exception("Child fails");
+                   }
+
+                   protected void doInBackground() throws Exception {
+                   }
+               };
+           }
+       });
+
+       compositeTask.addCommand(new SwingCommand() {
+           protected Task createTask() {
+               return new Task() {
+                   protected void doInEventThread() throws Exception {
+                       assertIsTrue(false, "This child should not execute, the previous one failed");
+                   }
+               };
+           }
+       });
+
+       SwingCommand compositeCommand = new SwingCommand() {
+           protected Task createTask() {
+               return compositeTask;
+           }
+       };
+
+       //execute the composite synchronously on this junit subthread
+       Task t = compositeCommand.execute(new SynchronousExecutor());
+       assertOrdering(3, "execute returned");
+       checkFailureText();
+       assertEquals(Task.ExecutionState.ERROR, t.getExecutionState());
+    }
+
     private SwingCommand createBackgroundExecutionCommand(final int startCount) {
         return new SwingCommand() {
             protected Task createTask() {

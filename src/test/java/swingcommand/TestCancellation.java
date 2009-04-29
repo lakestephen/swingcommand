@@ -88,28 +88,42 @@ public class TestCancellation extends AbstractCommandTest {
     }
 
     public void testCompositeCancelFromBackgroundThread() {
-        testCompositeCancel();
+        compositeCancel();
         checkEndStates(true);
     }
 
     public void testCompositeCancelFromEventThread() {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                testCompositeCancel();
+                compositeCancel();
+            }
+        });
+        checkEndStates(true);
+    }
+
+    public void testCompositeChildCancelFromBackgroundThread() {
+        compositeCancelOfChildCommand();
+        checkEndStates(true);
+    }
+
+    public void testCompositeChildCancelFromEventThread() {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                compositeCancelOfChildCommand();
             }
         });
         checkEndStates(true);
     }
 
     public void testCancelWithFailureFromBackgroundThread() {
-        cancelledTaskFailsIfCancelledNotCalledAndExceptionThrown();
+        doCancelledTaskFailsIfCancelledNotCalledAndExceptionThrown();
         checkEndStates(false);
     }
 
     public void testCancelWithFailureFromEventThread() {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                cancelledTaskFailsIfCancelledNotCalledAndExceptionThrown();
+                doCancelledTaskFailsIfCancelledNotCalledAndExceptionThrown();
             }
         });
         checkEndStates(false);
@@ -128,8 +142,18 @@ public class TestCancellation extends AbstractCommandTest {
         checkFailureText();
     }
 
-    public void testCompositeCancel() {
+    public void compositeCancel() {
+        final CompositeCommandTask<String> t = doCompositeCommand();
 
+        ScheduledExecutorService s = Executors.newSingleThreadScheduledExecutor();
+        s.schedule(new Runnable() {
+            public void run() {
+                t.cancel();
+            }
+        }, 500, TimeUnit.MILLISECONDS);
+    }
+
+    private CompositeCommandTask<String> doCompositeCommand() {
         final CompositeCommandTask<String> t = new CompositeCommandTask<String>() {
             protected String getProgress(int currentCommandId, int totalCommands, Task currentChildCommand) {
                 return currentChildCommand.toString();
@@ -181,11 +205,18 @@ public class TestCancellation extends AbstractCommandTest {
             }
         });
         compositeCommand.execute();
+        return t;
+    }
+
+    public void compositeCancelOfChildCommand() {
+
+        final CompositeCommandTask<String> t = doCompositeCommand();
 
         ScheduledExecutorService s = Executors.newSingleThreadScheduledExecutor();
         s.schedule(new Runnable() {
             public void run() {
-                t.cancel();
+                //cancel by cancelling the currently running child command
+                t.getCurrentChildTask().cancel();
             }
         }, 500, TimeUnit.MILLISECONDS);
     }
@@ -366,7 +397,7 @@ public class TestCancellation extends AbstractCommandTest {
         dummyCommand.execute();
     }
 
-    private void cancelledTaskFailsIfCancelledNotCalledAndExceptionThrown() {
+    private void doCancelledTaskFailsIfCancelledNotCalledAndExceptionThrown() {
         final Thread startThread = Thread.currentThread();
 
         task = new InterruptibleTask() {

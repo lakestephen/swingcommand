@@ -64,9 +64,7 @@ public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
     }
 
     /**
-     * Execute the child commands here off the swing thread.
-     * This will not start a new subthread - the child commands will run synchronously in the parent command's execution thread.
-     *
+     * Execute the child commands
      * @throws Exception
      */
     public void doInBackground() throws Exception {
@@ -77,8 +75,6 @@ public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
         for (final SwingCommand command : children) {
             currentCommandId++;
 
-            //we are not in event thread here, so this call should be synchronous
-            //noinspection unchecked
             command.execute(COMPOSITE_EXECUTOR_FACTORY, taskListenerProxy);
 
             if (taskListenerProxy.isErrorOccurred()) {
@@ -228,8 +224,6 @@ public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
             if (SwingUtilities.isEventDispatchThread()) {
                 command.run();
             } else {
-                //if command kicked off on a subthread we don't want to block it on the event thread
-                //longer than necessary for performance reasons, so use invoke later rather than invokeAndWait
                 try {
                     SwingUtilities.invokeAndWait(command);
                 } catch (InterruptedException e) {
