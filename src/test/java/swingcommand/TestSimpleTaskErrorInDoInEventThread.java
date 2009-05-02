@@ -101,6 +101,10 @@ public class TestSimpleTaskErrorInDoInEventThread extends AbstractCommandTest {
                 assertEquals(Task.ExecutionState.ERROR, task.getExecutionState());
                 assertOrdering(6, "doError");
             }
+                        
+            public void cancelled(Task task) {
+                isBadListenerMethodCalled = true;
+            }
 
             public void doFinished(Task task) {
                 assertEquals(Task.ExecutionState.ERROR, task.getExecutionState());

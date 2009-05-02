@@ -299,8 +299,13 @@ public abstract class SwingCommand<P,E> {
                 //STAGE2 - this needs to be finished on the event thread
                 runDoInEventThread(task);
 
-                setExecutionState(Task.ExecutionState.SUCCESS);
-                TaskListenerSupport.fireSuccess(task.getTaskListeners(), task);
+                if ( task.isCancelled() ) {
+                    setExecutionState(Task.ExecutionState.CANCELLED);
+                    TaskListenerSupport.fireCancelled(task.getTaskListeners(), task);
+                } else {
+                    setExecutionState(Task.ExecutionState.SUCCESS);
+                    TaskListenerSupport.fireSuccess(task.getTaskListeners(), task);                    
+                }
             } catch (Throwable t ) {
                 setTaskException(t);
                 setExecutionState(Task.ExecutionState.ERROR);

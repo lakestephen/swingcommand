@@ -110,11 +110,16 @@ public class TestBackgroundTaskErrorInDoInBackground extends AbstractCommandTest
                 assertOrdering(6, "error");
             }
 
+            public void cancelled(Task task) {
+                isBadListenerMethodCalled = true;
+            }
+
             public void doFinished(Task task) {
                 assertEquals(Task.ExecutionState.ERROR, task.getExecutionState());
                 assertOrdering(7, "finished");
                 latch.countDown();
             }
+
         });
 
         assertEquals(Task.ExecutionState.NOT_RUN, task.getExecutionState());

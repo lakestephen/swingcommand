@@ -53,6 +53,10 @@ public abstract class Task<P,E> {
         return false;
     }
 
+    public boolean canCancel() {
+        return false;
+    }
+
     public void setParameters(P parameters) {
         this.parameters = parameters;
     }
@@ -127,10 +131,11 @@ public abstract class Task<P,E> {
         PENDING,
         STARTED,
         SUCCESS,
-        ERROR;
+        ERROR,
+        CANCELLED;
 
         public boolean isFinalState() {
-            return this == SUCCESS || this == ERROR;
+            return this == SUCCESS || this == ERROR || this == CANCELLED;
         }
     }
 }

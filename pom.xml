@@ -27,7 +27,7 @@
 	<name>swingcommand</name>
 	<description>SwingCommand library for asynchronous Swing commands</description>
 	<packaging>jar</packaging>
-	<version>2.6</version>
+	<version>2.7</version>
 	<build/>
 	
 	<licenses>

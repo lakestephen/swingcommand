@@ -121,6 +121,10 @@ public class TestSimpleTask extends AbstractCommandTest {
                 isBadListenerMethodCalled = true;
             }
 
+            public void cancelled(Task task) {
+                isBadListenerMethodCalled = true;
+            }
+
             public void doFinished(Task task) {
                 assertEquals(Task.ExecutionState.SUCCESS, task.getExecutionState());
                 assertOrdering(7, "finished");

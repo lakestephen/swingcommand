@@ -26,7 +26,7 @@ public abstract class InterruptibleTask<P,E> extends BackgroundTask<P,E> {
 
     private volatile boolean isCancelled;
     private boolean cancelCalled;
-    private boolean isStarted, isFinished;
+    private boolean isBackgroundStarted, isBackgroundFinished;
     private Thread backgroundThread;
     private final Object localLock = new Object();
 
@@ -34,7 +34,7 @@ public abstract class InterruptibleTask<P,E> extends BackgroundTask<P,E> {
         try {
             synchronized (localLock) {
                 backgroundThread = Thread.currentThread();
-                isStarted = true;
+                isBackgroundStarted = true;
             }
             if ( ! isCancelled() ) {
                 try {
@@ -53,9 +53,13 @@ public abstract class InterruptibleTask<P,E> extends BackgroundTask<P,E> {
             synchronized (localLock) {
                 backgroundThread = null;
                 isCancelled |= (cancelCalled && Thread.interrupted());
-                isFinished = true;
+                isBackgroundFinished = true;
             }
         }
+    }
+
+    public boolean canCancel() {
+        return ! isBackgroundFinished;
     }
 
      /**
@@ -84,9 +88,9 @@ public abstract class InterruptibleTask<P,E> extends BackgroundTask<P,E> {
         boolean cancelledThisTime = false;
         synchronized(localLock) {
             cancelCalled = true;
-            if ( ! isStarted) {
+            if ( !isBackgroundStarted) {
                 isCancelled = true;
-            } else if ( ! isFinished ) {
+            } else if ( !isBackgroundFinished) {
                 backgroundThread.interrupt();
                 cancelledThisTime = true;
             }

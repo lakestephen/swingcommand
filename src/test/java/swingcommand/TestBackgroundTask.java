@@ -137,6 +137,10 @@ public class TestBackgroundTask extends AbstractCommandTest {
                 assertOrdering(9, "finished");
                 latch.countDown();
             }
+
+            public void cancelled(Task task) {
+                isBadListenerMethodCalled = true;
+            }
         });
 
         assertEquals(Task.ExecutionState.NOT_RUN, task.getExecutionState());

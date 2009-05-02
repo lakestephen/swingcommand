@@ -63,6 +63,10 @@ public abstract class CompositeCommandTask<P,E> extends BackgroundTask<P,E> {
         taskListenerProxy.cancelCurrentChild();
     }
 
+    public boolean canCancel() {
+        return ! getExecutionState().isFinalState();
+    }
+
     /**
      * Execute the child commands
      * @throws Exception

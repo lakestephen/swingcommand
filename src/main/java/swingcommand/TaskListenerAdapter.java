@@ -35,5 +35,7 @@ public class TaskListenerAdapter<E> implements TaskListener<E> {
 
     public void error(Task task, Throwable error) {}
 
+    public void cancelled(Task task) {}
+
     public void finished(Task task) {}
 }

@@ -30,8 +30,8 @@ class TaskListenerSupport {
 
     //pending is fired on the event thread using invoke later to avoid blocking a background thread which calls execute()
     //on the swing event queue (this can have very bad performance effects on busy background threads)
-    static <P,E> void firePending(final List<TaskListener<? super E>> executionObservers, final Task<P,E> task) {
-        for (final TaskListener<? super E> listener : executionObservers) {
+    static <P,E> void firePending(final List<TaskListener<? super E>> listeners, final Task<P,E> task) {
+        for (final TaskListener<? super E> listener : listeners) {
             executeAsynchronouslyIfBackgroundThread(new Runnable(){
                 public void run() {
                     listener.pending(task);
@@ -40,8 +40,8 @@ class TaskListenerSupport {
         }
     }
 
-    static <P,E> void fireStarted(final List<TaskListener<? super E>> executionObservers, final Task<P,E> task) {
-        for (final TaskListener<? super E> listener : executionObservers) {
+    static <P,E> void fireStarted(final List<TaskListener<? super E>> listeners, final Task<P,E> task) {
+        for (final TaskListener<? super E> listener : listeners) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
                     listener.started(task);
@@ -50,8 +50,8 @@ class TaskListenerSupport {
         }
     }
 
-    static <P,E> void fireFinished(final List<TaskListener<? super E>> executionObservers, final Task<P,E> task) {
-        for (final TaskListener<? super E> listener : executionObservers) {
+    static <P,E> void fireFinished(final List<TaskListener<? super E>> listeners, final Task<P,E> task) {
+        for (final TaskListener<? super E> listener : listeners) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
                     listener.finished(task);
@@ -60,8 +60,8 @@ class TaskListenerSupport {
         }
     }
 
-    static <P,E> void fireError(final List<TaskListener<? super E>> executionObservers, final Task<P,E> task, final Throwable t) {
-        for (final TaskListener<? super E> listener : executionObservers) {
+    static <P,E> void fireError(final List<TaskListener<? super E>> listeners, final Task<P,E> task, final Throwable t) {
+        for (final TaskListener<? super E> listener : listeners) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
                     listener.error(task, t);
@@ -70,8 +70,8 @@ class TaskListenerSupport {
         }
     }
 
-    static <P,E> void fireProgress(final List<TaskListener<? super E>> executionObservers, final Task<P,E> task, final E progress) {
-        for (final TaskListener<? super E> listener : executionObservers) {
+    static <P,E> void fireProgress(final List<TaskListener<? super E>> listeners, final Task<P,E> task, final E progress) {
+        for (final TaskListener<? super E> listener : listeners) {
             executeAsynchronouslyIfBackgroundThread(new Runnable(){
                 public void run() {
                     //this synchronized block is to handle the case where the event thread might not otherwise
@@ -85,9 +85,18 @@ class TaskListenerSupport {
         }
     }
 
+    static <P,E> void fireCancelled(List<TaskListener<? super E>> listeners, final Task<P,E> task) {
+        for (final TaskListener<? super E> listener : listeners) {
+            executeSynchronouslyOnEventThread(new Runnable(){
+                public void run() {
+                    listener.cancelled(task);
+                }
+            });
+        }
+    }
 
-    static <P,E> void fireSuccess(List<TaskListener<? super E>> executionObservers, final Task<P,E> task) {
-        for (final TaskListener<? super E> listener : executionObservers) {
+    static <P,E> void fireSuccess(List<TaskListener<? super E>> listeners, final Task<P,E> task) {
+        for (final TaskListener<? super E> listener : listeners) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
                     listener.success(task);

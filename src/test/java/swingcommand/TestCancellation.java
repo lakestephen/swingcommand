@@ -139,6 +139,7 @@ public class TestCancellation extends AbstractCommandTest {
             assertFalse(" is cancelled", task.isCancelled());
         }
         assertFalse(isBadListenerMethodCalled);
+        assertFalse(task.canCancel());
         checkFailureText();
     }
 
@@ -204,6 +205,9 @@ public class TestCancellation extends AbstractCommandTest {
                 latch.countDown();
             }
         });
+
+        assertIsTrue(t.canCancel(), "Can Cancel");
+
         compositeCommand.execute();
         return t;
     }
@@ -283,22 +287,29 @@ public class TestCancellation extends AbstractCommandTest {
             }
 
             public void doSuccess(Task task) {
-                assertEquals(Task.ExecutionState.SUCCESS, task.getExecutionState());
-                assertOrdering(8, "success");
+                isBadListenerMethodCalled = true;
             }
 
             public void doError(Task task, Throwable error) {
                 isBadListenerMethodCalled = true;
             }
 
+            public void cancelled(Task task) {
+                assertEquals(Task.ExecutionState.CANCELLED, task.getExecutionState());
+                assertOrdering(8, "cancelled");
+            }
+
             public void doFinished(Task task) {
-                assertEquals(Task.ExecutionState.SUCCESS, task.getExecutionState());
+                assertEquals(Task.ExecutionState.CANCELLED, task.getExecutionState());
                 assertOrdering(9, "finished");
                 latch.countDown();
             }
         });
 
         assertEquals(Task.ExecutionState.NOT_RUN, task.getExecutionState());
+
+        assertIsTrue(task.canCancel(), "Can Cancel");
+
         dummyCommand.execute();
 
         ScheduledExecutorService s = Executors.newSingleThreadScheduledExecutor();
@@ -386,6 +397,10 @@ public class TestCancellation extends AbstractCommandTest {
                 isBadListenerMethodCalled = true;
             }
 
+            public void cancelled(Task task) {
+                isBadListenerMethodCalled = true;
+            }
+
             public void doFinished(Task task) {
                 assertEquals(Task.ExecutionState.SUCCESS, task.getExecutionState());
                 assertOrdering(11, "finished");
@@ -459,6 +474,10 @@ public class TestCancellation extends AbstractCommandTest {
             public void doError(Task task, Throwable error) {
                 assertEquals(Task.ExecutionState.ERROR, task.getExecutionState());
                 assertOrdering(6, "doError");
+            }
+
+            public void cancelled(Task task) {
+                isBadListenerMethodCalled = true;
             }
 
             public void doFinished(Task task) {

@@ -48,21 +48,29 @@ public interface TaskListener<P> {
     void progress(Task task, P progress);
 
     /**
-     * This callback takes place once a command has successfully completed.
-     * If an exception is generated during the doInBackground or doInEventThread methods,
-     * this callback will not occur. In this case, a callback to error() will occur instead
+     * Called when the task reaches the SUCCESS end state
+     * This callback takes place once a command has successfully completed, was not cancelled, and did not
+     * throw an Exception resulting in a callback to error()
      */
     void success(Task task);
 
     /**
+     * Called when the task reaches the ERROR end state
      * This callback takes place if an exception is raised during task execution, which prevents
-     * successful completion. If this callback occurs, the callback to success will not occur.
+     * successful completion, and the task was not cancelled.
      */
     void error(Task task, Throwable error);
 
     /**
-     * This callback always takes place once the task has finished, whether or not the task executed
-     * successfully or generated errors during doInBackground or doInEventThread methods
+     * Called when the task reaches the CANCELLED end state
+     * This callback takes place if the task is cancelled.
+     * @param task
+     */
+    void cancelled(Task task);
+
+    /**
+     * This callback always takes place once the task has finished, whether or not the task finishes in ERROR,
+     * SUCCESS or CANCELLED states
      */
     void finished(Task task);
 }
