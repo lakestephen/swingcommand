@@ -134,9 +134,27 @@ public abstract class SwingCommand<P,E> {
         return l;
     }
 
-    private Task<P,E> doCreateTask() {
+    //by default we create the Task on the Swing Event thread. Some commnands may access Swing components during
+    //createTask and this would not be threadsafe otherwise. For background commands which want to create Tasks
+    //on the background thread for performance reasons, to avoid blocking on invokeAndWait(), this method can be
+    //overriden to create the task on the calling thread instead.
+    protected Task<P,E> doCreateTask() {
         try {
-            return createTask();
+            class CreateTaskRunnable implements Runnable {
+                Task<P,E> t;
+
+                public void run() {
+                  t = createTask();
+                }
+            }
+            CreateTaskRunnable c = new CreateTaskRunnable();
+
+            if ( ! SwingUtilities.isEventDispatchThread()) {
+                SwingUtilities.invokeAndWait(c);
+            } else {
+              c.run();
+            }
+            return c.t;
         } catch ( Throwable t) {
             throw new SwingCommandRuntimeException("Failed to run SwingCommand, createTask() threw an exeception", t);
         }

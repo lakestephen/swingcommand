@@ -70,7 +70,7 @@ public class TestSimpleTaskErrorInDoInEventThread extends AbstractCommandTest {
 
         SwingCommand<Object,String> c = new SwingCommand<Object,String>() {
             protected Task<Object,String> createTask() {
-                assertInThread(startThread, "createTask");
+                assertInEventThread("createTask not in event thread");
                 assertOrdering(1, "createTask");
                 return task;
             }

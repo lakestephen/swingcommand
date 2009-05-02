@@ -75,7 +75,7 @@ public class TestBackgroundTaskErrorInDoInBackground extends AbstractCommandTest
 
         final SwingCommand<Object,String> dummyCommand = new SwingCommand<Object,String>() {
             protected Task<Object,String> createTask() {
-                assertInThread(startThread, "createTask in start thread");
+                assertInEventThread("createTask not in event thread");
                 assertOrdering(1, "createTask");
                 return task;
             }

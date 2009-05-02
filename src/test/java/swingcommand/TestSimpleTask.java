@@ -89,7 +89,7 @@ public class TestSimpleTask extends AbstractCommandTest {
 
         SwingCommand<String,String> c = new SwingCommand<String,String>() {
             protected Task<String,String> createTask() {
-                assertInThread(startThread, "createTask");
+                assertInEventThread("createTask not in event thread");
                 assertOrdering(1, "createTask");
                 return task;
             }
