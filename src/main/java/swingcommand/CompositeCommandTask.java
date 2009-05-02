@@ -27,16 +27,16 @@ import java.util.concurrent.Executor;
  * Date: 23-Apr-2009
  * Time: 10:55:25
  */
-public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
+public abstract class CompositeCommandTask<P,E> extends BackgroundTask<P,E> {
 
-    private static final Executor SYNCHRONOUS_EXECUTOR = new Executor() {
+    protected static final Executor SYNCHRONOUS_EXECUTOR = new Executor() {
         public void execute(Runnable command) {
             command.run();
         }
     };
 
-    private static final Executor INVOKE_AND_WAIT_EXECUTOR = new IfSubThreadInvokeAndWaitExecutor();
-    private static final SwingCommand.ExecutorFactory COMPOSITE_EXECUTOR_FACTORY = new CompositeExecutorFactory();
+    protected static final Executor INVOKE_AND_WAIT_EXECUTOR = new IfSubThreadInvokeAndWaitExecutor();
+    protected static final SwingCommand.ExecutorFactory COMPOSITE_EXECUTOR_FACTORY = new CompositeExecutorFactory();
 
     private final List<SwingCommand> childCommands = new ArrayList<SwingCommand>();
     private volatile int currentCommandId, totalCommandsExecuting;
@@ -75,7 +75,7 @@ public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
         for (final SwingCommand command : children) {
             currentCommandId++;
 
-            command.execute(COMPOSITE_EXECUTOR_FACTORY, taskListenerProxy);
+            excecuteChildCommand(command);
 
             if (taskListenerProxy.isErrorOccurred()) {
                 throw new CompositeCommandTaskException(taskListenerProxy.getLastCommandError());
@@ -90,6 +90,11 @@ public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
             }
         }
         taskListenerProxy = null;
+    }
+
+    //subclasses could override this to pass in parameters etc.
+    protected void excecuteChildCommand(SwingCommand command) {
+        command.execute(COMPOSITE_EXECUTOR_FACTORY, taskListenerProxy);
     }
 
     public void doInEventThread() throws Exception {
@@ -139,7 +144,7 @@ public abstract class CompositeCommandTask<P> extends BackgroundTask<P> {
         return currentCommandId;
     }
 
-    protected abstract P getProgress(int currentCommandId, int totalCommands, Task currentChildCommand);
+    protected abstract E getProgress(int currentCommandId, int totalCommands, Task currentChildCommand);
 
     /**
      * Receives execution observer events from child commands and fires step reached events to

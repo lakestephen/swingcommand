@@ -27,7 +27,7 @@ import javax.swing.*;
  */
 public class TestBackgroundTaskErrorInDoInBackground extends AbstractCommandTest {
 
-    private BackgroundTask<String> task;
+    private BackgroundTask<Object,String> task;
 
     public void testBackgroundTaskErrorInBackgroundFromBackgroundThread() {
         doTest();
@@ -57,7 +57,7 @@ public class TestBackgroundTaskErrorInDoInBackground extends AbstractCommandTest
     private void doTest() {
         final Thread startThread = Thread.currentThread();
 
-        task = new BackgroundTask<String>() {
+        task = new BackgroundTask<Object,String>() {
             public void doInBackground() throws Exception {
                 assertNotInThread(startThread, "doInBackgroundNotInStartThread");
                 assertNotInEventThread("doInBackground");
@@ -73,8 +73,8 @@ public class TestBackgroundTaskErrorInDoInBackground extends AbstractCommandTest
             }
         };
 
-        final SwingCommand<String> dummyCommand = new SwingCommand<String>() {
-            protected Task<String> createTask() {
+        final SwingCommand<Object,String> dummyCommand = new SwingCommand<Object,String>() {
+            protected Task<Object,String> createTask() {
                 assertInThread(startThread, "createTask in start thread");
                 assertOrdering(1, "createTask");
                 return task;

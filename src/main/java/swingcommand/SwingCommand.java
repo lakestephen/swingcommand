@@ -31,13 +31,13 @@ import java.util.Collections;
  * Time: 19:50:53
  * 
  */
-public abstract class SwingCommand<P> {
+public abstract class SwingCommand<P,E> {
 
     private static ExecutorService DEFAULT_BACKGROUND_EXECUTOR = Executors.newCachedThreadPool();
     private static Executor DEFAULT_SIMPLE_EXECUTOR = new IfSubThreadInvokeLaterExecutor();
     private ExecutorFactory DEFAULT_EXECUTOR_FACTORY = new DefaultExecutorFactory();
 
-    private final List<TaskListener<? super P>> taskListeners = new ArrayList<TaskListener<? super P>>();
+    private final List<TaskListener<? super E>> taskListeners = new ArrayList<TaskListener<? super E>>();
 
     private volatile Executor executor;
 
@@ -58,53 +58,83 @@ public abstract class SwingCommand<P> {
         this.executor = executor;
     }
 
-    public Task<P> execute() {
-        return execute(executor, Collections.EMPTY_LIST);
+    public Task<P,E> execute() {
+        return execute(null, executor, null);
     }
 
-    public Task<P> execute(Executor executor) {
-        return execute(executor, Collections.EMPTY_LIST);
+    public Task<P,E> execute(Executor executor) {
+        return execute(null, executor, null);
     }
 
-    public Task<P> execute(ExecutorFactory executorFactory) {
-        return execute(executorFactory, Collections.EMPTY_LIST);
+    public Task<P,E> execute(ExecutorFactory executorFactory) {
+        return execute(null, executorFactory, null);
     }
 
-    public Task<P> execute(TaskListener<? super P> taskListener) {
+    public Task<P,E> execute(TaskListener<? super E> taskListener) {
         return execute(executor, taskListener);
     }
 
-    public Task<P> execute(Executor executor, TaskListener<? super P> taskListener) {
-        return execute(executor, getList(taskListener));
+    public Task<P,E> execute(Executor executor, TaskListener<? super E> taskListener) {
+        return execute(null, executor, taskListener);
     }
 
-    public Task<P> execute(ExecutorFactory executorFactory, TaskListener<? super P> taskListener) {
-        return execute(executorFactory, getList(taskListener));
+    public Task<P,E> execute(ExecutorFactory executorFactory, TaskListener<? super E> taskListener) {
+        return execute(null, executorFactory, taskListener);
     }
 
-    public Task<P> execute(Executor executor, List<TaskListener<? super P>> taskListeners) {
-        Task<P> task = doCreateTask();
+    public Task<P,E> execute(P parameters) {
+        return execute(parameters, executor, null);
+    }
+
+    public Task<P,E> execute(P parameters, Executor executor) {
+        return execute(parameters, executor, null);
+    }
+
+    public Task<P,E> execute(P parameters, ExecutorFactory executorFactory) {
+        return execute(parameters, executorFactory, null);
+    }
+
+    public Task<P,E> execute(P parameters, TaskListener<? super E> taskListener) {
+        return execute(parameters, executor, taskListener);
+    }
+
+    public Task<P,E> execute(P parameters, Executor executor, TaskListener<? super E> taskListener) {
+        Task<P, E> task = createTaskAndSetParams(parameters);
+
+        //use the supplied Executor or the default, if null
         if (executor == null) {
             executor = getExecutor(task);
         }
-        executeCommand(executor, task, taskListeners);
+
+        executeCommand(executor, task, taskListener);
         return task;
     }
 
-    public Task<P> execute(ExecutorFactory executorFactory, List<TaskListener<? super P>> taskListeners) {
-        Task<P> task = doCreateTask();
+    public Task<P,E> execute(P parameters, ExecutorFactory executorFactory, TaskListener<? super E> taskListener) {
+        Task<P, E> task = createTaskAndSetParams(parameters);
+        
+        //use the ExecutorFactory to create an Executor based on the Task
         Executor executor = executorFactory.getExecutor(task);
-        executeCommand(executor, task, taskListeners);
+
+        executeCommand(executor, task, taskListener);
         return task;
     }
 
-    private List<TaskListener<? super P>> getList(TaskListener<? super P> taskListener) {
-        List<TaskListener<? super P>> l = new ArrayList<TaskListener<? super P>>();
+    private Task<P, E> createTaskAndSetParams(P parameters) {
+        Task<P,E> task = doCreateTask();
+        if ( parameters != null) {
+            task.setParameters(parameters);
+        }
+        return task;
+    }
+
+    private List<TaskListener<? super E>> getList(TaskListener<? super E> taskListener) {
+        List<TaskListener<? super E>> l = new ArrayList<TaskListener<? super E>>();
         l.add(taskListener);
         return l;
     }
 
-    private Task<P> doCreateTask() {
+    private Task<P,E> doCreateTask() {
         try {
             return createTask();
         } catch ( Throwable t) {
@@ -116,35 +146,39 @@ public abstract class SwingCommand<P> {
         return DEFAULT_EXECUTOR_FACTORY.getExecutor(task);
     }
 
-    public final void addTaskListener(TaskListener<? super P> taskListener) {
+    public final void addTaskListener(TaskListener<? super E> taskListener) {
         synchronized (this.taskListeners) {
             this.taskListeners.add(taskListener);
         }
     }
 
-    public final void removeTaskListener(TaskListener<? super P> taskListener) {
+    public final void removeTaskListener(TaskListener<? super E> taskListener) {
         synchronized (this.taskListeners) {
             this.taskListeners.remove(taskListener);
         }
     }
 
-    private List<TaskListener<? super P>> getListenerSnapshot()  {
+    private List<TaskListener<? super E>> getListenerSnapshot()  {
         synchronized (taskListeners) {
-            return new ArrayList<TaskListener<? super P>>(taskListeners);
+            return new ArrayList<TaskListener<? super E>>(taskListeners);
         }
     }
 
     /**
      * @return an Execution for this asynchronous command
      */
-    protected abstract Task<P> createTask();
+    protected abstract Task<P,E> createTask();
 
 
-    private void executeCommand(Executor executor, Task<P> execution, List<TaskListener<? super P>> taskListeners) {
+    private void executeCommand(Executor executor, Task<P,E> execution, TaskListener<? super E> taskListener) {
 
         //get a snapshot list of the execution observers which will receive the events for this execution
-        final List<TaskListener<? super P>> allListeners = getListenerSnapshot();
-        allListeners.addAll(taskListeners);
+        final List<TaskListener<? super E>> allListeners = getListenerSnapshot();
+
+        //add invocation listener if supplied
+        if ( taskListener != null) {
+            allListeners.add(taskListener);
+        }
 
         //create a new execution controller for this execution
         ExecutionManager executionManager = new ExecutionManager(executor, execution, allListeners);
@@ -194,10 +228,10 @@ public abstract class SwingCommand<P> {
     class ExecutionManager {
 
         private final Executor executor;
-        private final Task<P> task;
-        private final List<TaskListener<? super P>> taskListeners;
+        private final Task<P,E> task;
+        private final List<TaskListener<? super E>> taskListeners;
 
-        public ExecutionManager(Executor executor, Task<P> task, List<TaskListener<? super P>> taskListeners) {
+        public ExecutionManager(Executor executor, Task<P,E> task, List<TaskListener<? super E>> taskListeners) {
             this.executor = executor;
             this.task = task;
             this.taskListeners = taskListeners;

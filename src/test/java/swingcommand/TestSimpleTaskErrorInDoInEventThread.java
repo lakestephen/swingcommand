@@ -27,7 +27,7 @@ import javax.swing.*;
  */
 public class TestSimpleTaskErrorInDoInEventThread extends AbstractCommandTest {
 
-    private Task<String> task;
+    private Task<Object,String> task;
 
     public void testSwingTaskFromBackgroundThread() {
         doTask();
@@ -57,7 +57,7 @@ public class TestSimpleTaskErrorInDoInEventThread extends AbstractCommandTest {
     private Task doTask() {
         final Thread startThread = Thread.currentThread();
 
-        task = new Task<String>() {
+        task = new Task<Object,String>() {
             public void doInEventThread() throws Exception {
                 assertOrdering(4, "doInEventThread");
                 assertInEventThread("doInEventThread");
@@ -68,8 +68,8 @@ public class TestSimpleTaskErrorInDoInEventThread extends AbstractCommandTest {
             }
         };
 
-        SwingCommand<String> c = new SwingCommand<String>() {
-            protected Task<String> createTask() {
+        SwingCommand<Object,String> c = new SwingCommand<Object,String>() {
+            protected Task<Object,String> createTask() {
                 assertInThread(startThread, "createTask");
                 assertOrdering(1, "createTask");
                 return task;

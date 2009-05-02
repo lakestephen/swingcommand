@@ -41,6 +41,7 @@ public abstract class AbstractCommandTest extends TestCase {
     protected CountDownLatch latch;
     protected RuntimeException testException;
     protected boolean isDoInEventThreadCalled;
+    protected String testParameter = "Test Parameter";
 
     public final void setUp() {
         isDoInEventThreadCalled = false;
@@ -125,7 +126,7 @@ public abstract class AbstractCommandTest extends TestCase {
     }
 
 
-    class DummyBackgroundTask extends BackgroundTask<String> {
+    class DummyBackgroundTask extends BackgroundTask<Object,String> {
         public void doInBackground() throws Exception {}
 
         public void doInEventThread() throws Exception {}
@@ -221,7 +222,7 @@ public abstract class AbstractCommandTest extends TestCase {
 
     }
 
-    public static class DefaultCompositeCommandTask extends CompositeCommandTask<String>{
+    public static class DefaultCompositeCommandTask extends CompositeCommandTask<Object,String>{
 
         protected String getProgress(int currentCommandId, int totalCommands, Task currentChildCommand) {
             return currentChildCommand.toString();

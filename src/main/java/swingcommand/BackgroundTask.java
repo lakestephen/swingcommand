@@ -25,7 +25,7 @@ package swingcommand;
  *
  * A Task which runs partly in a background thread
  */
-public abstract class BackgroundTask<P> extends Task<P> {
+public abstract class BackgroundTask<P,E> extends Task<P,E> {
 
     protected void doBackgroundProcessing() throws Exception {
         doInBackground();

@@ -143,7 +143,7 @@ public class TestCancellation extends AbstractCommandTest {
     }
 
     public void compositeCancel() {
-        final CompositeCommandTask<String> t = doCompositeCommand();
+        final CompositeCommandTask<Object,String> t = doCompositeCommand();
 
         ScheduledExecutorService s = Executors.newSingleThreadScheduledExecutor();
         s.schedule(new Runnable() {
@@ -153,8 +153,8 @@ public class TestCancellation extends AbstractCommandTest {
         }, 500, TimeUnit.MILLISECONDS);
     }
 
-    private CompositeCommandTask<String> doCompositeCommand() {
-        final CompositeCommandTask<String> t = new CompositeCommandTask<String>() {
+    private CompositeCommandTask<Object,String> doCompositeCommand() {
+        final CompositeCommandTask<Object,String> t = new CompositeCommandTask<Object,String>() {
             protected String getProgress(int currentCommandId, int totalCommands, Task currentChildCommand) {
                 return currentChildCommand.toString();
             }
@@ -188,8 +188,8 @@ public class TestCancellation extends AbstractCommandTest {
 
         assertIsTrue(2 == t.getTotalCommands(), "Should be 2 child commands");
 
-        final SwingCommand<String> compositeCommand = new SwingCommand<String>() {
-            protected Task<String> createTask() {
+        final SwingCommand<Object,String> compositeCommand = new SwingCommand<Object,String>() {
+            protected Task<Object,String> createTask() {
                 assertOrdering(1, "createTask");
                 return t;
             }
@@ -210,7 +210,7 @@ public class TestCancellation extends AbstractCommandTest {
 
     public void compositeCancelOfChildCommand() {
 
-        final CompositeCommandTask<String> t = doCompositeCommand();
+        final CompositeCommandTask<Object,String> t = doCompositeCommand();
 
         ScheduledExecutorService s = Executors.newSingleThreadScheduledExecutor();
         s.schedule(new Runnable() {

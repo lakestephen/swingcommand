@@ -27,10 +27,10 @@ import javax.swing.*;
  */
 public class TestSimpleTask extends AbstractCommandTest {
 
-    private Task<String> task;
+    private Task<String,String> task;
 
     public void testSwingTaskFromBackgroundThread() {
-        doTask();
+        doSimpleTask();
         checkPostConditions();
     }
 
@@ -38,12 +38,29 @@ public class TestSimpleTask extends AbstractCommandTest {
         SwingUtilities.invokeLater(
             new Runnable() {
                 public void run() {
-                    doTask();
+                    doSimpleTask();
                 }
             }
         );
         checkPostConditions();
     }
+
+    public void testSwingTaskFromBackgroundThreadWithParams() {
+           doSimpleTaskWithParams();
+           checkPostConditionsWithParams();
+       }
+
+    public void testSwingTaskFromEventThreadWithParams() {
+       SwingUtilities.invokeLater(
+           new Runnable() {
+               public void run() {
+                   doSimpleTaskWithParams();
+               }
+           }
+       );
+       checkPostConditionsWithParams();
+    }
+
 
     private void checkPostConditions() {
         waitForLatch();
@@ -53,10 +70,15 @@ public class TestSimpleTask extends AbstractCommandTest {
         checkFailureText();
     }
 
-    private Task doTask() {
+     private void checkPostConditionsWithParams() {
+        waitForLatch();
+        checkFailureText();
+    }
+
+    private Task doSimpleTask() {
         final Thread startThread = Thread.currentThread();
 
-        task = new Task<String>() {
+        task = new Task<String,String>() {
             public void doInEventThread() throws Exception {
                 assertOrdering(4, "doInEventThread");
                 assertInEventThread("doInEventThread");
@@ -65,8 +87,8 @@ public class TestSimpleTask extends AbstractCommandTest {
             }
         };
 
-        SwingCommand<String> c = new SwingCommand<String>() {
-            protected Task<String> createTask() {
+        SwingCommand<String,String> c = new SwingCommand<String,String>() {
+            protected Task<String,String> createTask() {
                 assertInThread(startThread, "createTask");
                 assertOrdering(1, "createTask");
                 return task;
@@ -108,6 +130,24 @@ public class TestSimpleTask extends AbstractCommandTest {
 
         assertEquals(Task.ExecutionState.NOT_RUN, task.getExecutionState());
         c.execute();
+        return task;
+    }
+
+
+    public Task doSimpleTaskWithParams() {
+        task = new Task<String,String>() {
+            public void doInEventThread() throws Exception {
+                assertIsTrue(getParameters() == testParameter, "Parameter Set Correctly");
+                latch.countDown();
+            }
+        };
+
+        SwingCommand<String,String> c = new SwingCommand<String,String>() {
+            protected Task<String,String> createTask() {
+                return task;
+            }
+        };
+        c.execute(testParameter);
         return task;
     }
 }

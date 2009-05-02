@@ -52,6 +52,25 @@ public class TestBackgroundTask extends AbstractCommandTest {
         checkFailureText();
     }
 
+    public void testBackgroundTaskWithParamsFromBackgroundThread() {
+        doTestParams();
+        checkEndStatesParams();
+    }
+
+    public void testBackgroundTaskWithParamsFromEventThread() {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                doTestParams();
+            }
+        });
+        checkEndStatesParams();
+    }
+
+     private void checkEndStatesParams() {
+        waitForLatch();
+        checkFailureText();
+    }
+
     private void doTest() {
         final Thread startThread = Thread.currentThread();
 
@@ -122,5 +141,30 @@ public class TestBackgroundTask extends AbstractCommandTest {
 
         assertEquals(Task.ExecutionState.NOT_RUN, task.getExecutionState());
         dummyCommand.execute();
+    }
+
+
+
+    private void doTestParams() {
+
+         task = new BackgroundTask() {
+            public void doInBackground() throws Exception {
+                assertIsTrue(getParameters() == testParameter, "Parameter is set");
+            }
+
+            public void doInEventThread() throws Exception {
+                assertIsTrue(getParameters() == testParameter, "Parameter is set");
+                latch.countDown();
+            }
+        };
+
+        final SwingCommand dummyCommand = new SwingCommand() {
+            protected Task createTask() {
+                return task;
+            }
+        };
+
+        assertEquals(Task.ExecutionState.NOT_RUN, task.getExecutionState());
+        dummyCommand.execute(testParameter);
     }
 }

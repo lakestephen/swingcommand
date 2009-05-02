@@ -23,13 +23,13 @@ package swingcommand;
  * which want to inherit a default implementation of the observer methods, overriding
  * only those which they are interested in
  */
-public class TaskListenerAdapter<P> implements TaskListener<P> {
+public class TaskListenerAdapter<E> implements TaskListener<E> {
 
     public void pending(Task task) {}
 
     public void started(Task task) {}
 
-    public void progress(Task task, P progress) {}
+    public void progress(Task task, E progress) {}
 
     public void success(Task task) {}
 

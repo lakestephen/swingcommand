@@ -39,8 +39,8 @@ public class TestCompositeTask extends AbstractCommandTest {
            startCount += 4;
        }
 
-       SwingCommand<String> compositeCommand = new SwingCommand<String>() {
-           protected Task<String> createTask() {
+       SwingCommand<Object,String> compositeCommand = new SwingCommand<Object,String>() {
+           protected Task<Object,String> createTask() {
                return compositeTask;
            }
        };

@@ -29,12 +29,12 @@ public class TestBackgroundTaskPendingState extends AbstractCommandTest {
 
         final DummyBackgroundTask task = new DummyBackgroundTask();
 
-        final SwingCommand<String> dummyCommand = new SwingCommand<String>() {
+        final SwingCommand<Object,String> dummyCommand = new SwingCommand<Object,String>() {
             public String toString() {
                 return "testPendingState";
             }
 
-            protected Task<String> createTask() {
+            protected Task<Object,String> createTask() {
                 assertOrdering(1, "createTask");
                 return task;
             }

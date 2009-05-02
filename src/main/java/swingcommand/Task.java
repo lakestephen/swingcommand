@@ -30,11 +30,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Tasks which do not need to run in the background should extend this class directly.
  * Tasks which have some background processing to perform in a subthread should extend BackgroundTask instead
  */
-public abstract class Task<P> {
+public abstract class Task<P,E> {
 
     private volatile ExecutionState executionState = ExecutionState.NOT_RUN;
     private volatile Throwable executionException;
-    private final CopyOnWriteArrayList<TaskListener<? super P>> taskListeners = new CopyOnWriteArrayList<TaskListener<? super P>>();
+    private final CopyOnWriteArrayList<TaskListener<? super E>> taskListeners = new CopyOnWriteArrayList<TaskListener<? super E>>();
+    private P parameters;
 
     protected abstract void doInEventThread() throws Exception;
 
@@ -50,6 +51,14 @@ public abstract class Task<P> {
      */
     public boolean isCancelled() {
         return false;
+    }
+
+    public void setParameters(P parameters) {
+        this.parameters = parameters;
+    }
+
+    public P getParameters() {
+        return parameters;
     }
 
     public void setExecutionState(ExecutionState executionState) {
@@ -68,25 +77,25 @@ public abstract class Task<P> {
         this.executionException = executionException;
     }
 
-    public void addTaskListener(TaskListener<? super P> t) {
+    public void addTaskListener(TaskListener<? super E> t) {
         synchronized (taskListeners) {
             this.taskListeners.add(t);
         }
     }
 
-    public void addTaskListeners(List<TaskListener<? super P>> listeners) {
+    public void addTaskListeners(List<TaskListener<? super E>> listeners) {
         synchronized (taskListeners) {
             this.taskListeners.addAll(listeners);
         }
     }
 
-    public void removeTaskListener(TaskListener<? super P> t) {
+    public void removeTaskListener(TaskListener<? super E> t) {
         synchronized (taskListeners) {
             this.taskListeners.remove(t);
         }
     }
 
-    public void removeTaskListeners(List<TaskListener<? super P>> listeners) {
+    public void removeTaskListeners(List<TaskListener<? super E>> listeners) {
         synchronized (taskListeners) {
             this.taskListeners.removeAll(listeners);
         }
@@ -98,7 +107,7 @@ public abstract class Task<P> {
         }
     }
 
-    List<TaskListener<? super P>> getTaskListeners() {
+    List<TaskListener<? super E>> getTaskListeners() {
         return this.taskListeners;
     }
 
@@ -108,7 +117,7 @@ public abstract class Task<P> {
      *
      * @param progress, objects containing a description of the progress made
      */
-    protected void fireProgress(P progress) {
+    protected void fireProgress(E progress) {
         TaskListenerSupport.fireProgress(taskListeners, this, progress);
     }
 

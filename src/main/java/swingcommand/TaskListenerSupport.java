@@ -30,7 +30,7 @@ class TaskListenerSupport {
 
     //pending is fired on the event thread using invoke later to avoid blocking a background thread which calls execute()
     //on the swing event queue (this can have very bad performance effects on busy background threads)
-    static <E> void firePending(final List<TaskListener<? super E>> executionObservers, final Task<E> task) {
+    static <P,E> void firePending(final List<TaskListener<? super E>> executionObservers, final Task<P,E> task) {
         for (final TaskListener<? super E> listener : executionObservers) {
             executeAsynchronouslyIfBackgroundThread(new Runnable(){
                 public void run() {
@@ -40,7 +40,7 @@ class TaskListenerSupport {
         }
     }
 
-    static <E> void fireStarted(final List<TaskListener<? super E>> executionObservers, final Task<E> task) {
+    static <P,E> void fireStarted(final List<TaskListener<? super E>> executionObservers, final Task<P,E> task) {
         for (final TaskListener<? super E> listener : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -50,7 +50,7 @@ class TaskListenerSupport {
         }
     }
 
-    static <E> void fireFinished(final List<TaskListener<? super E>> executionObservers, final Task<E> task) {
+    static <P,E> void fireFinished(final List<TaskListener<? super E>> executionObservers, final Task<P,E> task) {
         for (final TaskListener<? super E> listener : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -60,7 +60,7 @@ class TaskListenerSupport {
         }
     }
 
-    static <E> void fireError(final List<TaskListener<? super E>> executionObservers, final Task<E> task, final Throwable t) {
+    static <P,E> void fireError(final List<TaskListener<? super E>> executionObservers, final Task<P,E> task, final Throwable t) {
         for (final TaskListener<? super E> listener : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
@@ -70,9 +70,9 @@ class TaskListenerSupport {
         }
     }
 
-    static <E> void fireProgress(final List<TaskListener<? super E>> executionObservers, final Task<E> task, final E progress) {
+    static <P,E> void fireProgress(final List<TaskListener<? super E>> executionObservers, final Task<P,E> task, final E progress) {
         for (final TaskListener<? super E> listener : executionObservers) {
-            executeSynchronouslyOnEventThread(new Runnable(){
+            executeAsynchronouslyIfBackgroundThread(new Runnable(){
                 public void run() {
                     //this synchronized block is to handle the case where the event thread might not otherwise
                     //see state changes to fields in the execution carried out in the background thread
@@ -86,7 +86,7 @@ class TaskListenerSupport {
     }
 
 
-    static <E> void fireSuccess(List<TaskListener<? super E>> executionObservers, final Task<E> task) {
+    static <P,E> void fireSuccess(List<TaskListener<? super E>> executionObservers, final Task<P,E> task) {
         for (final TaskListener<? super E> listener : executionObservers) {
             executeSynchronouslyOnEventThread(new Runnable(){
                 public void run() {
